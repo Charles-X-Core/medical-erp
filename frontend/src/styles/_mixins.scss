@@ -1,0 +1,171 @@
+@use 'variables' as *;
+
+// Responsive
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == mobile {
+    @media (max-width: $bp-mobile) { @content; }
+  }
+  @if $breakpoint == tablet {
+    @media (max-width: $bp-tablet) { @content; }
+  }
+  @if $breakpoint == desktop {
+    @media (max-width: $bp-desktop) { @content; }
+  }
+  @if $breakpoint == wide {
+    @media (max-width: $bp-wide) { @content; }
+  }
+}
+
+// Typography
+@mixin text-xs { font-size: $fs-xs; line-height: 1.4; }
+@mixin text-sm { font-size: $fs-sm; line-height: 1.4; }
+@mixin text-base { font-size: $fs-base; line-height: 1.5; }
+@mixin text-md { font-size: $fs-md; line-height: 1.4; }
+@mixin text-lg { font-size: $fs-lg; line-height: 1.3; }
+@mixin text-xl { font-size: $fs-xl; line-height: 1.2; }
+@mixin text-2xl { font-size: $fs-2xl; line-height: 1.2; }
+
+// Buttons
+@mixin btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  padding: $space-3 $space-5;
+  border-radius: $radius-md;
+  font-family: $font-family;
+  font-size: $fs-sm;
+  font-weight: $fw-medium;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: none;
+  outline: none;
+}
+
+@mixin btn-primary {
+  @include btn-base;
+  background: linear-gradient(135deg, $accent-primary, $accent-dark);
+  color: $bg-primary;
+  box-shadow: $shadow-glow;
+
+  &:hover {
+    background: linear-gradient(135deg, $accent-primary-hover, $accent-primary);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+@mixin btn-secondary {
+  @include btn-base;
+  background: transparent;
+  color: $text-secondary;
+  border: 1px solid $border-color;
+
+  &:hover {
+    background: rgba(37, 211, 255, 0.08);
+    border-color: $border-strong;
+    color: $text-primary;
+  }
+}
+
+// Inputs
+@mixin input-base {
+  width: 100%;
+  padding: $space-3 $space-4;
+  background: rgba(12, 70, 119, 0.5);
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  color: $text-primary;
+  font-family: $font-family;
+  font-size: $fs-base;
+  transition: all 150ms ease;
+
+  &::placeholder {
+    color: $text-muted;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $accent-primary;
+    box-shadow: 0 0 0 3px rgba(37, 211, 255, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Cards
+@mixin card {
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  padding: $space-6;
+  transition: all 200ms ease;
+
+  &:hover {
+    border-color: $border-strong;
+    box-shadow: $shadow-card;
+  }
+}
+
+// Glass effect (lighter for ERP panels)
+@mixin glass {
+  background: rgba(12, 70, 119, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(42, 122, 191, 0.3);
+  border-radius: $radius-lg;
+}
+
+// Scrollbar custom
+@mixin custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(42, 122, 191, 0.4);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(42, 122, 191, 0.6);
+  }
+}
+
+// Flex helpers
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Container
+@mixin container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 $space-6;
+}

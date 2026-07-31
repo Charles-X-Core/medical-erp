@@ -1,0 +1,118 @@
+// ============================================
+// Medical ERP — Crystal Blue Panel Design System
+// Adaptado de Optimal Health NOW Landing
+// ============================================
+
+// Aqua Scale
+$aqua-900: #174D72;
+$aqua-800: #266C94;
+$aqua-700: #3290B0;
+$aqua-600: #5794B1;
+$aqua-500: #5FAED0;
+$aqua-400: #71C9E7;
+$aqua-300: #9AD6EC;
+$aqua-200: #B8E4F4;
+$aqua-100: #D6ECEA;
+$aqua-50: #F4F5F5;
+
+// Neutrals (blue-tinted)
+$neutral-50: #F8FAFC;
+$neutral-100: #EEF2F7;
+$neutral-200: #D8E2EC;
+$neutral-300: #CBD5E1;
+$neutral-400: #94A3B8;
+$neutral-500: #64748B;
+$neutral-600: #475569;
+$neutral-700: #334155;
+$neutral-800: #1E293B;
+$neutral-900: #0F172A;
+
+// Accents
+$gold: #C9A96E;
+$gold-light: #D4BC8A;
+$gold-dark: #A88B52;
+
+// ERP Dark Theme (principal)
+$bg-primary: #062B52;
+$bg-surface: #0C4677;
+$bg-card: #0C4677;
+$bg-card-hover: #0E5A96;
+$bg-elevated: #0E5A96;
+
+$text-primary: #FFFFFF;
+$text-secondary: #D8E7F5;
+$text-muted: #8EA9C3;
+
+$accent-primary: #25D3FF;
+$accent-primary-hover: #71E6FF;
+$accent-dark: #008FEA;
+
+$border-color: rgba(42, 122, 191, 0.35);
+$border-strong: rgba(71, 230, 255, 0.45);
+
+// Semantic
+$success: #4FD4B5;
+$error: #F36A7E;
+$warning: #FFC857;
+
+// Typography
+$font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+$fs-xs: 0.75rem;
+$fs-sm: 0.875rem;
+$fs-base: 1rem;
+$fs-md: 1.125rem;
+$fs-lg: 1.25rem;
+$fs-xl: 1.5rem;
+$fs-2xl: 1.75rem;
+$fs-3xl: 2rem;
+$fs-4xl: 2.5rem;
+
+$fw-light: 300;
+$fw-regular: 400;
+$fw-medium: 500;
+$fw-semibold: 600;
+$fw-bold: 700;
+
+// Spacing
+$space-1: 0.25rem;
+$space-2: 0.5rem;
+$space-3: 0.75rem;
+$space-4: 1rem;
+$space-5: 1.25rem;
+$space-6: 1.5rem;
+$space-8: 2rem;
+$space-10: 2.5rem;
+$space-12: 3rem;
+$space-16: 4rem;
+
+// Border radius
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 14px;
+$radius-xl: 20px;
+
+// Shadows
+$shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+$shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+$shadow-lg: 0 10px 30px rgba(2, 26, 54, 0.5);
+$shadow-card: 0 4px 20px rgba(2, 26, 54, 0.45);
+$shadow-glow: 0 0 20px rgba(37, 211, 255, 0.15);
+
+// Layout
+$sidebar-width: 260px;
+$sidebar-collapsed: 72px;
+$header-height: 64px;
+
+// Breakpoints
+$bp-mobile: 640px;
+$bp-tablet: 768px;
+$bp-desktop: 1024px;
+$bp-wide: 1280px;
+
+// Z-index
+$z-dropdown: 100;
+$z-sidebar: 200;
+$z-header: 300;
+$z-modal: 400;
+$z-toast: 500;

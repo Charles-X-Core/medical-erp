@@ -1,0 +1,29 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.login-page,
+.otp-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+
+  &__bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 70% 50%, rgba(12, 70, 119, 0.8) 0%, transparent 60%),
+      radial-gradient(ellipse at 20% 80%, rgba(37, 211, 255, 0.06) 0%, transparent 50%),
+      $bg-primary;
+  }
+
+  &__content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    padding: $space-6;
+  }
+}

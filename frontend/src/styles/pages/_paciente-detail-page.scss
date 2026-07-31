@@ -1,0 +1,176 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.paciente-detail-page {
+  padding: $space-6;
+
+  &__header {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: $space-4;
+    margin-bottom: $space-6;
+  }
+
+  &__title-group {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  &__title {
+    font-size: $fs-2xl;
+    font-weight: $fw-semibold;
+    color: $text-primary;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-3;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: $space-2;
+    margin-bottom: $space-6;
+    border-bottom: 1px solid $border-color;
+  }
+
+  &__tab {
+    padding: $space-3 $space-5;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: $text-muted;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &--active,
+    &:hover {
+      color: $accent-primary;
+      border-bottom-color: $accent-primary;
+    }
+  }
+
+  &__content {
+    min-height: 200px;
+  }
+
+  &__loading,
+  &__error {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-4;
+    padding: $space-12;
+    color: $text-muted;
+  }
+
+  &__error {
+    color: $error;
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-4;
+
+  @include respond-to(tablet) {
+    grid-template-columns: 1fr;
+  }
+
+  &--4 {
+    grid-template-columns: repeat(4, 1fr);
+
+    @include respond-to(tablet) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include respond-to(mobile) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.detail-card {
+  @include card;
+  padding: $space-5;
+
+  h4 {
+    font-size: $fs-md;
+    font-weight: $fw-semibold;
+    color: $text-primary;
+    margin-bottom: $space-3;
+    padding-bottom: $space-2;
+    border-bottom: 1px solid $border-color;
+  }
+
+  p {
+    color: $text-secondary;
+    margin-bottom: $space-2;
+    font-size: $fs-sm;
+  }
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+}
+
+.detail-list {
+  list-style: none;
+
+  li {
+    padding: $space-2 0;
+    border-bottom: 1px solid rgba($border-color, 0.5);
+    color: $text-secondary;
+    font-size: $fs-sm;
+  }
+
+  &__row {
+    @include flex-between;
+  }
+}
+
+.estado-badge {
+  display: inline-flex;
+  padding: $space-1 $space-3;
+  border-radius: 9999px;
+  font-size: $fs-xs;
+  font-weight: $fw-medium;
+  text-transform: capitalize;
+
+  &--activo {
+    background: rgba($success, 0.15);
+    color: $success;
+  }
+
+  &--inactivo {
+    background: rgba($error, 0.15);
+    color: $error;
+  }
+}
+
+.pais-badge {
+  display: inline-flex;
+  padding: $space-1 $space-3;
+  border-radius: $radius-sm;
+  background: rgba($accent-primary, 0.1);
+  color: $accent-primary;
+  font-size: $fs-xs;
+  font-weight: $fw-semibold;
+}
+
+.badge {
+  display: inline-flex;
+  margin-left: $space-2;
+  padding: 0.125rem $space-2;
+  border-radius: 9999px;
+  font-size: $fs-xs;
+  font-weight: $fw-medium;
+
+  &--primary {
+    background: rgba($accent-primary, 0.15);
+    color: $accent-primary;
+  }
+}
