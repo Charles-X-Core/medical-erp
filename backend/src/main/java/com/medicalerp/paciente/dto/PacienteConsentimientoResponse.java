@@ -17,11 +17,19 @@ public class PacienteConsentimientoResponse {
     private Long id;
     private Long pacienteId;
     private Long clinicaId;
+    private Long templateId;
     private String tipo;
     private Boolean aceptado;
     private LocalDate fecha;
     private String version;
     private String ipAddress;
     private String userAgent;
+    private LocalDateTime firmaFecha;
+    private String nombreArchivo;
+    private String hashDocumento;
+    private Integer tamanoArchivo;
+    private String estadoDocumento;
+    private Long tratamientoId;
+    private Long consultaId;
     private LocalDateTime createdAt;
 }

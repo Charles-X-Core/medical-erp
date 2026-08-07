@@ -7,6 +7,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 @Mapper(componentModel = "spring")
 public interface CitaMapper {
 
@@ -46,7 +49,16 @@ public interface CitaMapper {
     @Mapping(target = "reprogramadaDe", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "fechaHora", ignore = true)
     Cita toEntity(CitaRequest request);
+
+    default void setFechaHora(Cita cita, LocalDate fecha, LocalTime hora) {
+        if (fecha != null && hora != null) {
+            cita.setFechaHora(fecha.atTime(hora));
+        } else if (fecha != null) {
+            cita.setFechaHora(fecha.atStartOfDay());
+        }
+    }
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "paciente", ignore = true)
@@ -61,6 +73,7 @@ public interface CitaMapper {
     @Mapping(target = "reprogramadaDe", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "fechaHora", ignore = true)
     void updateEntity(@MappingTarget Cita entity, CitaRequest request);
 
 }

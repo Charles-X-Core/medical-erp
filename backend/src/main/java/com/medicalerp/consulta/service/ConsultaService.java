@@ -3,6 +3,7 @@ package com.medicalerp.consulta.service;
 import com.medicalerp.common.exception.BusinessRuleException;
 import com.medicalerp.common.exception.ResourceNotFoundException;
 import com.medicalerp.common.util.Auditable;
+import com.medicalerp.common.util.JsonMapperHelper;
 import com.medicalerp.consulta.dto.ConsultaRequest;
 import com.medicalerp.consulta.dto.ConsultaResponse;
 import com.medicalerp.consulta.entity.Consulta;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Consulta Service (DOM-CON-001)
@@ -29,7 +31,7 @@ public class ConsultaService {
     private final ConsultaRepository consultaRepository;
     private final HistoriaClinicaRepository historiaRepository;
     private final ConsultaMapper consultaMapper;
-    private final ConsultaMapper.JsonMapperHelper jsonHelper;
+    private final JsonMapperHelper jsonHelper;
 
     @Transactional
     @Auditable
@@ -58,6 +60,13 @@ public class ConsultaService {
     public Page<ConsultaResponse> getByHistoria(Long historiaId, Pageable pageable) {
         return consultaRepository.findByHistoriaId(historiaId, pageable)
                 .map(c -> consultaMapper.toResponse(c, jsonHelper));
+    }
+
+    public List<ConsultaResponse> getByPacienteId(Long pacienteId) {
+        return consultaRepository.findByPacienteId(pacienteId)
+                .stream()
+                .map(c -> consultaMapper.toResponse(c, jsonHelper))
+                .toList();
     }
 
     @Transactional

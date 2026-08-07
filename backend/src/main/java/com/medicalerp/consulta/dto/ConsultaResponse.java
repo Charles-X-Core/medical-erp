@@ -1,5 +1,6 @@
 package com.medicalerp.consulta.dto;
 
+import com.medicalerp.common.valueobject.SignosVitales;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

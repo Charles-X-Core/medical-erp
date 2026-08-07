@@ -90,6 +90,9 @@ public class OtpService {
         emailService.sendOtpEmail(email, codigo, expirationMinutes);
 
         log.info("OTP generated and sent for email={}, ip={}, id={}", maskEmail(email), ipAddress, saved.getId());
+        log.warn("╔══════════════════════════════════════╗");
+        log.warn("║  OTP CODE for {}: {}             ║", maskEmail(email), codigo);
+        log.warn("╚══════════════════════════════════════╝");
         return saved;
     }
 

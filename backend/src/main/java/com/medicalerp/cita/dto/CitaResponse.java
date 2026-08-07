@@ -27,6 +27,7 @@ public class CitaResponse {
     private String tipoCitaNombre;
     private LocalDate fecha;
     private LocalTime hora;
+    private String prioridad;
     private Integer duracionMinutos;
     private String motivo;
     private String motivoEditado;

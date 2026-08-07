@@ -1,5 +1,7 @@
 package com.medicalerp.config;
 
+import com.medicalerp.clinica.entity.Clinica;
+import com.medicalerp.clinica.repository.ClinicaRepository;
 import com.medicalerp.seguridad.entity.Permiso;
 import com.medicalerp.seguridad.entity.Rol;
 import com.medicalerp.seguridad.entity.Usuario;
@@ -29,10 +31,22 @@ public class TestDataInitializer implements CommandLineRunner {
     private final RolRepository rolRepository;
     private final PermisoRepository permisoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ClinicaRepository clinicaRepository;
 
     @Override
     @Transactional
     public void run(String... args) {
+        // Create clinica
+        Clinica clinica = clinicaRepository.findById(1L).orElseGet(() ->
+            clinicaRepository.save(Clinica.builder()
+                .nombre("Clínica Demo - Optimal Health")
+                .pais("PE")
+                .timezone("America/Lima")
+                .moneda("PEN")
+                .activa(true)
+                .build())
+        );
+
         // Create permissions
         Permiso pRead = createPermisoIfNotExists("paciente:leer");
         Permiso pWrite = createPermisoIfNotExists("paciente:escribir");
@@ -64,6 +78,7 @@ public class TestDataInitializer implements CommandLineRunner {
         // Create admin user
         if (usuarioRepository.findByEmail("admin@clinica.com").isEmpty()) {
             Usuario admin = Usuario.builder()
+                    .clinicaId(clinica.getId())
                     .nombre("Admin Sistema")
                     .email("admin@clinica.com")
                     .password(passwordEncoder.encode("Admin123"))
@@ -76,6 +91,7 @@ public class TestDataInitializer implements CommandLineRunner {
         // Create test doctora
         if (usuarioRepository.findByEmail("maria@clinica.com").isEmpty()) {
             Usuario doctora = Usuario.builder()
+                    .clinicaId(clinica.getId())
                     .nombre("Dr. Maria Garcia")
                     .email("maria@clinica.com")
                     .password(passwordEncoder.encode("Doctora123"))
@@ -88,6 +104,7 @@ public class TestDataInitializer implements CommandLineRunner {
         // Create test enfermera
         if (usuarioRepository.findByEmail("ana@clinica.com").isEmpty()) {
             Usuario enfermera = Usuario.builder()
+                    .clinicaId(clinica.getId())
                     .nombre("Enfermera Ana Lopez")
                     .email("ana@clinica.com")
                     .password(passwordEncoder.encode("Enfermera123"))
@@ -106,7 +123,16 @@ public class TestDataInitializer implements CommandLineRunner {
 
     private Permiso createPermisoIfNotExists(String nombre) {
         return permisoRepository.findByNombre(nombre)
-                .orElseGet(() -> permisoRepository.save(Permiso.builder().nombre(nombre).build()));
+                .orElseGet(() -> {
+                    String[] parts = nombre.split(":");
+                    String modulo = parts.length > 0 ? parts[0] : "general";
+                    String accion = parts.length > 1 ? parts[1] : "acceder";
+                    return permisoRepository.save(Permiso.builder()
+                            .nombre(nombre)
+                            .modulo(modulo)
+                            .accion(accion)
+                            .build());
+                });
     }
 
     private Rol createRolIfNotExists(String nombre, Set<Permiso> permisos) {

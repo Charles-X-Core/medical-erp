@@ -17,6 +17,9 @@ public interface PacienteConsentimientoRepository extends JpaRepository<Paciente
 
     Optional<PacienteConsentimiento> findByIdAndClinicaId(Long id, Long clinicaId);
 
+    List<PacienteConsentimiento> findByPacienteIdAndClinicaIdAndTratamientoId(
+            Long pacienteId, Long clinicaId, Long tratamientoId);
+
     @Modifying
     @Query("UPDATE PacienteConsentimiento c SET c.deletedAt = CURRENT_TIMESTAMP " +
            "WHERE c.paciente.id = :pacienteId AND c.deletedAt IS NULL")

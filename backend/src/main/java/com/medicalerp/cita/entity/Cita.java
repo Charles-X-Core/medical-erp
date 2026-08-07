@@ -40,11 +40,12 @@ public class Cita {
     @JoinColumn(name = "tipo_cita_id")
     private TipoCita tipoCita;
 
-    @Column(name = "fecha", nullable = false)
-    private LocalDate fecha;
+    @Column(name = "fecha_hora", nullable = false)
+    private LocalDateTime fechaHora;
 
-    @Column(name = "hora", nullable = false)
-    private LocalTime hora;
+    @Column(name = "prioridad", length = 20)
+    @Builder.Default
+    private String prioridad = "NORMAL";
 
     @Column(name = "duracion_minutos")
     @Builder.Default
@@ -85,5 +86,35 @@ public class Cita {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @Transient
+    public LocalDate getFecha() {
+        return fechaHora != null ? fechaHora.toLocalDate() : null;
+    }
+
+    public void setFecha(LocalDate fecha) {
+        if (fechaHora == null) {
+            fechaHora = fecha.atStartOfDay();
+        } else {
+            fechaHora = fecha.atTime(fechaHora.toLocalTime());
+        }
+    }
+
+    @Transient
+    public LocalTime getHora() {
+        return fechaHora != null ? fechaHora.toLocalTime() : null;
+    }
+
+    public void setHora(LocalTime hora) {
+        if (fechaHora == null) {
+            fechaHora = LocalDateTime.of(LocalDate.now(), hora);
+        } else {
+            fechaHora = fechaHora.toLocalDate().atTime(hora);
+        }
+    }
+
+    public void setFechaHora(LocalDateTime fechaHora) {
+        this.fechaHora = fechaHora;
+    }
 
 }

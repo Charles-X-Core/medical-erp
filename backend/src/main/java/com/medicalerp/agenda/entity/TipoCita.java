@@ -30,6 +30,18 @@ public class TipoCita {
     @Builder.Default
     private Integer duracionMinutos = 30;
 
+    @Column(name = "buffer_minutos")
+    @Builder.Default
+    private Integer bufferMinutos = 0;
+
+    @Column(name = "prioridad_default", length = 20)
+    @Builder.Default
+    private String prioridadDefault = "NORMAL";
+
+    @Column(name = "requiere_tratamiento")
+    @Builder.Default
+    private Boolean requiereTratamiento = false;
+
     @Column(name = "descripcion", length = 255)
     private String descripcion;
 

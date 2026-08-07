@@ -6,6 +6,8 @@ import com.medicalerp.common.util.SecurityUtils;
 import com.medicalerp.paciente.dto.PacienteCompletoRequest;
 import com.medicalerp.paciente.dto.PacienteRequest;
 import com.medicalerp.paciente.dto.PacienteResponse;
+import com.medicalerp.paciente.dto.consentimiento.IntakeRequest;
+import com.medicalerp.paciente.dto.consentimiento.IntakeResponse;
 import com.medicalerp.paciente.service.PacienteService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -105,6 +107,15 @@ public class PacienteController {
             @PathVariable String estado,
             Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(pacienteService.getByEstado(estado, pageable)));
+    }
+
+    @PostMapping("/intake")
+    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<IntakeResponse>> intake(
+            @Valid @RequestBody IntakeRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(pacienteService.intake(request),
+                        "Intake completado exitosamente"));
     }
 
 }

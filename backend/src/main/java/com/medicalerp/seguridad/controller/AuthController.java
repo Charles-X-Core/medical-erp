@@ -2,10 +2,12 @@ package com.medicalerp.seguridad.controller;
 
 import com.medicalerp.common.dto.ApiResponse;
 import com.medicalerp.seguridad.dto.*;
+import com.medicalerp.seguridad.repository.OtpCodeRepository;
 import com.medicalerp.seguridad.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final OtpCodeRepository otpCodeRepository;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
@@ -60,6 +63,22 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<?>> getCurrentUser() {
         return ResponseEntity.ok(ApiResponse.success(authService.getCurrentUser()));
+    }
+
+    @GetMapping("/dev/otp-code")
+    @Profile("dev")
+    public ResponseEntity<?> getDevOtpCode(@RequestParam String email) {
+        return otpCodeRepository.findTopByEmailAndUsadoFalseOrderByCreatedAtDesc(email)
+                .map(otp -> ResponseEntity.ok((Object) java.util.Map.of(
+                        "success", true,
+                        "codigo", otp.getCodigo(),
+                        "email", otp.getEmail(),
+                        "expiraAt", otp.getExpiraAt().toString()
+                )))
+                .orElse(ResponseEntity.ok((Object) java.util.Map.of(
+                        "success", false,
+                        "message", "No hay OTP pendiente para " + email
+                )));
     }
 
     private String extractIpAddress(HttpServletRequest request) {

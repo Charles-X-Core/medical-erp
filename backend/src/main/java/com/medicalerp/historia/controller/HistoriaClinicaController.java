@@ -6,6 +6,8 @@ import com.medicalerp.historia.dto.HistoriaClinicaResponse;
 import com.medicalerp.historia.service.HistoriaClinicaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +28,12 @@ public class HistoriaClinicaController {
     public ResponseEntity<ApiResponse<HistoriaClinicaResponse>> create(@Valid @RequestBody HistoriaClinicaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(historiaService.create(request), "Historia clínica creada exitosamente"));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Page<HistoriaClinicaResponse>>> listar(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(historiaService.listar(pageable)));
     }
 
     @GetMapping("/{id}")

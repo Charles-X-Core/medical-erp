@@ -467,4 +467,80 @@ public class PacienteService {
         );
         return response;
     }
+
+    // ==================== INTAKE (Registro Rápido) ====================
+
+    @Transactional
+    @Auditable
+    public com.medicalerp.paciente.dto.consentimiento.IntakeResponse intake(
+            com.medicalerp.paciente.dto.consentimiento.IntakeRequest request) {
+        Long clinicaId = securityUtils.getCurrentClinicaId();
+        if (clinicaId == null) {
+            throw new BusinessRuleException("VR-PAC-001", "Usuario sin clínica asignada");
+        }
+
+        com.medicalerp.paciente.dto.consentimiento.IntakeRequest.PacienteRegistroRapidoRequest req = request.getPaciente();
+
+        if (req.getDni() != null && !req.getDni().isBlank()) {
+            if (pacienteRepository.existsByDniAndTipoDocumento(req.getDni(), req.getTipoDocumento())) {
+                throw new DuplicateResourceException("dni", req.getDni());
+            }
+        }
+
+        Paciente paciente = new Paciente();
+        paciente.setApellidoPaterno(req.getApellidoPaterno());
+        paciente.setApellidoMaterno(req.getApellidoMaterno());
+        paciente.setNombres(req.getNombres());
+        paciente.setDni(req.getDni());
+        paciente.setTipoDocumento(req.getTipoDocumento() != null ? req.getTipoDocumento() : "dni");
+        paciente.setTelefono(req.getTelefono());
+        paciente.setEmail(req.getEmail());
+        paciente.setFechaNacimiento(req.getFechaNacimiento());
+        paciente.setSexo(req.getSexo());
+        paciente.setDireccionLinea1(req.getDireccionLinea1());
+        paciente.setDireccionLinea2(req.getDireccionLinea2());
+        paciente.setCiudad(req.getCiudad());
+        paciente.setEstadoProvincia(req.getEstadoProvincia());
+        paciente.setCodigoPostal(req.getCodigoPostal());
+        paciente.setDireccionPais(req.getDireccionPais());
+        paciente.setClinicaId(clinicaId);
+        paciente.setEstado("activo");
+
+        Paciente savedPaciente = pacienteRepository.save(paciente);
+
+        List<com.medicalerp.paciente.dto.consentimiento.IntakeResponse.IntakeConsentimientoResult> resultados =
+                new java.util.ArrayList<>();
+
+        if (request.getConsentimientos() != null) {
+            for (com.medicalerp.paciente.dto.consentimiento.IntakeRequest.ConsentimientoIntakeRequest conReq :
+                    request.getConsentimientos()) {
+                PacienteConsentimiento con = new PacienteConsentimiento();
+                con.setPaciente(savedPaciente);
+                con.setClinicaId(clinicaId);
+                con.setTipo(conReq.getTipo());
+                con.setVersion(conReq.getVersion());
+                con.setAceptado(false);
+                con.setEstadoDocumento(
+                        com.medicalerp.paciente.enums.EstadoConsentimientoDocumento.BORRADOR);
+
+                PacienteConsentimiento savedCon = consentimientoRepository.save(con);
+
+                resultados.add(
+                        com.medicalerp.paciente.dto.consentimiento.IntakeResponse.IntakeConsentimientoResult
+                                .builder()
+                                .consentimientoId(savedCon.getId())
+                                .tipo(savedCon.getTipo())
+                                .estadoDocumento(savedCon.getEstadoDocumento().name())
+                                .hashDocumento(null)
+                                .firmado(false)
+                                .build());
+            }
+        }
+
+        return com.medicalerp.paciente.dto.consentimiento.IntakeResponse.builder()
+                .pacienteId(savedPaciente.getId())
+                .pacienteNombreCompleto(savedPaciente.getApellidoPaterno() + " " + savedPaciente.getNombres())
+                .consentimientos(resultados)
+                .build();
+    }
 }

@@ -29,7 +29,12 @@ public class PacienteResponse {
     private LocalDate fechaNacimiento;
     private String sexo;
     private String estadoCivil;
-    private String direccion;
+    private String direccionLinea1;
+    private String direccionLinea2;
+    private String ciudad;
+    private String estadoProvincia;
+    private String codigoPostal;
+    private String direccionPais;
     private String lugarNacimiento;
     private String lugarProcedencia;
     private String gradoInstruccion;

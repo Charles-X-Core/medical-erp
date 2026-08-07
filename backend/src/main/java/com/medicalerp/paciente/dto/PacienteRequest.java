@@ -51,8 +51,23 @@ public class PacienteRequest {
     @Size(max = 50, message = "El estado civil no puede exceder 50 caracteres")
     private String estadoCivil;
 
-    @Size(max = 500, message = "La dirección no puede exceder 500 caracteres")
-    private String direccion;
+    @Size(max = 255, message = "La dirección línea 1 no puede exceder 255 caracteres")
+    private String direccionLinea1;
+
+    @Size(max = 255, message = "La dirección línea 2 no puede exceder 255 caracteres")
+    private String direccionLinea2;
+
+    @Size(max = 100, message = "La ciudad no puede exceder 100 caracteres")
+    private String ciudad;
+
+    @Size(max = 100, message = "El estado/provincia no puede exceder 100 caracteres")
+    private String estadoProvincia;
+
+    @Size(max = 20, message = "El código postal no puede exceder 20 caracteres")
+    private String codigoPostal;
+
+    @Size(max = 2, message = "El país no puede exceder 2 caracteres")
+    private String direccionPais;
 
     @Size(max = 255, message = "El lugar de nacimiento no puede exceder 255 caracteres")
     private String lugarNacimiento;

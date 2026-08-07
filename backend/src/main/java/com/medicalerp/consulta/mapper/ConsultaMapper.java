@@ -1,20 +1,17 @@
 package com.medicalerp.consulta.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.medicalerp.common.util.JsonMapperHelper;
+import com.medicalerp.common.valueobject.SignosVitales;
 import com.medicalerp.consulta.dto.*;
 import com.medicalerp.consulta.entity.Consulta;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.*;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Consulta Mapper with JSON conversion for complex fields
  */
-@Mapper(componentModel = "spring", uses = ConsultaMapper.JsonMapperHelper.class)
+@Mapper(componentModel = "spring")
 public interface ConsultaMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -57,53 +54,24 @@ public interface ConsultaMapper {
         return consulta.getHistoria().getPaciente().getApellidoPaterno() + " " + consulta.getHistoria().getPaciente().getNombres();
     }
 
-    @Slf4j
-    @Component
-    @RequiredArgsConstructor
-    class JsonMapperHelper {
-        private final ObjectMapper objectMapper;
+    @Named("toJson")
+    default String toJson(Object value, @Context JsonMapperHelper jsonHelper) {
+        return jsonHelper.toJson(value);
+    }
 
-        @Named("toJson")
-        public String toJson(Object value) {
-            if (value == null) return null;
-            try {
-                return objectMapper.writeValueAsString(value);
-            } catch (JsonProcessingException e) {
-                log.error("Error serializing to JSON", e);
-                return null;
-            }
-        }
+    @Named("fromJsonSignos")
+    default SignosVitales fromJsonSignos(String json, @Context JsonMapperHelper jsonHelper) {
+        return jsonHelper.fromJson(json, SignosVitales.class);
+    }
 
-        @Named("fromJsonSignos")
-        public SignosVitales fromJsonSignos(String json) {
-            return fromJson(json, SignosVitales.class);
-        }
+    @Named("fromJsonDiagnosticos")
+    default List<Diagnostico> fromJsonDiagnosticos(String json, @Context JsonMapperHelper jsonHelper) {
+        return jsonHelper.fromJsonList(json, Diagnostico.class);
+    }
 
-        @Named("fromJsonDiagnosticos")
-        public List<Diagnostico> fromJsonDiagnosticos(String json) {
-            if (json == null || json.isBlank()) return null;
-            try {
-                return objectMapper.readValue(json, objectMapper.getTypeFactory().constructCollectionType(List.class, Diagnostico.class));
-            } catch (JsonProcessingException e) {
-                log.error("Error deserializing diagnosticos", e);
-                return null;
-            }
-        }
-
-        @Named("fromJsonPlan")
-        public PlanTratamiento fromJsonPlan(String json) {
-            return fromJson(json, PlanTratamiento.class);
-        }
-
-        private <T> T fromJson(String json, Class<T> clazz) {
-            if (json == null || json.isBlank()) return null;
-            try {
-                return objectMapper.readValue(json, clazz);
-            } catch (JsonProcessingException e) {
-                log.error("Error deserializing JSON", e);
-                return null;
-            }
-        }
+    @Named("fromJsonPlan")
+    default PlanTratamiento fromJsonPlan(String json, @Context JsonMapperHelper jsonHelper) {
+        return jsonHelper.fromJson(json, PlanTratamiento.class);
     }
 
 }

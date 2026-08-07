@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * Consulta Controller (API-002)
  */
@@ -42,6 +44,12 @@ public class ConsultaController {
             @PathVariable Long historiaId,
             Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(consultaService.getByHistoria(historiaId, pageable)));
+    }
+
+    @GetMapping("/paciente/{pacienteId}")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<ConsultaResponse>>> getByPacienteId(@PathVariable Long pacienteId) {
+        return ResponseEntity.ok(ApiResponse.success(consultaService.getByPacienteId(pacienteId)));
     }
 
     @PutMapping("/{id}")

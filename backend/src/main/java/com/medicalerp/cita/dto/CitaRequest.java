@@ -26,11 +26,15 @@ public class CitaRequest {
 
     private Long tipoCitaId;
 
+    private Long tratamientoId;
+
     @NotNull(message = "La fecha es requerida")
     private LocalDate fecha;
 
     @NotNull(message = "La hora es requerida")
     private LocalTime hora;
+
+    private String prioridad;
 
     private Integer duracionMinutos;
 

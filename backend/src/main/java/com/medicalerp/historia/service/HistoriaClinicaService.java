@@ -11,6 +11,8 @@ import com.medicalerp.historia.repository.HistoriaClinicaRepository;
 import com.medicalerp.paciente.entity.Paciente;
 import com.medicalerp.paciente.repository.PacienteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +60,11 @@ public class HistoriaClinicaService {
         HistoriaClinica historia = historiaRepository.findByPacienteId(pacienteId)
                 .orElseThrow(() -> new ResourceNotFoundException("HistoriaClinica del paciente", pacienteId));
         return historiaMapper.toResponse(historia);
+    }
+
+    public Page<HistoriaClinicaResponse> listar(Pageable pageable) {
+        return historiaRepository.findAll(pageable)
+                .map(historiaMapper::toResponse);
     }
 
     @Transactional

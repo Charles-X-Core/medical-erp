@@ -38,8 +38,9 @@ public class CitaController {
     public ResponseEntity<ApiResponse<Page<CitaResponse>>> getAll(
             @RequestParam(required = false) LocalDate fecha,
             @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Long usuarioId,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(citaService.getAll(fecha, estado, pageable)));
+        return ResponseEntity.ok(ApiResponse.success(citaService.getAll(fecha, estado, usuarioId, pageable)));
     }
 
     @GetMapping("/{id}")
@@ -58,6 +59,12 @@ public class CitaController {
     @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<CitaResponse>>> getProximas() {
         return ResponseEntity.ok(ApiResponse.success(citaService.getProximas()));
+    }
+
+    @GetMapping("/paciente/{pacienteId}")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<CitaResponse>>> getByPacienteId(@PathVariable Long pacienteId) {
+        return ResponseEntity.ok(ApiResponse.success(citaService.getByPacienteId(pacienteId)));
     }
 
     @PutMapping("/{id}")
@@ -94,6 +101,14 @@ public class CitaController {
             @PathVariable Long id,
             @RequestParam(required = false) String motivo) {
         return ResponseEntity.ok(ApiResponse.success(citaService.cancelar(id, motivo), "Cita cancelada"));
+    }
+
+    @PatchMapping("/{id}/reprogramar")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CitaResponse>> reprogramar(
+            @PathVariable Long id,
+            @Valid @RequestBody CitaRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(citaService.reprogramar(id, request), "Cita reprogramada"));
     }
 
 }

@@ -58,8 +58,23 @@ public class Paciente {
     @Column(name = "estado_civil", length = 50)
     private String estadoCivil;
 
-    @Column(name = "direccion", length = 500)
-    private String direccion;
+    @Column(name = "direccion_linea1", length = 255)
+    private String direccionLinea1;
+
+    @Column(name = "direccion_linea2", length = 255)
+    private String direccionLinea2;
+
+    @Column(name = "ciudad", length = 100)
+    private String ciudad;
+
+    @Column(name = "estado_provincia", length = 100)
+    private String estadoProvincia;
+
+    @Column(name = "codigo_postal", length = 20)
+    private String codigoPostal;
+
+    @Column(name = "direccion_pais", length = 2)
+    private String direccionPais;
 
     @Column(name = "lugar_nacimiento", length = 255)
     private String lugarNacimiento;

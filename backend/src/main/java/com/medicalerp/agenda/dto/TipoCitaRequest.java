@@ -26,6 +26,14 @@ public class TipoCitaRequest {
     @Max(value = 480, message = "La duración máxima es 480 minutos")
     private Integer duracionMinutos;
 
+    @Min(value = 0, message = "Buffer no puede ser negativo")
+    @Max(value = 60, message = "Buffer máximo 60 minutos")
+    private Integer bufferMinutos;
+
+    private String prioridadDefault;
+
+    private Boolean requiereTratamiento;
+
     private String descripcion;
 
 }

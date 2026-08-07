@@ -5,6 +5,7 @@ import com.medicalerp.common.exception.DuplicateResourceException;
 import com.medicalerp.common.exception.ResourceNotFoundException;
 import com.medicalerp.common.util.Auditable;
 import com.medicalerp.agenda.dto.*;
+import com.medicalerp.agenda.engine.AvailabilityEngine;
 import com.medicalerp.agenda.entity.Agenda;
 import com.medicalerp.agenda.entity.Bloqueo;
 import com.medicalerp.agenda.entity.Disponibilidad;
@@ -15,6 +16,8 @@ import com.medicalerp.agenda.repository.AgendaRepository;
 import com.medicalerp.agenda.repository.BloqueoRepository;
 import com.medicalerp.agenda.repository.DisponibilidadRepository;
 import com.medicalerp.agenda.repository.TipoCitaRepository;
+import com.medicalerp.cita.entity.Cita;
+import com.medicalerp.cita.repository.CitaRepository;
 import com.medicalerp.seguridad.entity.Usuario;
 import com.medicalerp.seguridad.repository.UsuarioRepository;
 import com.medicalerp.common.util.SecurityUtils;
@@ -22,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -39,9 +43,11 @@ public class AgendaService {
     private final BloqueoRepository bloqueoRepository;
     private final TipoCitaRepository tipoCitaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final CitaRepository citaRepository;
     private final AgendaMapper agendaMapper;
     private final TipoCitaMapper tipoCitaMapper;
     private final SecurityUtils securityUtils;
+    private final AvailabilityEngine availabilityEngine;
 
     @Transactional
     @Auditable
@@ -252,6 +258,40 @@ public class AgendaService {
             case 6 -> "sábado";
             default -> "día desconocido";
         };
+    }
+
+    // --- Endpoints de Disponibilidad (Fase 8-11) ---
+
+    /**
+     * GET /api/v1/agenda/{usuarioId}/disponibilidad?fecha=2026-08-04&duracion=30
+     */
+    public List<SlotDisponibilidad> getDisponibilidad(Long usuarioId, LocalDate fecha, Integer duracion) {
+        Agenda agenda = agendaRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agenda del usuario", usuarioId));
+
+        int diaSemana = fecha.getDayOfWeek().getValue() % 7;
+        List<Disponibilidad> disponibilidades = disponibilidadRepository
+                .findByAgendaIdAndDiaSemana(agenda.getId(), diaSemana);
+        List<Bloqueo> bloqueos = bloqueoRepository.findByAgendaId(agenda.getId());
+        List<Cita> citas = citaRepository.findByUsuarioIdAndFecha(usuarioId, fecha);
+
+        return availabilityEngine.calcularSlots(agenda, disponibilidades, bloqueos, citas, fecha, duracion);
+    }
+
+    /**
+     * GET /api/v1/agenda/{usuarioId}/next-available?duracion=30
+     */
+    public SlotDisponibilidad getNextAvailable(Long usuarioId, Integer duracion) {
+        Agenda agenda = agendaRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agenda del usuario", usuarioId));
+
+        List<Disponibilidad> disponibilidades = disponibilidadRepository.findByAgendaId(agenda.getId());
+        List<Bloqueo> bloqueos = bloqueoRepository.findByAgendaId(agenda.getId());
+        List<Cita> citas = citaRepository.findListByUsuarioId(usuarioId);
+
+        return availabilityEngine.encontrarPrimerSlot(
+                agenda, disponibilidades, bloqueos, citas,
+                LocalDate.now(), duracion, 30);
     }
 
 }

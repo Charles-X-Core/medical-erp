@@ -1,8 +1,8 @@
 package com.medicalerp.contacto.service;
 
 import com.medicalerp.contacto.entity.MensajeContacto;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -18,12 +18,12 @@ import jakarta.mail.internet.MimeMessage;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Autowired(required = false)
+    private JavaMailSender mailSender;
 
-    @Value("${spring.mail.username}")
+    @Value("${spring.mail.username:noreply@optimalhealth.com}")
     private String fromEmail;
 
     @Value("${app.contact.notification-email:alonsopicho@gmail.com}")
@@ -31,6 +31,10 @@ public class EmailService {
 
     @Async
     public void sendContactNotification(MensajeContacto mensaje) {
+        if (mailSender == null) {
+            log.debug("JavaMailSender not configured, skipping contact notification email");
+            return;
+        }
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -95,6 +99,10 @@ public class EmailService {
 
     @Async
     public void sendOtpEmail(String toEmail, String codigo, int expirationMinutes) {
+        if (mailSender == null) {
+            log.debug("JavaMailSender not configured, skipping OTP email to {}", toEmail);
+            return;
+        }
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");

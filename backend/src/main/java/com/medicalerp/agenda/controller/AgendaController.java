@@ -5,11 +5,13 @@ import com.medicalerp.agenda.dto.*;
 import com.medicalerp.agenda.service.AgendaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -100,6 +102,27 @@ public class AgendaController {
     public ResponseEntity<Void> deleteTipoCita(@PathVariable Long id) {
         agendaService.deleteTipoCita(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // --- Endpoints de Disponibilidad (Fase 8-11) ---
+
+    @GetMapping("/{usuarioId}/disponibilidad")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<SlotDisponibilidad>>> getDisponibilidad(
+            @PathVariable Long usuarioId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam(defaultValue = "30") Integer duracion) {
+        return ResponseEntity.ok(ApiResponse.success(
+                agendaService.getDisponibilidad(usuarioId, fecha, duracion)));
+    }
+
+    @GetMapping("/{usuarioId}/next-available")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<SlotDisponibilidad>> getNextAvailable(
+            @PathVariable Long usuarioId,
+            @RequestParam(defaultValue = "30") Integer duracion) {
+        return ResponseEntity.ok(ApiResponse.success(
+                agendaService.getNextAvailable(usuarioId, duracion)));
     }
 
 }
