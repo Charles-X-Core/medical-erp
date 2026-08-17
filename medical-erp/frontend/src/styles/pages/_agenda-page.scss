@@ -1,0 +1,2024 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+@use '../themes/light' as *;
+
+// ============================================
+// Agenda Page — Glassmorphism Light
+// ============================================
+
+:root {
+  --px-per-min: 2;
+  --px-per-min-day: 2.67;
+  --hour-height: 120px;
+  --slot-height: 80px;
+}
+
+// Glass mixin
+@mixin glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: $radius-xl;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+// ---------- Page wrapper ----------
+.agenda-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: agendaFadeIn 0.4s ease;
+
+  &__loading {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-4;
+    min-height: 400px;
+    color: $light-text-muted;
+
+    .spinner {
+      animation: spin 1s linear infinite;
+      color: $light-accent;
+    }
+  }
+
+  &__error {
+    @include glass-card;
+    display: flex;
+    align-items: center;
+    padding: $space-4 $space-5;
+    margin-bottom: $space-6;
+    border-left: 4px solid $light-error;
+    background: rgba(254, 242, 242, 0.85);
+    border-color: $light-error-border;
+    color: $light-error;
+    font-weight: $fw-medium;
+  }
+
+  &__empty {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-4;
+    padding: $space-16 $space-4;
+    color: $light-text-muted;
+    text-align: center;
+    @include glass-card;
+
+    h3 {
+      margin: 0;
+      font-size: $fs-lg;
+      color: $light-text-primary;
+    }
+
+    p {
+      margin: 0;
+      font-size: $fs-sm;
+      color: $light-text-muted;
+    }
+  }
+}
+
+// ---------- Loading Overlay ----------
+.agenda-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 15;
+  @include flex-center;
+  color: $light-accent;
+  border-radius: $radius-lg;
+}
+
+// ---------- Top Bar ----------
+.agenda-topbar {
+  @include glass-card;
+  display: flex;
+  flex-direction: column;
+  padding: $space-3 $space-5;
+  margin-bottom: $space-4;
+  gap: $space-2;
+  position: relative;
+  z-index: 20;
+
+  @include respond-to(tablet) {
+    padding: $space-3 $space-4;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+
+    &:last-child {
+      justify-content: center;
+    }
+  }
+
+  &__left {
+    flex-shrink: 0;
+  }
+
+  &__center {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    justify-content: center;
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    flex-shrink: 0;
+  }
+}
+
+// ---------- Navigation ----------
+.agenda-nav {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  &__btn {
+    @include flex-center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    background: rgba(255, 255, 255, 0.6);
+    color: $light-text-secondary;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      background: $light-accent-light;
+      border-color: $light-accent-border;
+      color: $light-accent;
+    }
+  }
+
+  &__today {
+    padding: $space-2 $space-4;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    border: 1px solid $light-accent-border;
+    border-radius: $radius-md;
+    background: $light-accent-light;
+    color: $light-accent;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      background: $light-accent;
+      color: $light-text-inverse;
+    }
+  }
+}
+
+// ---------- Stats ----------
+.agenda-stats {
+  display: flex;
+  gap: $space-3;
+}
+
+.agenda-stat {
+  @include flex-center;
+  gap: $space-1;
+  padding: $space-2 $space-3;
+  font-size: $fs-sm;
+  font-weight: $fw-semibold;
+  color: $light-text-secondary;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: $radius-sm;
+
+  &--pendiente {
+    color: $light-accent;
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.12);
+  }
+
+  &--confirmada {
+    color: $light-success;
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.12);
+  }
+}
+
+// ---------- View Toggle ----------
+.agenda-view-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid $light-border;
+  border-radius: $radius-md;
+  overflow: hidden;
+
+  &__btn {
+    @include flex-center;
+    gap: $space-1;
+    padding: $space-2 $space-3;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    border: none;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      color: $light-text-primary;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    &--active {
+      background: $light-accent;
+      color: $light-text-inverse;
+
+      &:hover {
+        background: $light-accent-hover;
+        color: $light-text-inverse;
+      }
+    }
+  }
+}
+
+// ---------- Legend ----------
+.agenda-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  padding: $space-3 $space-4;
+  margin-bottom: $space-5;
+  @include glass-card;
+
+  &__item {
+    @include flex-center;
+    gap: $space-2;
+    font-size: $fs-xs;
+    color: $light-text-secondary;
+    font-weight: $fw-medium;
+  }
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+}
+
+// ---------- Weekly View ----------
+.agenda-week {
+  @include glass-card;
+  overflow: visible;
+
+  &__header {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    border-bottom: 1px solid $light-border;
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  &__time-col {
+    padding: $space-3;
+    border-right: 1px solid $light-border;
+  }
+
+  &__day-header {
+    @include flex-center;
+    flex-direction: column;
+    gap: 2px;
+    padding: $space-3 $space-2;
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+    transition: background 150ms ease;
+
+    &:last-child {
+      border-right: none;
+    }
+
+    &--today {
+      background: rgba(59, 130, 246, 0.08);
+
+      .agenda-week__day-num {
+        background: $light-accent;
+        color: $light-text-inverse;
+      }
+    }
+  }
+
+  &__day-name {
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__day-num {
+    @include flex-center;
+    width: 28px;
+    height: 28px;
+    font-size: $fs-sm;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+    border-radius: 50%;
+  }
+
+  &__body {
+    max-height: 600px;
+    overflow-y: auto;
+    @include custom-scrollbar;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    height: var(--hour-height);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__time-label {
+    @include flex-center;
+    padding: $space-1;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    border-right: 1px solid $light-border;
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  &__cell {
+    position: relative;
+    border-right: 1px solid rgba(226, 232, 240, 0.3);
+    height: 100%;
+    overflow: visible;
+
+    &:last-child {
+      border-right: none;
+    }
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.03);
+    }
+  }
+
+  &__cita {
+    position: absolute;
+    padding: 2px $space-2;
+    border-radius: $radius-sm;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    z-index: 1;
+
+    &:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+    }
+  }
+
+  &__cita-time {
+    display: block;
+    font-size: 10px;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+    line-height: 1.2;
+  }
+
+  &__cita-name {
+    display: block;
+    font-size: 11px;
+    font-weight: $fw-medium;
+    color: $light-text-secondary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+
+  &__cita-type {
+    display: block;
+    font-size: 9px;
+    font-weight: $fw-medium;
+    color: $light-text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin-top: 1px;
+  }
+
+  // --- Now Line ---
+  &__now-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+  }
+
+  &__now-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #EF4444;
+    flex-shrink: 0;
+    margin-left: -5px;
+    animation: pulse 2s infinite;
+  }
+
+  &__now-stroke {
+    flex: 1;
+    height: 2px;
+    background: #EF4444;
+  }
+}
+
+// ---------- Daily View ----------
+.agenda-day {
+  @include glass-card;
+  overflow: hidden;
+
+  &__timeline {
+    max-height: 700px;
+    overflow-y: auto;
+    @include custom-scrollbar;
+  }
+
+  &__slot {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    min-height: var(--slot-height);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.02);
+    }
+  }
+
+  // --- Now Line (daily) ---
+  &__now-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+  }
+
+  &__now-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #EF4444;
+    flex-shrink: 0;
+    margin-left: -5px;
+    animation: pulse 2s infinite;
+  }
+
+  &__now-stroke {
+    flex: 1;
+    height: 2px;
+    background: #EF4444;
+  }
+
+  &__slot-time {
+    @include flex-center;
+    padding: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    border-right: 1px solid $light-border;
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  &__slot-content {
+    position: relative;
+    padding: $space-2 $space-3;
+    min-height: 52px;
+  }
+
+  &__slot-bg {
+    @include flex-center;
+    flex-direction: column;
+    gap: 2px;
+    padding: $space-2;
+    border-radius: $radius-sm;
+    min-height: 44px;
+    text-align: center;
+  }
+
+  &__slot-label {
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__slot-desc {
+    font-size: 10px;
+    color: $light-text-muted;
+  }
+
+  // Cita card in daily view
+  &__cita {
+    padding: $space-3 $space-4;
+    border-radius: $radius-md;
+    transition: all 150ms ease;
+    cursor: pointer;
+
+    &:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  &__cita-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    margin-bottom: $space-2;
+  }
+
+  &__cita-time {
+    font-size: $fs-sm;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+  }
+
+  &__cita-estado {
+    @include flex-center;
+    padding: 2px $space-2;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  &__cita-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__cita-name {
+    font-size: $fs-base;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__cita-type {
+    font-size: $fs-sm;
+    color: $light-text-secondary;
+  }
+
+  &__cita-motivo {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px;
+  }
+}
+
+// ---------- Animations ----------
+@keyframes agendaFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.agenda-week--entering-left {
+  animation: slideLeft 0.25s ease;
+}
+
+.agenda-week--entering-right {
+  animation: slideRight 0.25s ease;
+}
+
+// ---------- Responsive ----------
+@include respond-to(desktop) {
+  .agenda-week {
+    &__header {
+      grid-template-columns: 50px repeat(7, 1fr);
+    }
+
+    &__row {
+      grid-template-columns: 50px repeat(7, 1fr);
+    }
+  }
+}
+
+@include respond-to(tablet) {
+  .agenda-header {
+    &__right {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  .agenda-stats {
+    justify-content: center;
+  }
+
+  .agenda-view-toggle {
+    justify-content: center;
+  }
+
+  .agenda-week {
+    &__header {
+      grid-template-columns: 45px repeat(7, 1fr);
+    }
+
+    &__row {
+      grid-template-columns: 45px repeat(7, 1fr);
+    }
+
+    &__cita-name {
+      display: none;
+    }
+
+    &__cita-type {
+      display: none;
+    }
+  }
+}
+
+// --- Mini Calendar ---
+.mini-calendar {
+  position: relative;
+
+  &__trigger {
+    @include flex-center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    background: rgba(255, 255, 255, 0.6);
+    color: $light-text-primary;
+    cursor: pointer;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    transition: all 150ms ease;
+
+    &:hover {
+      background: $light-accent-light;
+      border-color: $light-accent-border;
+    }
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 50;
+    width: 280px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: $radius-lg;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    padding: $space-4;
+    animation: fadeInUp 0.2s ease;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-3;
+  }
+
+  &__month-label {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    text-transform: capitalize;
+  }
+
+  &__nav-btn {
+    @include flex-center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid $light-border;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $light-text-secondary;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      background: $light-accent-light;
+      color: $light-accent;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: $space-3;
+  }
+
+  &__day-label {
+    @include flex-center;
+    height: 28px;
+    font-size: 10px;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__day {
+    @include flex-center;
+    height: 32px;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-primary;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    cursor: pointer;
+    transition: all 120ms ease;
+    position: relative;
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.06);
+    }
+
+    &--other-month {
+      color: $light-text-muted;
+      opacity: 0.4;
+    }
+
+    &--today {
+      font-weight: $fw-bold;
+      color: $light-accent;
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    &--selected {
+      background: $light-accent;
+      color: $light-text-inverse;
+      font-weight: $fw-bold;
+
+      &:hover {
+        background: $light-accent-hover;
+      }
+    }
+
+    &--in-week {
+      background: rgba(59, 130, 246, 0.04);
+    }
+  }
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2;
+    border-top: 1px solid $light-border;
+
+    svg {
+      color: $light-text-muted;
+      flex-shrink: 0;
+    }
+
+    input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: $fs-sm;
+      color: $light-text-primary;
+      outline: none;
+
+      &::placeholder {
+        color: $light-text-muted;
+      }
+    }
+  }
+}
+
+// --- Cita Popover ---
+.cita-popover-wrapper {
+  position: relative;
+}
+
+.cita-popover {
+  position: absolute;
+  z-index: 50;
+  width: 280px;
+  left: calc(100% + 8px);
+  top: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: $radius-lg;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  padding: $space-4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(8px);
+  transition: all 0.2s ease;
+
+  &--visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    margin-bottom: $space-3;
+    padding-bottom: $space-2;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  &__name {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__estado {
+    @include flex-center;
+    padding: 2px $space-2;
+    font-size: 10px;
+    font-weight: $fw-semibold;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-xs;
+    color: $light-text-secondary;
+
+    svg {
+      color: $light-text-muted;
+      flex-shrink: 0;
+    }
+
+    &--muted {
+      color: $light-text-muted;
+      font-style: italic;
+    }
+  }
+}
+
+// --- Quick Filters ---
+.agenda-quick-filters {
+  display: flex;
+  gap: $space-2;
+
+  &__btn {
+    @include flex-center;
+    gap: $space-1;
+    padding: $space-2 $space-3;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    background: rgba(255, 255, 255, 0.6);
+    color: $light-text-secondary;
+    cursor: pointer;
+    font-size: $fs-xs;
+    font-weight: $fw-medium;
+    transition: all 150ms ease;
+    white-space: nowrap;
+
+    &:hover {
+      background: $light-accent-light;
+      border-color: $light-accent-border;
+      color: $light-accent;
+    }
+
+    &--active {
+      background: $light-accent;
+      border-color: $light-accent;
+      color: $light-text-inverse;
+
+      &:hover {
+        background: $light-accent-hover;
+        border-color: $light-accent-hover;
+      }
+    }
+  }
+}
+
+// --- Config Tab ---
+.agenda-config {
+  padding: $space-4;
+
+  &__tabs {
+    display: flex;
+    gap: $space-2;
+    margin-bottom: $space-4;
+    border-bottom: 1px solid $light-border;
+    padding-bottom: $space-2;
+  }
+
+  &__tab {
+    padding: $space-2 $space-4;
+    border: none;
+    background: transparent;
+    color: $light-text-secondary;
+    cursor: pointer;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    border-radius: $radius-md;
+    transition: all 0.2s;
+
+    &:hover { background: rgba(59, 130, 246, 0.06); color: $light-text-primary; }
+    &--active { background: rgba(59, 130, 246, 0.1); color: #3B82F6; font-weight: $fw-semibold; }
+  }
+
+  &__section {
+    @include glass-card;
+    padding: $space-4;
+    h3 { margin: 0 0 $space-3; font-size: $fs-base; font-weight: $fw-semibold; color: $light-text-primary; }
+  }
+
+  &__section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $space-3;
+    h3 { margin: 0; }
+  }
+
+  &__msg {
+    padding: $space-2 $space-3;
+    border-radius: $radius-md;
+    margin-bottom: $space-3;
+    font-size: $fs-sm;
+    &--success { background: rgba(34,197,94,0.1); color: #22C55E; }
+    &--error { background: rgba(239,68,68,0.1); color: #EF4444; }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: $space-3;
+  }
+
+  &__day {
+    @include glass-card;
+    padding: $space-3;
+  }
+
+  &__day-header {
+    font-weight: $fw-semibold;
+    font-size: $fs-sm;
+    color: $light-text-primary;
+    margin-bottom: $space-2;
+    text-transform: capitalize;
+  }
+
+  &__day-slots { display: flex; flex-direction: column; gap: $space-2; }
+
+  &__day-empty { font-size: $fs-xs; color: $light-text-muted; }
+
+  &__slot-row {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    font-size: $fs-xs;
+  }
+
+  &__time-input {
+    padding: $space-1 $space-2;
+    border: 1px solid $light-border;
+    border-radius: $radius-sm;
+    font-size: $fs-xs;
+    background: $light-bg;
+    color: $light-text-primary;
+    width: 100px;
+  }
+
+  &__slot-remove {
+    background: none;
+    border: none;
+    color: $light-text-muted;
+    cursor: pointer;
+    padding: $space-1;
+    border-radius: $radius-sm;
+    &:hover { color: #EF4444; background: rgba(239,68,68,0.08); }
+  }
+
+  &__add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    background: none;
+    border: 1px dashed $light-border;
+    color: $light-text-secondary;
+    padding: $space-1 $space-2;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    font-size: $fs-xs;
+    &:hover { border-color: #3B82F6; color: #3B82F6; }
+  }
+
+  &__save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    padding: $space-2 $space-4;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: $radius-md;
+    cursor: pointer;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    &:hover { background: #2563EB; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &__bloqueo-form {
+    @include glass-card;
+    padding: $space-4;
+    margin-bottom: $space-3;
+  }
+
+  &__bloqueo-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: $space-3;
+    margin-bottom: $space-3;
+    @media (max-width: 768px) { grid-template-columns: 1fr 1fr; }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    label { font-size: $fs-xs; color: $light-text-secondary; font-weight: $fw-medium; }
+  }
+
+  &__input {
+    padding: $space-2 $space-3;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    background: $light-bg;
+    color: $light-text-primary;
+    &:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+  }
+
+  &__bloqueos-list { display: flex; flex-direction: column; gap: $space-2; }
+
+  &__bloqueo-card {
+    @include glass-card;
+    padding: $space-3;
+  }
+
+  &__bloqueo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: $fs-sm;
+    color: $light-text-primary;
+  }
+
+  &__bloqueo-actions {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &__bloqueo-motivo {
+    font-size: $fs-xs;
+    color: $light-text-secondary;
+  }
+
+  &__empty-text {
+    font-size: $fs-sm;
+    color: $light-text-muted;
+    text-align: center;
+    padding: $space-4;
+  }
+}
+
+// --- Notifications Panel ---
+.notificaciones-panel {
+  position: relative;
+
+  &__btn {
+    position: relative;
+    background: none;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    padding: $space-2;
+    cursor: pointer;
+    color: $light-text-secondary;
+    &:hover { background: rgba(59,130,246,0.06); color: #3B82F6; }
+  }
+
+  &__badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #EF4444;
+    color: white;
+    font-size: 10px;
+    font-weight: $fw-bold;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 340px;
+    max-height: 400px;
+    @include glass-card;
+    z-index: 1000;
+    overflow: hidden;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $space-3 $space-4;
+    border-bottom: 1px solid $light-border;
+    font-weight: $fw-semibold;
+    font-size: $fs-sm;
+    color: $light-text-primary;
+  }
+
+  &__mark-all {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    background: none;
+    border: none;
+    color: #3B82F6;
+    cursor: pointer;
+    font-size: $fs-xs;
+    &:hover { text-decoration: underline; }
+  }
+
+  &__list {
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  &__empty {
+    padding: $space-6;
+    text-align: center;
+    color: $light-text-muted;
+    font-size: $fs-sm;
+  }
+
+  &__item {
+    display: flex;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    &:hover { background: rgba(59,130,246,0.03); }
+  }
+
+  &__item-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3B82F6;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  &__item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__item-titulo {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__item-mensaje {
+    font-size: $fs-xs;
+    color: $light-text-secondary;
+    line-height: 1.4;
+  }
+
+  &__item-time {
+    font-size: 10px;
+    color: $light-text-muted;
+  }
+}
+
+// --- Weekly slot backgrounds ---
+.agenda-week {
+  &__slot-bg {
+    width: 100%;
+    height: 100%;
+    border-radius: $radius-sm;
+    position: absolute;
+    inset: 0;
+    opacity: 0.5;
+  }
+
+  &__slot-label {
+    display: none;
+  }
+
+  &__cell--over {
+    background: rgba(59, 130, 246, 0.08) !important;
+    outline: 2px dashed rgba(59, 130, 246, 0.3);
+  }
+
+  &__cita-wrapper {
+    position: absolute;
+    inset: 0;
+  }
+
+  &__cita--dragging {
+    border-radius: $radius-sm;
+    padding: $space-1 $space-2;
+    font-size: 10px;
+  }
+}
+
+// --- Agenda Content (full width) ---
+.agenda-page {
+  &__content {
+    width: 100%;
+  }
+
+  &__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+}
+
+// --- Reloj Widget ---
+.reloj-widget {
+  @include glass-card;
+  padding: $space-3 $space-5;
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  text-align: center;
+
+  &__icon {
+    color: $light-accent;
+    flex-shrink: 0;
+  }
+
+  &__time {
+    display: flex;
+    align-items: baseline;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  &__hours {
+    font-size: 2.2rem;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+    letter-spacing: 1px;
+  }
+
+  &__seconds {
+    font-size: 1.2rem;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    margin-left: 2px;
+  }
+
+  &__date {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    text-transform: capitalize;
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+    padding-left: $space-3;
+  }
+}
+
+// --- Solicitudes Panel ---
+.solicitudes-panel {
+  @include glass-card;
+  overflow: hidden;
+  user-select: none;
+  position: fixed;
+  right: 20px;
+  top: 100px;
+  width: 300px;
+  max-height: calc(100vh - 120px);
+  z-index: 30;
+
+  @include respond-to('tablet') {
+    width: 260px;
+    right: 12px;
+  }
+
+  &--collapsed {
+    .solicitudes-panel__list {
+      display: none;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-2 $space-3;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__grip {
+    color: $light-text-muted;
+    flex-shrink: 0;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+  }
+
+  &__badge {
+    background: $light-warning;
+    color: #fff;
+    font-size: 11px;
+    font-weight: $fw-bold;
+    padding: 1px 7px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  &__refresh,
+  &__toggle {
+    background: none;
+    border: none;
+    color: $light-text-muted;
+    cursor: pointer;
+    padding: $space-1;
+    border-radius: $radius-sm;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: $light-accent;
+      background: rgba(59, 130, 246, 0.08);
+    }
+  }
+
+  &__list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: $space-2;
+
+    @include custom-scrollbar;
+  }
+
+  &__empty {
+    padding: $space-6 $space-4;
+    text-align: center;
+    color: $light-text-muted;
+    font-size: $fs-sm;
+  }
+}
+
+// --- Solicitud Card ---
+.solicitud-card {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: $radius-md;
+  margin-bottom: $space-2;
+  overflow: hidden;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3;
+    cursor: pointer;
+    background: rgba(245, 158, 11, 0.04);
+  }
+
+  &__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(245, 158, 11, 0.12);
+    color: $light-warning;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__doctora {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__paciente {
+    font-size: $fs-xs;
+    color: $light-text-secondary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__expand {
+    background: none;
+    border: none;
+    color: $light-text-muted;
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  &__body {
+    padding: 0 $space-3 $space-2;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__detail {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    font-size: $fs-xs;
+    color: $light-text-secondary;
+
+    svg {
+      color: $light-text-muted;
+      flex-shrink: 0;
+    }
+  }
+
+  &__motivo {
+    padding: $space-2 $space-3;
+    font-size: $fs-xs;
+    color: $light-text-secondary;
+    background: rgba(0, 0, 0, 0.02);
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+
+    strong {
+      color: $light-text-primary;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-2;
+    padding: $space-2 $space-3 $space-3;
+  }
+
+  &__btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-1;
+    padding: $space-2;
+    border: none;
+    border-radius: $radius-sm;
+    font-size: $fs-xs;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--confirm {
+      background: $light-success;
+      color: #fff;
+      &:hover:not(:disabled) { background: darken($light-success, 8%); }
+    }
+
+    &--reject {
+      background: rgba(239, 68, 68, 0.08);
+      color: $light-error;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      &:hover:not(:disabled) { background: rgba(239, 68, 68, 0.15); }
+    }
+
+    &--cancel {
+      background: rgba(0, 0, 0, 0.04);
+      color: $light-text-secondary;
+      &:hover:not(:disabled) { background: rgba(0, 0, 0, 0.08); }
+    }
+  }
+
+  &__reject-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__reject-input {
+    width: 100%;
+    padding: $space-2;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: $radius-sm;
+    font-size: $fs-xs;
+    outline: none;
+
+    &:focus {
+      border-color: $light-error;
+    }
+  }
+
+  &__reject-actions {
+    display: flex;
+    gap: $space-2;
+
+    .solicitud-card__btn {
+      flex: 1;
+    }
+  }
+
+  // --- Availability picker ---
+  &__availability {
+    padding: $space-2 $space-3 $space-3;
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+  }
+
+  &__availability-loading,
+  &__availability-empty {
+    padding: $space-3;
+    text-align: center;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__availability-label {
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $light-text-secondary;
+    margin-bottom: $space-2;
+  }
+
+  &__availability-day {
+    margin-bottom: $space-2;
+  }
+
+  &__availability-date {
+    font-size: 10px;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+
+  &__availability-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  &__availability-slot {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: $fw-medium;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: $radius-sm;
+    background: rgba(34, 197, 94, 0.06);
+    color: #16A34A;
+    cursor: pointer;
+    transition: all 0.12s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.5);
+    }
+
+    &--selected {
+      background: #22C55E;
+      color: #fff;
+      border-color: #22C55E;
+
+      &:hover {
+        background: #16A34A;
+      }
+    }
+
+    &--ocupado {
+      background: rgba(239, 68, 68, 0.06);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: #DC2626;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &--bloqueado {
+      background: rgba(107, 125, 149, 0.06);
+      border-color: rgba(107, 125, 149, 0.2);
+      color: #64748B;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  &__availability-selected {
+    margin-top: $space-2;
+    padding: $space-2;
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: $radius-sm;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: #16A34A;
+    text-align: center;
+  }
+
+  &__detail--fecha-minima {
+    color: $light-accent;
+    font-weight: $fw-semibold;
+
+    svg {
+      color: $light-accent;
+    }
+  }
+}
+
+// --- Cita Detalle Modal ---
+.cita-detalle-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.cita-detalle-modal {
+  background: #fff;
+  border-radius: $radius-xl;
+  width: 90%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.25s ease;
+
+  @include custom-scrollbar;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-5 $space-6;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+    h3 {
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $light-text-primary;
+      margin: 0;
+    }
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    color: $light-text-muted;
+    cursor: pointer;
+    padding: $space-1;
+    border-radius: $radius-sm;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: $light-text-primary;
+    }
+  }
+
+  &__body {
+    padding: $space-5 $space-6;
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+
+  &__field {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-3;
+
+    svg {
+      color: $light-text-muted;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    label {
+      display: block;
+      font-size: $fs-xs;
+      color: $light-text-muted;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    span {
+      font-size: $fs-sm;
+      color: $light-text-primary;
+      font-weight: $fw-medium;
+    }
+  }
+
+  &__row {
+    display: flex;
+    gap: $space-5;
+
+    .cita-detalle-modal__field {
+      flex: 1;
+    }
+  }
+
+  &__estado {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+
+    &--warning { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+    &--info { background: rgba(59, 130, 246, 0.12); color: #2563EB; }
+    &--success { background: rgba(34, 197, 94, 0.12); color: #16A34A; }
+    &--danger { background: rgba(239, 68, 68, 0.12); color: #DC2626; }
+    &--neutral { background: rgba(107, 125, 149, 0.12); color: #64748B; }
+  }
+
+  &__duration {
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: $radius-md;
+    padding: $space-4;
+
+    label {
+      display: block;
+      font-size: $fs-xs;
+      color: $light-text-muted;
+      margin-bottom: $space-2;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  &__duration-control {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &__duration-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: $radius-sm;
+    background: #fff;
+    color: $light-text-primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: $light-accent;
+      color: #fff;
+      border-color: $light-accent;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+
+  &__duration-select {
+    flex: 1;
+    padding: $space-2 $space-3;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: $radius-sm;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    background: #fff;
+    outline: none;
+    text-align: center;
+
+    &:focus {
+      border-color: $light-accent;
+    }
+  }
+
+  &__warning {
+    display: flex;
+    gap: $space-3;
+    padding: $space-4;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: $radius-md;
+    color: #92400E;
+
+    svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    strong {
+      display: block;
+      font-size: $fs-sm;
+      margin-bottom: 4px;
+    }
+
+    p {
+      font-size: $fs-xs;
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+
+  &__conflict-detail {
+    font-weight: $fw-semibold;
+    color: #78350F;
+    margin-top: 4px !important;
+  }
+
+  &__msg {
+    padding: $space-3;
+    border-radius: $radius-sm;
+    font-size: $fs-sm;
+    text-align: center;
+
+    &--success {
+      background: rgba(34, 197, 94, 0.08);
+      color: #16A34A;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    &--error {
+      background: rgba(239, 68, 68, 0.08);
+      color: #DC2626;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+  }
+
+  &__footer {
+    display: flex;
+    gap: $space-3;
+    padding: $space-4 $space-6 $space-5;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  &__btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-3;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--save {
+      background: $light-accent;
+      color: #fff;
+      &:hover:not(:disabled) { background: darken($light-accent, 8%); }
+    }
+
+    &--cancel {
+      background: rgba(239, 68, 68, 0.08);
+      color: $light-error;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      &:hover:not(:disabled) { background: rgba(239, 68, 68, 0.15); }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

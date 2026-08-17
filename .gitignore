@@ -32,3 +32,29 @@ desktop.ini
 
 # Logs
 *.log
+
+# Backend uploads & temp
+backend/uploads/
+backend/token.txt
+backend/optimistic-health-now/
+
+# Frontend build
+frontend/dist/
+
+# PDFs generated
+*.pdf
+
+# App-specific logs
+backend.log
+frontend.log
+app-stdout.log
+vite.log
+
+# medical-erp specific
+medical-erp/backend/target/
+medical-erp/backend/uploads/
+medical-erp/backend/token.txt
+medical-erp/backend/*.log
+medical-erp/frontend/node_modules/
+medical-erp/frontend/dist/
+medical-erp/frontend/.vite/

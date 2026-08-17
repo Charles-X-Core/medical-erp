@@ -1,0 +1,55 @@
+const ESTADO_COLORS = {
+  solicitada: '#F59E0B', pendiente: '#3B82F6', programada: '#06B6D4',
+  confirmada: '#22C55E', asistio: '#F59E0B', completada: '#6B7D95',
+  cancelada: '#EF4444', reprogramada: '#A78BFA', no_show: '#EF4444',
+};
+
+const ESTADO_BGS = {
+  solicitada: 'rgba(245,158,11,0.12)', pendiente: 'rgba(59,130,246,0.12)',
+  programada: 'rgba(6,182,212,0.12)', confirmada: 'rgba(34,197,94,0.12)',
+  asistio: 'rgba(245,158,11,0.12)', completada: 'rgba(107,125,149,0.12)',
+  cancelada: 'rgba(239,68,68,0.08)', reprogramada: 'rgba(167,139,250,0.12)',
+  no_show: 'rgba(239,68,68,0.08)',
+};
+
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  return timeStr.substring(0, 5);
+}
+
+export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30, col = 0, numCols = 1, onClick }) {
+  const [h, m] = (cita.hora || '00:00').split(':').map(Number);
+  const startMin = h * 60 + m;
+  const offsetMin = startMin - hour * 60;
+  const duracion = cita.duracionMinutos || slotDuracion;
+
+  const topPx = (offsetMin / slotDuracion) * (slotDuracion * pxPerMin);
+  const heightPx = (duracion / slotDuracion) * (slotDuracion * pxPerMin) - 2;
+
+  const leftPercent = (col / numCols) * 100;
+  const widthPercent = (1 / numCols) * 100;
+
+  const showDetails = duracion >= 20;
+  const showType = duracion >= 30;
+
+  return (
+    <div
+      className="agenda-week__cita"
+      style={{
+        top: `${topPx}px`,
+        height: `${Math.max(heightPx, 18)}px`,
+        left: `${leftPercent}%`,
+        width: `calc(${widthPercent}% - 4px)`,
+        backgroundColor: ESTADO_BGS[cita.estado] || 'rgba(59,130,246,0.12)',
+        borderLeft: `3px solid ${ESTADO_COLORS[cita.estado] || '#3B82F6'}`,
+      }}
+      onClick={() => onClick?.(cita)}
+    >
+      {showDetails && <span className="agenda-week__cita-time">{formatTime(cita.hora)}</span>}
+      <span className="agenda-week__cita-name">{cita.pacienteNombre}</span>
+      {showType && cita.tipoCitaNombre && (
+        <span className="agenda-week__cita-type">{cita.tipoCitaNombre}</span>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,230 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.topbar {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+
+  &__search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    max-width: 360px;
+  }
+
+  &__search-icon {
+    position: absolute;
+    left: $space-3;
+    color: #94A3B8;
+    pointer-events: none;
+  }
+
+  &__search-input {
+    width: 100%;
+    padding: $space-2 $space-8 $space-2 $space-10;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: $radius-md;
+    color: #1E293B;
+    font-size: $fs-sm;
+    transition: all 150ms ease;
+
+    &::placeholder {
+      color: #94A3B8;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #3B82F6;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+  }
+
+  &__spinner {
+    position: absolute;
+    right: $space-3;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #E2E8F0;
+    border-top-color: #3B82F6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  &__clear {
+    position: absolute;
+    right: $space-2;
+    background: none;
+    border: none;
+    color: #94A3B8;
+    cursor: pointer;
+    padding: $space-1;
+    border-radius: $radius-sm;
+
+    &:hover {
+      color: #1E293B;
+    }
+  }
+
+  // ==================== ACTIONS ====================
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    flex-shrink: 0;
+  }
+
+  &__icon-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-sm;
+    background: none;
+    border: none;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      color: #1E293B;
+      background: #F1F5F9;
+    }
+  }
+
+  &__badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: #EF4444;
+    color: #fff;
+    font-size: 10px;
+    font-weight: $fw-bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  // ==================== PROFILE (display only) ====================
+  &__profile {
+    display: flex;
+    align-items: center;
+    margin-left: $space-2;
+  }
+
+  &__profile-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: #fff;
+    @include flex-center;
+    font-weight: $fw-bold;
+    font-size: $fs-xs;
+    flex-shrink: 0;
+  }
+
+  // ==================== SEARCH DROPDOWN ====================
+  &__dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: $space-2;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: $radius-md;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: $z-dropdown;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  &__results {
+    padding: $space-2;
+  }
+
+  &__result-item {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    width: 100%;
+    padding: $space-3;
+    background: none;
+    border: none;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    text-align: left;
+    transition: background 100ms ease;
+
+    &:hover {
+      background: #F1F5F9;
+    }
+  }
+
+  &__result-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: #fff;
+    @include flex-center;
+    font-weight: $fw-bold;
+    font-size: $fs-sm;
+    flex-shrink: 0;
+  }
+
+  &__result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__result-name {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: #1E293B;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__result-doc,
+  &__result-detail {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    font-size: $fs-xs;
+    color: #64748B;
+  }
+
+  &__empty {
+    padding: $space-6;
+    text-align: center;
+    color: #94A3B8;
+
+    p {
+      margin: 0;
+      font-size: $fs-sm;
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,2968 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+@use '../themes/light' as *;
+
+// ============================================
+// Paciente360Page — Premium Dark Theme SCSS
+// Glassmorphism + Crystal Blue Design System
+// ============================================
+
+// --- Local Tokens ---
+$p360-card-bg: rgba(255, 255, 255, 0.04);
+$p360-card-border: rgba(255, 255, 255, 0.08);
+$p360-card-hover-bg: rgba(37, 211, 255, 0.06);
+$p360-card-hover-border: rgba(37, 211, 255, 0.25);
+$p360-tab-active-bg: rgba(37, 211, 255, 0.12);
+$p360-tab-hover-bg: rgba(255, 255, 255, 0.06);
+$p360-glass-bg: rgba(12, 70, 119, 0.55);
+$p360-glass-border: rgba(42, 122, 191, 0.25);
+
+// ============================================
+// 1. PAGE LAYOUT
+// ============================================
+.paciente360-page {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: $space-6;
+  min-height: 100vh;
+  animation: p360-fadeIn 0.3s ease-out;
+
+  // --- Loading State ---
+  &__loading {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-4;
+    padding: $space-16;
+    color: $text-muted;
+
+    .spinner {
+      animation: p360-spin 1s linear infinite;
+      color: $accent-primary;
+    }
+  }
+
+  // --- Error State ---
+  &__error {
+    padding: $space-4 $space-5;
+    background: rgba($error, 0.1);
+    border: 1px solid rgba($error, 0.3);
+    border-radius: $radius-md;
+    color: $error;
+    font-size: $fs-sm;
+    margin-bottom: $space-4;
+    text-align: center;
+  }
+
+  // --- Header ---
+  &__header {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: $space-4;
+    margin-bottom: $space-6;
+    padding-bottom: $space-5;
+    border-bottom: 1px solid $border-color;
+  }
+
+  &__title-group {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  &__title {
+    font-size: $fs-2xl;
+    font-weight: $fw-bold;
+    color: $text-primary;
+    margin: 0;
+    line-height: 1.2;
+    background: linear-gradient(135deg, $text-primary 0%, $accent-primary 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  &__subtitle {
+    font-size: $fs-sm;
+    color: $text-muted;
+    margin: $space-1 0 0;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-3;
+    flex-wrap: wrap;
+
+    @include respond-to(mobile) {
+      width: 100%;
+
+      .btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 0;
+      }
+    }
+  }
+
+  // --- Tabs Navigation ---
+  &__tabs {
+    display: flex;
+    gap: $space-1;
+    margin-bottom: $space-6;
+    padding: $space-1;
+    background: $p360-glass-bg;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid $p360-glass-border;
+    border-radius: $radius-lg;
+    overflow-x: auto;
+    @include custom-scrollbar;
+
+    @include respond-to(mobile) {
+      padding: $space-1;
+      gap: 2px;
+    }
+  }
+
+  &__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-5;
+    background: transparent;
+    border: none;
+    border-radius: $radius-md;
+    color: $text-muted;
+    font-family: $font-family;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 200ms ease;
+    white-space: nowrap;
+    position: relative;
+
+    svg {
+      flex-shrink: 0;
+      opacity: 0.6;
+      transition: opacity 200ms ease;
+    }
+
+    &:hover {
+      background: $p360-tab-hover-bg;
+      color: $text-secondary;
+
+      svg {
+        opacity: 0.85;
+      }
+    }
+
+    &.active,
+    &.active:hover {
+      background: $p360-tab-active-bg;
+      color: $accent-primary;
+      font-weight: $fw-semibold;
+
+      svg {
+        opacity: 1;
+        stroke: $accent-primary;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 2px;
+        background: $accent-primary;
+        border-radius: 1px;
+      }
+    }
+
+    @include respond-to(mobile) {
+      padding: $space-2 $space-3;
+      font-size: $fs-xs;
+      gap: $space-1;
+    }
+  }
+
+  // --- Content Area ---
+  &__content {
+    min-height: 300px;
+    animation: p360-fadeIn 0.25s ease-out;
+  }
+}
+
+// ============================================
+// 2. GRID SYSTEM
+// ============================================
+.paciente360-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: $space-5;
+
+  @include respond-to(desktop) {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  @include respond-to(mobile) {
+    grid-template-columns: 1fr;
+    gap: $space-4;
+  }
+}
+
+// ============================================
+// 3. CARDS
+// ============================================
+.paciente360-card {
+  background: $p360-card-bg;
+  border: 1px solid $p360-card-border;
+  border-radius: $radius-lg;
+  padding: $space-6;
+  transition: all 200ms ease;
+
+  &:hover {
+    border-color: $p360-card-hover-border;
+    background: $p360-card-hover-bg;
+    box-shadow: 0 4px 20px rgba(37, 211, 255, 0.08);
+  }
+
+  h4 {
+    font-size: $fs-md;
+    font-weight: $fw-semibold;
+    color: $accent-primary;
+    margin: 0 0 $space-4;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid $border-color;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+
+  &--highlight {
+    border-color: rgba($accent-primary, 0.3);
+    background: rgba($accent-primary, 0.04);
+    box-shadow: 0 0 0 1px rgba($accent-primary, 0.08);
+  }
+}
+
+// ============================================
+// 4. FIELDS SYSTEM
+// ============================================
+.paciente360-fields {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.field-row {
+  display: flex;
+  align-items: baseline;
+  gap: $space-3;
+  padding: $space-2 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: $fs-sm;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .field-label {
+    min-width: 140px;
+    flex-shrink: 0;
+    font-weight: $fw-medium;
+    color: $text-muted;
+    text-transform: uppercase;
+    font-size: $fs-xs;
+    letter-spacing: 0.04em;
+
+    @include respond-to(mobile) {
+      min-width: 110px;
+      font-size: 11px;
+    }
+  }
+
+  span:last-child {
+    color: $text-secondary;
+    word-break: break-word;
+  }
+
+  // Alert variant
+  &.alerta {
+    background: rgba($error, 0.06);
+    border-left: 3px solid $error;
+    padding: $space-3 $space-4;
+    border-radius: 0 $radius-sm $radius-sm 0;
+    margin: $space-1 0;
+
+    .field-icon {
+      color: $error;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .field-label {
+      color: $error;
+    }
+
+    span:last-child {
+      color: $text-primary;
+      font-weight: $fw-medium;
+    }
+  }
+}
+
+.empty {
+  color: $text-muted;
+  font-style: italic;
+  font-size: $fs-sm;
+  text-align: center;
+  padding: $space-4;
+}
+
+// ============================================
+// 5. TAB: GENERAL
+// ============================================
+.tab-general {
+  .paciente360-grid {
+    // inherits base grid
+  }
+}
+
+// ============================================
+// 6. TAB: ANTECEDENTES
+// ============================================
+.tab-antecedentes {
+  .tab-header {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: $space-3;
+    margin-bottom: $space-5;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $border-color;
+
+    h3 {
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $text-primary;
+      margin: 0;
+    }
+  }
+
+  .tab-actions {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  .saved-message {
+    color: $success;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    animation: p360-slideInRight 0.3s ease-out;
+  }
+
+  .error-message {
+    color: $error;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+  }
+}
+
+.antecedentes-editor {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+
+  &--compact {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+
+    .antecedente-field {
+      padding: $space-3 $space-4;
+
+      .antecedente-field__label {
+        font-size: $fs-xs;
+        margin-bottom: $space-2;
+      }
+
+      .antecedente-field__sino {
+        margin-bottom: 0;
+      }
+
+      .antecedente-field__obs {
+        margin-top: $space-2;
+      }
+    }
+  }
+}
+
+.antecedente-field {
+  background: $light-bg;
+  border: 1px solid $light-border;
+  border-radius: $radius-md;
+  padding: $space-4;
+  transition: all 200ms ease;
+
+  &:hover {
+    border-color: $light-border-strong;
+    box-shadow: $light-shadow-sm;
+  }
+
+  &__label {
+    display: block;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    margin-bottom: $space-2;
+  }
+
+  &__sino {
+    display: flex;
+    gap: $space-2;
+    margin-bottom: $space-1;
+  }
+
+  &__obs {
+    width: 100%;
+    padding: $space-2 $space-3;
+    background: $light-surface;
+    border: 1px solid $light-border;
+    border-radius: $radius-sm;
+    color: $light-text-primary;
+    font-family: $font-family;
+    font-size: $fs-xs;
+    line-height: 1.4;
+    transition: all 150ms ease;
+    animation: p360-slideDown 0.2s ease-out;
+    min-height: 36px;
+    resize: vertical;
+
+    &::placeholder {
+      color: $light-text-muted;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $light-accent;
+      box-shadow: 0 0 0 2px rgba($light-accent, 0.1);
+    }
+  }
+}
+
+.antecedente-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-2 $space-5;
+  border-radius: $radius-sm;
+  font-family: $font-family;
+  font-size: $fs-xs;
+  font-weight: $fw-semibold;
+  background: $light-bg;
+  border: 1px solid $light-border;
+  color: $light-text-muted;
+  cursor: pointer;
+  transition: all 150ms ease;
+  min-width: 48px;
+
+  &:hover:not(.si-activo):not(.no-activo):not(.antecedente-btn--clear) {
+    background: $light-surface;
+    border-color: $light-border-strong;
+    color: $light-text-secondary;
+  }
+
+  &.si-activo {
+    background: $light-success-light;
+    border-color: $light-success;
+    color: #15803d;
+    box-shadow: 0 0 0 2px rgba($light-success, 0.1);
+
+    &:hover {
+      background: rgba($light-success, 0.15);
+    }
+  }
+
+  &.no-activo {
+    background: $light-error-light;
+    border-color: $light-error;
+    color: #b91c1c;
+    box-shadow: 0 0 0 2px rgba($light-error, 0.1);
+
+    &:hover {
+      background: rgba($light-error, 0.15);
+    }
+  }
+
+  &--clear {
+    padding: $space-1 $space-2;
+    border-color: transparent;
+    color: $light-text-muted;
+    font-size: $fs-sm;
+    line-height: 1;
+    min-width: auto;
+
+    &:hover {
+      background: $light-error-light;
+      border-color: $light-error;
+      color: $light-error;
+    }
+  }
+}
+
+.no-historia-notice {
+  background: rgba($warning, 0.08);
+  border: 1px solid rgba($warning, 0.25);
+  border-radius: $radius-md;
+  padding: $space-5;
+  margin-top: $space-5;
+  text-align: center;
+
+  p {
+    color: $text-secondary;
+    font-size: $fs-sm;
+    margin: 0;
+
+    &:first-child {
+      font-weight: $fw-semibold;
+      color: $warning;
+      margin-bottom: $space-2;
+    }
+  }
+}
+
+// ============================================
+// 7. TAB: CLINICO (Timeline)
+// ============================================
+.tab-clinico {
+  .timeline {
+    position: relative;
+    padding-left: $space-8;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba($accent-primary, 0.2);
+      border-radius: 1px;
+    }
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: $space-6;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: calc(-#{$space-8} + 1px);
+    top: $space-1;
+    width: 14px;
+    height: 14px;
+    background: $accent-primary;
+    border: 3px solid $bg-primary;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba($accent-primary, 0.3);
+    z-index: 1;
+  }
+
+  .timeline-content {
+    background: $p360-card-bg;
+    border: 1px solid $p360-card-border;
+    border-radius: $radius-md;
+    padding: $space-4 $space-5;
+    transition: all 200ms ease;
+
+    &:hover {
+      border-color: $p360-card-hover-border;
+      background: $p360-card-hover-bg;
+    }
+  }
+
+  .consulta-preview {
+    .consulta-meta {
+      display: flex;
+      gap: $space-4;
+      margin-bottom: $space-3;
+      flex-wrap: wrap;
+
+      span {
+        font-size: $fs-xs;
+        color: $text-muted;
+      }
+    }
+
+    .detail-row {
+      font-size: $fs-sm;
+      color: $text-secondary;
+
+      strong {
+        color: $text-primary;
+      }
+    }
+  }
+}
+
+// ============================================
+// 8. TAB: EVIDENCIAS
+// ============================================
+.tab-evidencias {
+  .tab-header {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: $space-3;
+    margin-bottom: $space-5;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $border-color;
+
+    h3 {
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $text-primary;
+      margin: 0;
+    }
+  }
+
+  .tab-filters {
+    display: flex;
+    gap: $space-3;
+  }
+
+  .filter-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    svg {
+      position: absolute;
+      left: 12px;
+      color: $text-muted;
+      pointer-events: none;
+    }
+
+    input {
+      @include input-base;
+      padding-left: 40px;
+      min-width: 260px;
+
+      @include respond-to(mobile) {
+        min-width: 100%;
+      }
+    }
+  }
+
+  .evidencias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: $space-4;
+
+    @include respond-to(mobile) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .evidencia-card {
+    background: $p360-card-bg;
+    border: 1px solid $p360-card-border;
+    border-radius: $radius-md;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 200ms ease;
+
+    &:hover {
+      border-color: $p360-card-hover-border;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+      .evidencia-thumb img {
+        transform: scale(1.03);
+      }
+
+      .evidencia-overlay {
+        opacity: 1;
+      }
+    }
+  }
+
+  .evidencia-thumb {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.2);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 250ms ease;
+    }
+  }
+
+  .evidencia-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: $space-3;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+
+  .evidencia-tipo {
+    padding: $space-1 $space-2;
+    background: rgba($accent-primary, 0.25);
+    border-radius: $radius-sm;
+    font-size: 10px;
+    font-weight: $fw-semibold;
+    color: $accent-primary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .evidencia-info {
+    padding: $space-3;
+  }
+
+  .evidencia-descripcion {
+    display: block;
+    font-size: $fs-xs;
+    color: $text-secondary;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .evidencia-meta {
+    font-size: 11px;
+    color: $text-muted;
+  }
+}
+
+// ============================================
+// 9. IMAGE VIEWER MODAL
+// ============================================
+.image-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: $z-modal;
+  @include flex-center;
+  animation: p360-fadeIn 0.2s ease-out;
+}
+
+.image-viewer {
+  position: relative;
+  width: 90vw;
+  max-width: 1000px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+
+  &__toolbar {
+    @include flex-between;
+    padding: $space-3 $space-4;
+    color: $text-primary;
+  }
+
+  &__counter {
+    font-size: $fs-sm;
+    color: $text-muted;
+    font-weight: $fw-medium;
+  }
+
+  &__close {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: $radius-sm;
+    color: $text-primary;
+    padding: $space-2;
+    cursor: pointer;
+    transition: background 150ms ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  &__canvas {
+    @include flex-center;
+    flex: 1;
+    padding: $space-4;
+
+    img {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: $radius-md;
+    }
+  }
+
+  &__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    color: $text-primary;
+    width: 44px;
+    height: 44px;
+    @include flex-center;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover:not(:disabled) {
+      background: rgba($accent-primary, 0.2);
+      border-color: $accent-primary;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    &--prev {
+      left: $space-4;
+    }
+
+    &--next {
+      right: $space-4;
+    }
+  }
+}
+
+// ============================================
+// 10. TAB: RECIENTE (Atenciones)
+// ============================================
+.tab-reciente {
+  .atenciones-lista {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+
+  .empty-state {
+    svg {
+      color: $text-muted;
+      opacity: 0.5;
+    }
+
+    .empty-state__hint {
+      font-size: $fs-xs;
+      color: $text-muted;
+      opacity: 0.7;
+      margin-top: $space-1;
+    }
+  }
+}
+
+.atencion-card {
+  background: $p360-card-bg;
+  border: 1px solid $p360-card-border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  transition: all 200ms ease;
+
+  &:hover {
+    border-color: $p360-card-hover-border;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  &__header {
+    @include flex-between;
+    padding: $space-3 $space-5;
+    background: rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  &__date {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $accent-primary;
+
+    svg {
+      opacity: 0.7;
+    }
+  }
+
+  &__badges {
+    display: flex;
+    gap: $space-2;
+    flex-wrap: wrap;
+  }
+
+  &__body {
+    padding: $space-4 $space-5;
+  }
+
+  &__motivo {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-base;
+    font-weight: $fw-medium;
+    color: $text-primary;
+    margin-bottom: $space-3;
+
+    svg {
+      color: $accent-primary;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+  }
+
+  &__diagnostico {
+    font-size: $fs-sm;
+    color: $text-secondary;
+    padding: $space-2 $space-3;
+    background: rgba($accent-primary, 0.04);
+    border-radius: $radius-sm;
+    border-left: 3px solid $accent-primary;
+    margin-bottom: $space-2;
+
+    strong {
+      color: $text-primary;
+    }
+  }
+
+  &__meta {
+    font-size: $fs-xs;
+    color: $text-muted;
+    margin-top: $space-1;
+  }
+
+  &__footer {
+    @include flex-between;
+    padding: $space-3 $space-5;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+
+  &__indicators {
+    display: flex;
+    gap: $space-3;
+    flex-wrap: wrap;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-2;
+  }
+}
+
+.atencion-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: $fw-semibold;
+
+  &--firmado {
+    background: rgba($success, 0.12);
+    color: $success;
+  }
+
+  &--diagnostico {
+    background: rgba($accent-primary, 0.1);
+    color: $accent-primary;
+  }
+}
+
+.atencion-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: $fs-xs;
+  color: $text-muted;
+
+  svg {
+    opacity: 0.6;
+  }
+}
+
+.atencion-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $space-1 $space-3;
+  border-radius: $radius-sm;
+  font-size: $fs-xs;
+  font-weight: $fw-semibold;
+  text-decoration: none;
+  transition: all 150ms ease;
+
+  &--pdf {
+    background: rgba($gold, 0.12);
+    color: $gold;
+    border: 1px solid rgba($gold, 0.25);
+
+    &:hover {
+      background: rgba($gold, 0.22);
+      border-color: $gold;
+    }
+  }
+
+  &--detalle {
+    background: rgba($accent-primary, 0.12);
+    color: $accent-primary;
+    border: 1px solid rgba($accent-primary, 0.25);
+    cursor: pointer;
+
+    &:hover {
+      background: rgba($accent-primary, 0.22);
+      border-color: $accent-primary;
+    }
+  }
+}
+
+// ============================================
+// 11. TAB: FINANCIERO
+// ============================================
+.tab-financiero {
+  .table-responsive {
+    overflow-x: auto;
+    border-radius: $radius-lg;
+    border: 1px solid $p360-card-border;
+    @include custom-scrollbar;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $fs-sm;
+
+    thead {
+      th {
+        padding: $space-4 $space-5;
+        text-align: left;
+        font-weight: $fw-semibold;
+        color: $text-muted;
+        font-size: $fs-xs;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: rgba(0, 0, 0, 0.15);
+        border-bottom: 1px solid $border-color;
+        white-space: nowrap;
+      }
+    }
+
+    tbody {
+      tr {
+        transition: background 150ms ease;
+
+        &:hover {
+          background: rgba($accent-primary, 0.04);
+        }
+
+        &:not(:last-child) td {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+      }
+
+      td {
+        padding: $space-3 $space-5;
+        color: $text-secondary;
+
+        strong {
+          color: $gold;
+          font-weight: $fw-semibold;
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// 12. BUTTONS (extend global btn)
+// ============================================
+.btn {
+  &--ghost {
+    @include btn-base;
+    background: transparent;
+    color: $text-muted;
+    border: none;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: $text-primary;
+    }
+
+    &.btn--sm {
+      padding: $space-1 $space-3;
+      font-size: $fs-xs;
+      border-radius: $radius-sm;
+    }
+  }
+
+  &--primary {
+    @include btn-primary;
+  }
+
+  &--secondary {
+    @include btn-secondary;
+  }
+}
+
+// ============================================
+// 13. LOADING & EMPTY STATES
+// ============================================
+.loading {
+  @include flex-center;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-12;
+  color: $text-muted;
+  font-size: $fs-sm;
+
+  .spinner {
+    animation: p360-spin 1s linear infinite;
+    color: $accent-primary;
+  }
+}
+
+.empty-state {
+  @include flex-center;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-12 $space-6;
+  background: $p360-card-bg;
+  border: 1px dashed $p360-card-border;
+  border-radius: $radius-lg;
+  text-align: center;
+
+  p {
+    color: $text-muted;
+    font-size: $fs-sm;
+    margin: 0;
+  }
+}
+
+// ============================================
+// 14. SPINNER ANIMATION
+// ============================================
+.spinner {
+  animation: p360-spin 1s linear infinite;
+  display: inline-block;
+}
+
+// ============================================
+// 15. KEYFRAME ANIMATIONS
+// ============================================
+@keyframes p360-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes p360-slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes p360-slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    max-height: 100px;
+  }
+}
+
+@keyframes p360-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes p360-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes p360-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+// ============================================
+// 16. WIZARD-ANTECEDENTES (PasoPaciente)
+// ============================================
+.wizard-antecedentes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $space-3;
+  margin-top: $space-3;
+
+  @include respond-to(mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wizard-antecedente-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: $radius-md;
+  padding: $space-3 $space-4;
+  transition: all 150ms ease;
+
+  &--active {
+    background: rgba($accent-primary, 0.04);
+    border-color: rgba($accent-primary, 0.15);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+  }
+
+  &__label {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $text-secondary;
+  }
+
+  &__obs {
+    font-size: $fs-xs;
+    color: $text-muted;
+    margin-top: $space-2;
+    padding-top: $space-2;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+}
+
+.wizard-antecedente-badge {
+  display: inline-flex;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: $fw-semibold;
+  flex-shrink: 0;
+
+  &--si {
+    background: rgba($accent-primary, 0.15);
+    color: $accent-primary;
+  }
+
+  &--no {
+    background: rgba($text-muted, 0.1);
+    color: $text-muted;
+  }
+}
+
+.wizard-antecedentes-extra {
+  margin-top: $space-4;
+  padding-top: $space-4;
+  border-top: 1px solid $border-color;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.wizard-antecedente-extra {
+  label {
+    display: block;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: $space-1;
+  }
+
+  span {
+    font-size: $fs-sm;
+    color: $text-secondary;
+  }
+}
+
+.wizard-loading {
+  @include flex-center;
+  gap: $space-2;
+  padding: $space-6;
+  color: $text-muted;
+  font-size: $fs-sm;
+
+  .spin {
+    animation: p360-spin 1s linear infinite;
+    color: $accent-primary;
+  }
+}
+
+.wizard-empty-inline {
+  padding: $space-4;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: $radius-md;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+
+  p {
+    color: $text-muted;
+    font-size: $fs-sm;
+    margin: 0;
+  }
+
+  .wizard-text--muted {
+    font-size: $fs-xs;
+    opacity: 0.7;
+    margin-top: $space-1;
+  }
+}
+
+// ============================================
+// 17. TAB: CLINICO (New Styles)
+// ============================================
+.tab-clinico {
+  &__header {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: $space-3;
+    margin-bottom: $space-5;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $border-color;
+
+    h3 {
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $text-primary;
+      margin: 0;
+    }
+  }
+
+  &__filters {
+    display: flex;
+    gap: $space-3;
+    align-items: center;
+  }
+
+  &__date-filters {
+    display: flex;
+    gap: $space-4;
+    align-items: center;
+    padding: $space-4;
+    background: $p360-card-bg;
+    border: 1px solid $p360-card-border;
+    border-radius: $radius-md;
+    margin-bottom: $space-5;
+    flex-wrap: wrap;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+}
+
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  label {
+    font-size: $fs-sm;
+    color: $text-muted;
+    font-weight: $fw-medium;
+  }
+
+  input {
+    @include input-base;
+    padding: $space-2 $space-3;
+    font-size: $fs-sm;
+  }
+}
+
+.filter-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  svg {
+    position: absolute;
+    left: 12px;
+    color: $text-muted;
+    pointer-events: none;
+  }
+
+  input {
+    @include input-base;
+    padding-left: 40px;
+    min-width: 260px;
+
+    @include respond-to(mobile) {
+      min-width: 100%;
+    }
+  }
+}
+
+.consulta-card {
+  background: $p360-card-bg;
+  border: 1px solid $p360-card-border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  transition: all 200ms ease;
+
+  &:hover {
+    border-color: $p360-card-hover-border;
+  }
+
+  &--expanded {
+    border-color: rgba($accent-primary, 0.3);
+    background: rgba($accent-primary, 0.02);
+  }
+
+  &__header {
+    @include flex-between;
+    padding: $space-3 $space-5;
+    background: rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  &__date {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $accent-primary;
+  }
+
+  &__time {
+    font-weight: $fw-regular;
+    color: $text-muted;
+    font-size: $fs-xs;
+  }
+
+  &__badges {
+    display: flex;
+    gap: $space-2;
+    flex-wrap: wrap;
+  }
+
+  &__expand {
+    background: none;
+    border: none;
+    color: $text-muted;
+    cursor: pointer;
+    padding: $space-1;
+    border-radius: $radius-sm;
+    transition: all 150ms ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: $text-primary;
+    }
+  }
+
+  &__motivo {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-5;
+    font-size: $fs-base;
+    font-weight: $fw-medium;
+    color: $text-primary;
+
+    svg {
+      color: $accent-primary;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+  }
+
+  &__diagnostico {
+    padding: $space-2 $space-5;
+    font-size: $fs-sm;
+    color: $text-secondary;
+    background: rgba($accent-primary, 0.04);
+    border-left: 3px solid $accent-primary;
+    margin: 0 $space-5 $space-3;
+
+    strong {
+      color: $text-primary;
+    }
+  }
+
+  &__detail {
+    padding: $space-4 $space-5;
+    border-top: 1px solid $border-color;
+    animation: p360-slideDown 0.2s ease-out;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-2;
+    margin-top: $space-4;
+    padding-top: $space-3;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+}
+
+.detail-field {
+  margin-bottom: $space-3;
+
+  .detail-label {
+    display: block;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: $space-1;
+  }
+
+  span:not(.detail-label) {
+    font-size: $fs-sm;
+    color: $text-secondary;
+    line-height: 1.5;
+  }
+}
+
+.signos-vitales-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+  margin-top: $space-2;
+
+  span {
+    font-size: $fs-xs;
+    color: $text-secondary;
+    background: rgba(255, 255, 255, 0.04);
+    padding: $space-1 $space-2;
+    border-radius: $radius-sm;
+  }
+}
+
+.consulta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: $fw-semibold;
+
+  &--firmado {
+    background: rgba($success, 0.12);
+    color: $success;
+  }
+
+  &--tratamiento {
+    background: rgba($accent-primary, 0.1);
+    color: $accent-primary;
+  }
+
+  &--sesiones {
+    background: rgba($gold, 0.12);
+    color: $gold;
+  }
+}
+
+// ============================================
+// 18. TAB: TRATAMIENTOS
+// ============================================
+.tab-tratamientos {
+  &__header {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: $space-3;
+    margin-bottom: $space-5;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $border-color;
+
+    h3 {
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $text-primary;
+      margin: 0;
+    }
+  }
+
+  &__filters {
+    display: flex;
+    gap: $space-2;
+  }
+
+  &__summary {
+    display: flex;
+    gap: $space-5;
+    padding: $space-4;
+    background: $p360-card-bg;
+    border: 1px solid $p360-card-border;
+    border-radius: $radius-md;
+    margin-bottom: $space-5;
+    flex-wrap: wrap;
+
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      font-size: $fs-sm;
+      color: $text-secondary;
+
+      svg {
+        color: $accent-primary;
+      }
+
+      strong {
+        color: $text-primary;
+      }
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+}
+
+.tratamiento-card {
+  background: $p360-card-bg;
+  border: 1px solid $p360-card-border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  transition: all 200ms ease;
+
+  &:hover {
+    border-color: $p360-card-hover-border;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  &__header {
+    @include flex-between;
+    padding: $space-4 $space-5;
+    background: rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-base;
+    font-weight: $fw-semibold;
+    color: $text-primary;
+
+    svg {
+      color: $accent-primary;
+    }
+  }
+
+  &__badges {
+    display: flex;
+    gap: $space-2;
+    align-items: center;
+  }
+
+  &__body {
+    padding: $space-4 $space-5;
+  }
+
+  &__evidencias {
+    padding: $space-3 $space-5;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  &__pagos {
+    padding: $space-3 $space-5;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+}
+
+.tratamiento-field {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  font-size: $fs-sm;
+  color: $text-secondary;
+  margin-bottom: $space-2;
+
+  svg {
+    color: $accent-primary;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+}
+
+.tratamiento-label {
+  font-size: $fs-xs;
+  font-weight: $fw-semibold;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: $space-2;
+  display: block;
+}
+
+.tratamiento-badge {
+  &--activo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: $fw-semibold;
+    background: rgba($success, 0.12);
+    color: $success;
+  }
+
+  &--pendiente {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: $fw-semibold;
+    background: rgba($warning, 0.12);
+    color: $warning;
+  }
+
+  &--completado {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: $fw-semibold;
+    background: rgba($accent-primary, 0.12);
+    color: $accent-primary;
+  }
+
+  &--costo {
+    display: inline-flex;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: $fw-semibold;
+    background: rgba($gold, 0.12);
+    color: $gold;
+  }
+
+  &--default {
+    display: inline-flex;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: $fw-semibold;
+    background: rgba($text-muted, 0.1);
+    color: $text-muted;
+  }
+}
+
+.tratamiento-evidencias-grid {
+  display: flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.tratamiento-evidencia-thumb {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  border: 1px solid $p360-card-border;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .tratamiento-evidencia-tipo {
+    position: absolute;
+    bottom: 2px;
+    left: 2px;
+    padding: 1px 4px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 2px;
+    font-size: 8px;
+    color: $text-primary;
+    text-transform: uppercase;
+  }
+}
+
+.tratamiento-evidencia-more {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid $p360-card-border;
+  border-radius: $radius-sm;
+  font-size: $fs-xs;
+  color: $text-muted;
+  font-weight: $fw-semibold;
+}
+
+.tratamiento-pagos-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.tratamiento-pago-item {
+  display: flex;
+  gap: $space-4;
+  font-size: $fs-sm;
+  color: $text-secondary;
+  padding: $space-2 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  strong {
+    color: $gold;
+  }
+}
+
+// ============================================
+// 19. TAB: GENERAL (Antecedentes Card)
+// ============================================
+.antecedentes-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $space-3;
+  margin-bottom: $space-4;
+  padding-bottom: $space-3;
+  border-bottom: 1px solid $border-color;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+
+    h4 {
+      margin: 0;
+      padding: 0;
+      border: none;
+    }
+  }
+
+  &__badge {
+    display: inline-flex;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: $fw-semibold;
+    background: rgba($accent-primary, 0.12);
+    color: $accent-primary;
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+}
+
+.antecedentes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $space-3;
+
+  @include respond-to(mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.antecedente-item {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: $radius-md;
+  transition: all 150ms ease;
+
+  &--active {
+    background: rgba($accent-primary, 0.04);
+    border-color: rgba($accent-primary, 0.12);
+  }
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.antecedente-label {
+  flex: 1;
+  font-size: $fs-sm;
+  color: $text-secondary;
+  font-weight: $fw-medium;
+}
+
+.antecedente-badge {
+  display: inline-flex;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: $fw-semibold;
+  flex-shrink: 0;
+
+  &--si {
+    background: rgba($accent-primary, 0.15);
+    color: $accent-primary;
+  }
+
+  &--no {
+    background: rgba($text-muted, 0.1);
+    color: $text-muted;
+  }
+
+  &--texto {
+    background: rgba($gold, 0.12);
+    color: $gold;
+  }
+}
+
+.antecedente-obs {
+  font-size: $fs-xs;
+  color: $text-muted;
+  margin-left: $space-2;
+  font-style: italic;
+}
+
+.antecedentes-extra {
+  grid-column: 1 / -1;
+  margin-top: $space-3;
+  padding-top: $space-3;
+  border-top: 1px solid $border-color;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.antecedente-extra-item {
+  font-size: $fs-sm;
+  color: $text-secondary;
+
+  strong {
+    color: $text-primary;
+    font-weight: $fw-semibold;
+  }
+}
+
+.antecedentes-edit {
+  padding: $space-4;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: $radius-md;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.saved-message {
+  color: $success;
+  font-size: $fs-sm;
+  font-weight: $fw-medium;
+}
+
+.error-message {
+  color: $error;
+  font-size: $fs-sm;
+  font-weight: $fw-medium;
+}
+
+// ============================================
+// COMPACT ANTECEDENTES DISPLAY
+// ============================================
+.antecedentes-compact,
+.wizard-antecedentes-compact {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.antecedente-compact-item,
+.wizard-antecedente-compact-item {
+  display: flex;
+  align-items: baseline;
+  gap: $space-2;
+  padding: $space-1 0;
+  font-size: $fs-sm;
+  color: $text-secondary;
+}
+
+.antecedente-compact-dot,
+.wizard-antecedente-compact-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $accent-primary;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.antecedente-compact-label,
+.wizard-antecedente-compact-label {
+  font-weight: $fw-medium;
+  color: $text-primary;
+}
+
+.antecedente-compact-detail,
+.wizard-antecedente-compact-detail {
+  color: $text-muted;
+  font-style: italic;
+  font-size: $fs-xs;
+
+  &::before {
+    content: '—';
+    margin-right: $space-1;
+  }
+}
+
+.wizard-antecedentes-header {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-bottom: $space-3;
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+}
+
+// ============================================
+// 20. TAB: EVIDENCIAS (Updated)
+// ============================================
+.tab-evidencias {
+  &__header {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: $space-3;
+    margin-bottom: $space-5;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $border-color;
+
+    h3 {
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $text-primary;
+      margin: 0;
+    }
+  }
+
+  &__filters {
+    display: flex;
+    gap: $space-2;
+  }
+}
+
+.evidencia-card {
+  &--antes {
+    border-color: rgba($warning, 0.2);
+
+    &:hover {
+      border-color: rgba($warning, 0.4);
+    }
+  }
+
+  &--despues {
+    border-color: rgba($success, 0.2);
+
+    &:hover {
+      border-color: rgba($success, 0.4);
+    }
+  }
+}
+
+.evidencia-tipo {
+  &--antes {
+    background: rgba($warning, 0.25);
+    color: $warning;
+  }
+
+  &--despues {
+    background: rgba($success, 0.25);
+    color: $success;
+  }
+
+  &--otro {
+    background: rgba($text-muted, 0.25);
+    color: $text-muted;
+  }
+}
+
+// ============================================
+// 21. MODAL STYLES
+// ============================================
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: $z-modal;
+  @include flex-center;
+  animation: p360-fadeIn 0.2s ease-out;
+  padding: $space-4;
+}
+
+.modal {
+  background: $bg-surface;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  @include custom-scrollbar;
+  animation: p360-slideUp 0.25s ease-out;
+
+  &-lg {
+    max-width: 800px;
+  }
+
+  &-sm {
+    max-width: 480px;
+  }
+}
+
+.modal-header {
+  @include flex-between;
+  padding: $space-5 $space-6;
+  border-bottom: 1px solid $border-color;
+  position: sticky;
+  top: 0;
+  background: $bg-surface;
+  z-index: 1;
+
+  h3 {
+    font-size: $fs-lg;
+    font-weight: $fw-semibold;
+    color: $text-primary;
+    margin: 0;
+  }
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  color: $text-muted;
+  font-size: $fs-xl;
+  cursor: pointer;
+  padding: $space-1 $space-2;
+  border-radius: $radius-sm;
+  transition: all 150ms ease;
+  line-height: 1;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: $text-primary;
+  }
+}
+
+.modal-loading {
+  @include flex-center;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-12;
+  color: $text-muted;
+
+  .spinner {
+    animation: p360-spin 1s linear infinite;
+    color: $accent-primary;
+  }
+}
+
+.alert {
+  padding: $space-3 $space-5;
+  border-radius: $radius-md;
+  font-size: $fs-sm;
+  margin: $space-4 $space-6 0;
+
+  &-error {
+    background: rgba($error, 0.1);
+    border: 1px solid rgba($error, 0.3);
+    color: $error;
+  }
+
+  &-success {
+    background: rgba($success, 0.1);
+    border: 1px solid rgba($success, 0.3);
+    color: $success;
+  }
+}
+
+.form {
+  padding: $space-5 $space-6 $space-6;
+}
+
+.form-section {
+  margin-bottom: $space-6;
+
+  h4 {
+    font-size: $fs-md;
+    font-weight: $fw-semibold;
+    color: $accent-primary;
+    margin: 0 0 $space-4;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid $border-color;
+  }
+
+  .section-hint {
+    font-size: $fs-xs;
+    font-weight: $fw-regular;
+    color: $text-muted;
+  }
+}
+
+.form-grid {
+  display: grid;
+  gap: $space-4;
+
+  &--2 {
+    grid-template-columns: repeat(2, 1fr);
+
+    @include respond-to(mobile) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &--1 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+
+  label {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $text-muted;
+  }
+
+  input,
+  select,
+  textarea {
+    @include input-base;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    padding: $space-2 $space-3;
+    color: $text-primary;
+    font-size: $fs-sm;
+    transition: border-color 150ms ease;
+
+    &:focus {
+      outline: none;
+      border-color: $accent-primary;
+      box-shadow: 0 0 0 2px rgba($accent-primary, 0.15);
+    }
+
+    &::placeholder {
+      color: $text-muted;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-3;
+  padding-top: $space-5;
+  border-top: 1px solid $border-color;
+  margin-top: $space-5;
+}
+
+@keyframes p360-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ============================================
+// 22. RESPONSIVE BREAKPOINTS
+// ============================================
+@include respond-to(desktop) {
+  .paciente360-page {
+    padding: $space-5;
+
+    &__header {
+      gap: $space-3;
+    }
+
+    &__title {
+      font-size: $fs-xl;
+    }
+
+    &__tabs {
+      gap: 2px;
+    }
+
+    &__tab {
+      padding: $space-2 $space-4;
+      font-size: $fs-xs;
+    }
+  }
+}
+
+@include respond-to(tablet) {
+  .paciente360-page {
+    padding: $space-4;
+
+    &__header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    &__title {
+      font-size: $fs-lg;
+    }
+  }
+
+  .paciente360-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-row {
+    flex-direction: column;
+    gap: $space-1;
+
+    .field-label {
+      min-width: unset;
+    }
+  }
+}
+
+@include respond-to(mobile) {
+  .paciente360-page {
+    padding: $space-3;
+
+    &__header {
+      padding-bottom: $space-3;
+    }
+
+    &__title {
+      font-size: $fs-md;
+      background: none;
+      -webkit-text-fill-color: $text-primary;
+    }
+
+    &__subtitle {
+      font-size: 11px;
+    }
+
+    &__tabs {
+      margin-bottom: $space-4;
+      border-radius: $radius-md;
+    }
+
+    &__tab {
+      padding: $space-2;
+      gap: 4px;
+
+      span {
+        display: none;
+      }
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  .paciente360-card {
+    padding: $space-4;
+  }
+
+  .paciente360-grid {
+    grid-template-columns: 1fr;
+    gap: $space-3;
+  }
+
+  .tab-antecedentes {
+    .antecedente-field {
+      padding: $space-3;
+    }
+
+    .antecedente-field__sino {
+      gap: $space-1;
+    }
+
+    .antecedente-btn {
+      padding: $space-2 $space-4;
+    }
+  }
+
+  .tab-evidencias .evidencias-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-2;
+  }
+
+  .tab-reciente .atencion-card__footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .atencion-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-2;
+  }
+
+  .tab-financiero .table {
+    font-size: $fs-xs;
+
+    thead th,
+    tbody td {
+      padding: $space-2 $space-3;
+    }
+  }
+}
+
+// ============================================
+// 17. SKELETON LOADING (optional shimmer)
+// ============================================
+.p360-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: p360-shimmer 1.5s ease-in-out infinite;
+  border-radius: $radius-sm;
+
+  &--text {
+    height: 14px;
+    margin-bottom: $space-2;
+    width: 80%;
+  }
+
+  &--title {
+    height: 20px;
+    margin-bottom: $space-3;
+    width: 60%;
+  }
+
+  &--card {
+    height: 120px;
+    border-radius: $radius-lg;
+  }
+}
+
+// ============================================
+// WIZARD MODAL — Light Mode
+// ============================================
+
+.wizard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  z-index: $z-modal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-4;
+  animation: wizard-fadeIn 0.2s ease-out;
+}
+
+.wizard-modal {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 860px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+  animation: wizard-slideUp 0.25s ease-out;
+  overflow: hidden;
+}
+
+.wizard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-5 $space-6;
+  border-bottom: 1px solid #E2E8F0;
+  flex-shrink: 0;
+
+  h3 {
+    font-size: $fs-lg;
+    font-weight: $fw-semibold;
+    color: #1E293B;
+    margin: 0;
+  }
+}
+
+.wizard-close {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  font-size: $fs-xl;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  line-height: 1;
+  transition: all 150ms ease;
+
+  &:hover {
+    background: #F1F5F9;
+    color: #475569;
+  }
+}
+
+// Stepper
+.wizard-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-5 $space-6;
+  gap: 0;
+  flex-shrink: 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.wizard-step {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  &__circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    border: 2px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #94A3B8;
+    transition: all 200ms ease;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: #94A3B8;
+    transition: color 200ms ease;
+    white-space: nowrap;
+  }
+
+  &__connector {
+    width: 40px;
+    height: 2px;
+    background: #E2E8F0;
+    margin: 0 $space-2;
+    flex-shrink: 0;
+    transition: background 200ms ease;
+  }
+
+  // Active step
+  &.active {
+    .wizard-step__circle {
+      border-color: #2563EB;
+      background: #2563EB;
+      color: #FFFFFF;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+    .wizard-step__label {
+      color: #1E293B;
+      font-weight: $fw-semibold;
+    }
+  }
+
+  // Completed step
+  &.completed {
+    .wizard-step__circle {
+      border-color: #10B981;
+      background: #10B981;
+      color: #FFFFFF;
+    }
+    .wizard-step__label {
+      color: #64748B;
+    }
+  }
+
+  &.completed + .wizard-step__connector,
+  &.completed ~ .wizard-step__connector {
+    background: #10B981;
+  }
+}
+
+// Form body
+.wizard-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-6;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+  }
+}
+
+.wizard-form-section {
+  margin-bottom: $space-6;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  h4 {
+    font-size: $fs-base;
+    font-weight: $fw-semibold;
+    color: #1E293B;
+    margin: 0 0 $space-4;
+  }
+
+  .section-hint {
+    font-size: $fs-xs;
+    font-weight: $fw-regular;
+    color: #94A3B8;
+  }
+}
+
+.wizard-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-4;
+
+  @include respond-to(mobile) {
+    grid-template-columns: 1fr;
+  }
+
+  &--full {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wizard-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: #64748B;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: #F8FAFC;
+    border: 1px solid #D1D5DB;
+    border-radius: 10px;
+    color: #1E293B;
+    font-family: $font-family;
+    font-size: $fs-sm;
+    transition: all 150ms ease;
+
+    &::placeholder {
+      color: #94A3B8;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      background: #FFFFFF;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394A3B8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+}
+
+// Footer
+.wizard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-3;
+  padding: $space-4 $space-6;
+  border-top: 1px solid #E2E8F0;
+  flex-shrink: 0;
+  background: #FFFFFF;
+}
+
+.wizard-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-family: $font-family;
+  font-size: $fs-sm;
+  font-weight: $fw-medium;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: none;
+
+  &--cancel {
+    background: transparent;
+    color: #64748B;
+    border: 1px solid #E2E8F0;
+
+    &:hover {
+      background: #F8FAFC;
+      color: #475569;
+      border-color: #D1D5DB;
+    }
+  }
+
+  &--back {
+    background: #FFFFFF;
+    color: #374151;
+    border: 1px solid #D1D5DB;
+
+    &:hover {
+      background: #F9FAFB;
+      border-color: #9CA3AF;
+    }
+  }
+
+  &--next {
+    background: #2563EB;
+    color: #FFFFFF;
+
+    &:hover {
+      background: #1D4ED8;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  &--save {
+    background: #059669;
+    color: #FFFFFF;
+
+    &:hover {
+      background: #047857;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .spinner {
+    animation: p360-spin 1s linear infinite;
+  }
+}
+
+// Error alert (light)
+.wizard-error {
+  padding: $space-3 $space-4;
+  border-radius: 10px;
+  font-size: $fs-sm;
+  margin: 0 $space-6;
+  margin-top: $space-4;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+}
+
+// Loading
+.wizard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-3;
+  padding: $space-12;
+  color: #64748B;
+
+  .spinner {
+    animation: p360-spin 1s linear infinite;
+    color: #2563EB;
+  }
+}
+
+// Antecedentes in wizard (light overrides)
+.wizard-body {
+  .antecedente-field {
+    padding: $space-3 0;
+    border-bottom: 1px solid #F1F5F9;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .antecedente-field__label {
+    font-size: $fs-sm;
+    color: #374151;
+    font-weight: $fw-medium;
+  }
+
+  .antecedente-btn {
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: $fs-xs;
+    font-weight: $fw-medium;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      border-color: #CBD5E1;
+    }
+
+    &.si-activo {
+      background: #EFF6FF;
+      border-color: #93C5FD;
+      color: #2563EB;
+    }
+
+    &.no-activo {
+      background: #F9FAFB;
+      border-color: #D1D5DB;
+      color: #6B7280;
+    }
+  }
+
+  .antecedente-field__obs {
+    width: 100%;
+    margin-top: $space-2;
+    padding: 8px 12px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    color: #1E293B;
+    font-size: $fs-sm;
+    font-family: $font-family;
+    resize: vertical;
+    min-height: 48px;
+
+    &:focus {
+      outline: none;
+      border-color: #2563EB;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.08);
+    }
+
+    &::placeholder {
+      color: #94A3B8;
+    }
+  }
+}
+
+@keyframes wizard-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes wizard-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

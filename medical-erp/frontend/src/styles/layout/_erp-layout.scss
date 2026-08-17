@@ -1,0 +1,54 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.erp-layout {
+  display: flex;
+  min-height: 100vh;
+  background: $bg-primary;
+
+  &__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin-left: $sidebar-width;
+    transition: margin-left 200ms ease;
+
+    @include respond-to(tablet) {
+      margin-left: 0;
+    }
+
+    &--collapsed {
+      margin-left: $sidebar-collapsed;
+
+      @include respond-to(tablet) {
+        margin-left: 0;
+      }
+    }
+  }
+
+  &__content {
+    flex: 1;
+    padding: $space-8;
+    overflow-y: auto;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 50%, #f5f0ff 100%);
+    @include custom-scrollbar;
+
+    @include respond-to(tablet) {
+      padding: $space-4;
+    }
+  }
+
+  // Overlay for mobile sidebar
+  &__overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: $z-sidebar - 1;
+
+    @include respond-to(tablet) {
+      display: block;
+    }
+  }
+}

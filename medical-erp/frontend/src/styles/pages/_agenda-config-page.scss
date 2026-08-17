@@ -1,0 +1,516 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+@use '../themes/light' as *;
+
+// ============================================
+// Agenda Config Page — Glassmorphism Light
+// ============================================
+
+@mixin glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: $radius-xl;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+// ---------- Page wrapper ----------
+.agenda-config-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease;
+
+  &__loading {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-4;
+    min-height: 400px;
+    color: $light-text-muted;
+
+    .spinner {
+      animation: spin 1s linear infinite;
+      color: $light-accent;
+    }
+  }
+
+  &__alert {
+    @include flex-center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    margin-bottom: $space-5;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+
+    &--error {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      color: $light-error;
+    }
+
+    &--success {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.15);
+      color: $light-success;
+    }
+  }
+
+  &__empty {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-4;
+    padding: $space-12 $space-4;
+    color: $light-text-muted;
+    text-align: center;
+    @include glass-card;
+
+    h3 {
+      margin: 0;
+      font-size: $fs-lg;
+      color: $light-text-primary;
+    }
+
+    p {
+      margin: 0;
+      font-size: $fs-sm;
+      color: $light-text-muted;
+    }
+  }
+}
+
+// ---------- Header ----------
+.agenda-config-header {
+  @include glass-card;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-5 $space-6;
+  margin-bottom: $space-5;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+  }
+
+  &__icon {
+    @include flex-center;
+    width: 48px;
+    height: 48px;
+    border-radius: $radius-lg;
+    background: linear-gradient(135deg, $light-accent, $light-accent-hover);
+    color: $light-text-inverse;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: $fs-2xl;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+  }
+
+  &__subtitle {
+    margin: $space-1 0 0;
+    font-size: $fs-sm;
+    color: $light-text-muted;
+  }
+}
+
+// ---------- Tabs ----------
+.agenda-config-tabs {
+  display: flex;
+  gap: $space-2;
+  margin-bottom: $space-5;
+  @include glass-card;
+  padding: $space-2;
+
+  &__btn {
+    @include flex-center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    border: none;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 150ms ease;
+    flex: 1;
+
+    &:hover {
+      color: $light-text-primary;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    &--active {
+      background: $light-accent;
+      color: $light-text-inverse;
+
+      &:hover {
+        background: $light-accent-hover;
+        color: $light-text-inverse;
+      }
+    }
+  }
+}
+
+// ---------- Section ----------
+.agenda-config-section {
+  @include glass-card;
+  padding: $space-6;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-6;
+
+    h2 {
+      margin: 0;
+      font-size: $fs-lg;
+      font-weight: $fw-bold;
+      color: $light-text-primary;
+    }
+  }
+
+  &__badge {
+    padding: $space-1 $space-3;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    background: rgba(100, 116, 139, 0.1);
+    border: 1px solid rgba(100, 116, 139, 0.15);
+    border-radius: 999px;
+  }
+}
+
+// ---------- Disponibilidad Grid ----------
+.agenda-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $space-4;
+
+  @include respond-to(tablet) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.agenda-config-day {
+  @include glass-card;
+  padding: $space-4;
+  transition: all 150ms ease;
+
+  &--today {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-3;
+    padding-bottom: $space-2;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  }
+
+  &__name {
+    font-size: $fs-sm;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+  }
+
+  &__short {
+    display: none;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+
+    @include respond-to(tablet) {
+      display: block;
+    }
+
+    @include respond-to(desktop) {
+      display: none;
+    }
+  }
+
+  @include respond-to(desktop) {
+    &__name { display: none; }
+    &__short { display: block; }
+  }
+
+  &__slots {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    min-height: 40px;
+  }
+
+  &__empty {
+    @include flex-center;
+    padding: $space-3;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    font-style: italic;
+    background: rgba(100, 116, 139, 0.05);
+    border-radius: $radius-sm;
+    border: 1px dashed rgba(100, 116, 139, 0.2);
+  }
+
+  &__add {
+    @include flex-center;
+    gap: $space-1;
+    width: 100%;
+    padding: $space-2;
+    margin-top: $space-2;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px dashed rgba(59, 130, 246, 0.2);
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+  }
+}
+
+// ---------- Slot Row ----------
+.agenda-config-slot {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  &__input {
+    flex: 1;
+    padding: $space-2;
+    font-size: $fs-sm;
+    border: 1px solid $light-border;
+    border-radius: $radius-sm;
+    background: rgba(255, 255, 255, 0.6);
+    color: $light-text-primary;
+    transition: border-color 150ms ease;
+
+    &:focus {
+      outline: none;
+      border-color: $light-accent;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+  }
+
+  &__separator {
+    color: $light-text-muted;
+    font-weight: $fw-bold;
+  }
+
+  &__remove {
+    @include flex-center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      color: $light-error;
+      background: rgba(239, 68, 68, 0.1);
+    }
+  }
+}
+
+// ---------- Bloqueo Form ----------
+.agenda-config-bloqueo-form {
+  @include glass-card;
+  padding: $space-5;
+  margin-bottom: $space-5;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: $space-4;
+    margin-bottom: $space-4;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    @include respond-to(tablet) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include respond-to(mobile) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    &--full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: $fs-xs;
+      font-weight: $fw-semibold;
+      color: $light-text-secondary;
+    }
+
+    input, select {
+      padding: $space-2 $space-3;
+      font-size: $fs-sm;
+      border: 1px solid $light-border;
+      border-radius: $radius-sm;
+      background: rgba(255, 255, 255, 0.6);
+      color: $light-text-primary;
+      transition: border-color 150ms ease;
+
+      &:focus {
+        outline: none;
+        border-color: $light-accent;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $space-3;
+    margin-top: $space-4;
+  }
+}
+
+// ---------- Bloqueos List ----------
+.agenda-config-bloqueos-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.agenda-config-bloqueo-card {
+  @include glass-card;
+  overflow: hidden;
+  transition: all 150ms ease;
+
+  &:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-5;
+    cursor: pointer;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+  }
+
+  &__dates {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__motivo {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    color: $light-text-muted;
+  }
+
+  &__delete {
+    @include flex-center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      color: $light-error;
+      background: rgba(239, 68, 68, 0.1);
+    }
+  }
+}
+
+// ---------- Buttons ----------
+.btn {
+  @include flex-center;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  font-size: $fs-sm;
+  font-weight: $fw-semibold;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background: $light-accent;
+    color: $light-text-inverse;
+
+    &:hover:not(:disabled) {
+      background: $light-accent-hover;
+    }
+  }
+
+  &--secondary {
+    background: rgba(100, 116, 139, 0.1);
+    color: $light-text-secondary;
+    border: 1px solid $light-border;
+
+    &:hover:not(:disabled) {
+      background: rgba(100, 116, 139, 0.15);
+    }
+  }
+}
+
+// ---------- Animations ----------
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,419 @@
+@use '../variables' as *;
+@use '../themes/light' as *;
+@use '../mixins' as *;
+
+// ============================================
+// Consulta Detail Page — Redesigned
+// Two-column layout: main + sidebar
+// ============================================
+
+.consulta-detail {
+  padding: $space-4;
+  min-height: 100vh;
+
+  @include respond-to(desktop) {
+    padding: $space-6;
+  }
+}
+
+// ---- Header ----
+.consulta-detail__header {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-4;
+  margin-bottom: $space-6;
+  flex-wrap: wrap;
+
+  @include respond-to(tablet) {
+    flex-direction: column;
+  }
+}
+
+.consulta-detail__header-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.consulta-detail__title {
+  font-size: $fs-xl;
+  font-weight: $fw-bold;
+  color: $light-text-primary;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.consulta-detail__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px $space-3;
+  border-radius: 9999px;
+  font-size: $fs-xs;
+  font-weight: $fw-semibold;
+
+  &--firmado {
+    background: rgba(#22C55E, 0.1);
+    color: #22C55E;
+  }
+}
+
+.consulta-detail__subtitle {
+  font-size: $fs-sm;
+  color: $light-text-muted;
+  margin: $space-1 0 0 0;
+}
+
+.consulta-detail__header-actions {
+  display: flex;
+  gap: $space-2;
+  flex-shrink: 0;
+}
+
+// ---- Body: 2-column ----
+.consulta-detail__body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+
+  @include respond-to(desktop) {
+    flex-direction: row;
+  }
+}
+
+.consulta-detail__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  min-width: 0;
+}
+
+.consulta-detail__sidebar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+
+  @include respond-to(desktop) {
+    width: 260px;
+    flex-shrink: 0;
+  }
+}
+
+// ---- Sections ----
+.consulta-detail__section {
+  background: $light-card;
+  border: 1px solid $light-border;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.consulta-detail__section-header {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3 $space-4;
+  background: $light-surface;
+  border-bottom: 1px solid $light-border;
+
+  h3 {
+    margin: 0;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  svg {
+    color: $light-accent;
+  }
+}
+
+.consulta-detail__cards {
+  padding: $space-4;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+// ---- Cards ----
+.consulta-detail__card {
+  &--full {
+    grid-column: 1 / -1;
+  }
+}
+
+.consulta-detail__card-label {
+  display: block;
+  font-size: $fs-xs;
+  font-weight: $fw-medium;
+  color: $light-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: $space-1;
+}
+
+.consulta-detail__card-value {
+  font-size: $fs-sm;
+  color: $light-text-primary;
+  margin: 0;
+  line-height: 1.5;
+}
+
+// ---- Vital Signs ----
+.consulta-detail__vitals {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-2;
+
+  @include respond-to(tablet) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include respond-to(desktop) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.vital-sign {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  background: $light-surface;
+  border: 1px solid $light-border;
+  border-radius: $radius-sm;
+  transition: all 150ms ease;
+
+  &--warning {
+    border-color: #F59E0B;
+    background: rgba(#F59E0B, 0.05);
+  }
+
+  &--imc {
+    grid-column: span 2;
+
+    @include respond-to(tablet) {
+      grid-column: span 1;
+    }
+  }
+
+  &--normal { border-color: #22C55E; }
+  &--bajo { border-color: #3B82F6; }
+  &--sobrepeso { border-color: #F59E0B; }
+  &--obesidad { border-color: #EF4444; }
+}
+
+.vital-sign__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-sm;
+  background: rgba($light-accent, 0.08);
+  color: $light-accent;
+  flex-shrink: 0;
+}
+
+.vital-sign--warning .vital-sign__icon {
+  background: rgba(#F59E0B, 0.12);
+  color: #F59E0B;
+}
+
+.vital-sign__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.vital-sign__label {
+  font-size: 10px;
+  font-weight: $fw-medium;
+  color: $light-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.vital-sign__value {
+  font-size: $fs-sm;
+  font-weight: $fw-semibold;
+  color: $light-text-primary;
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+.vital-sign__unit {
+  font-size: $fs-xs;
+  font-weight: $fw-regular;
+  color: $light-text-muted;
+}
+
+.vital-sign__badge {
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-weight: $fw-semibold;
+
+  &--normal { background: rgba(#22C55E, 0.12); color: #22C55E; }
+  &--bajo { background: rgba(#3B82F6, 0.12); color: #3B82F6; }
+  &--sobrepeso { background: rgba(#F59E0B, 0.12); color: #F59E0B; }
+  &--obesidad { background: rgba(#EF4444, 0.12); color: #EF4444; }
+}
+
+// ---- Diagnósticos ----
+.consulta-detail__diag-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.consulta-detail__diag-item {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  background: $light-surface;
+  border: 1px solid $light-border;
+  border-radius: $radius-sm;
+
+  &--principal {
+    border-left: 3px solid $light-accent;
+    background: rgba($light-accent, 0.03);
+  }
+}
+
+.consulta-detail__diag-code {
+  font-size: $fs-xs;
+  font-weight: $fw-bold;
+  color: $light-accent;
+  min-width: 60px;
+}
+
+.consulta-detail__diag-desc {
+  font-size: $fs-sm;
+  color: $light-text-primary;
+  flex: 1;
+}
+
+.consulta-detail__diag-badge {
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: rgba($light-accent, 0.12);
+  color: $light-accent;
+  font-weight: $fw-semibold;
+  white-space: nowrap;
+}
+
+// ---- Medicamentos ----
+.consulta-detail__med-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.consulta-detail__med-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: $space-2 $space-3;
+  background: $light-surface;
+  border: 1px solid $light-border;
+  border-radius: $radius-sm;
+}
+
+.consulta-detail__med-name {
+  font-size: $fs-sm;
+  font-weight: $fw-semibold;
+  color: $light-text-primary;
+}
+
+.consulta-detail__med-detail {
+  font-size: $fs-xs;
+  color: $light-text-muted;
+}
+
+// ---- Sidebar Cards ----
+.consulta-detail__sidebar-card {
+  background: $light-card;
+  border: 1px solid $light-border;
+  border-radius: $radius-md;
+  padding: $space-4;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.consulta-detail__sidebar-label {
+  font-size: $fs-xs;
+  font-weight: $fw-medium;
+  color: $light-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.consulta-detail__sidebar-value {
+  font-size: $fs-sm;
+  font-weight: $fw-semibold;
+  color: $light-text-primary;
+}
+
+.consulta-detail__sidebar-sub {
+  font-size: $fs-xs;
+  color: $light-text-muted;
+}
+
+.consulta-detail__sidebar-badge {
+  display: inline-flex;
+  padding: 2px $space-3;
+  border-radius: 9999px;
+  font-size: $fs-xs;
+  font-weight: $fw-semibold;
+  width: fit-content;
+
+  &--success {
+    background: rgba(#22C55E, 0.1);
+    color: #22C55E;
+  }
+
+  &--pending {
+    background: rgba(#F59E0B, 0.1);
+    color: #F59E0B;
+  }
+}
+
+.consulta-detail__sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+// ---- Loading / Error ----
+.consulta-detail__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-4;
+  padding: $space-12;
+  color: $light-text-muted;
+}
+
+.consulta-detail__error {
+  padding: $space-4;
+  background: rgba(#EF4444, 0.08);
+  border: 1px solid rgba(#EF4444, 0.2);
+  border-radius: $radius-md;
+  color: #EF4444;
+  font-size: $fs-sm;
+  text-align: center;
+}

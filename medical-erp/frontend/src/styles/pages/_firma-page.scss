@@ -1,0 +1,123 @@
+@use '../variables' as *;
+@use '../themes/light' as *;
+
+.firma-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 50%, #f5f0ff 100%);
+  padding: $space-6;
+  font-family: $font-family;
+
+  &__card {
+    max-width: 500px;
+    width: 100%;
+    background: $light-card;
+    border: 1px solid $light-border;
+    border-radius: $radius-xl;
+    box-shadow: $light-shadow-lg;
+    padding: $space-8;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-4;
+
+    h2 { color: $light-text-primary; margin: 0; font-size: $fs-xl; }
+    p { color: $light-text-secondary; font-size: $fs-sm; line-height: 1.6; margin: 0; }
+
+    &--success { border-color: $light-success-border; }
+  }
+
+  &__icon { color: $light-accent; }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3;
+    background: $light-error-light;
+    border: 1px solid $light-error-border;
+    border-radius: $radius-md;
+    color: $light-error;
+    font-size: $fs-sm;
+    width: 100%;
+  }
+
+  &__canvas-wrapper {
+    width: 100%;
+    position: relative;
+    border: 2px dashed $light-border-strong;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    background: $light-bg;
+  }
+
+  &__canvas {
+    width: 100%;
+    height: 150px;
+    cursor: crosshair;
+    display: block;
+    touch-action: none;
+  }
+
+  &__canvas-label {
+    position: absolute;
+    bottom: $space-2;
+    right: $space-3;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-3;
+    width: 100%;
+    margin-top: $space-2;
+  }
+
+  &__btn-clear {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-3;
+    background: transparent;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    color: $light-text-secondary;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__btn-sign {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-3;
+    background: $light-accent;
+    color: white;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $light-accent-hover; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &__timestamp {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+}

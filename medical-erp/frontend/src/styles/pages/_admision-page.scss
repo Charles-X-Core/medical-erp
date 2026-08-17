@@ -1,0 +1,1324 @@
+@use '../variables' as *;
+@use '../themes/light' as *;
+
+.admision-page {
+  min-height: 100vh;
+  padding: $space-6;
+  font-family: $font-family;
+
+  // ============================================
+  // HEADER
+  // ============================================
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-5;
+  }
+
+  &__title-group {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  &__icon { color: $light-accent; }
+
+  &__title {
+    font-size: $fs-2xl;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    margin: 0;
+  }
+
+  &__subtitle {
+    font-size: $fs-sm;
+    color: $light-text-muted;
+    margin: $space-1 0 0 0;
+  }
+
+  &__btn-create {
+    display: flex; align-items: center; gap: $space-2;
+    padding: $space-3 $space-5;
+    background: $light-accent; color: $light-text-inverse;
+    border: none; border-radius: $radius-lg;
+    font-size: $fs-sm; font-weight: $fw-semibold; cursor: pointer; white-space: nowrap;
+    transition: background 0.2s;
+    &:hover { background: $light-accent-hover; }
+  }
+
+  // ============================================
+  // SEARCH
+  // ============================================
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-5;
+  }
+
+  &__search-input-wrapper {
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  &__search-icon {
+    position: absolute; left: $space-3;
+    color: $light-text-muted;
+    pointer-events: none;
+  }
+
+  &__search-field {
+    width: 100%;
+    padding: $space-3 $space-4 $space-3 2.75rem;
+    background: $light-card;
+    border: 1px solid $light-border;
+    border-radius: $radius-sm;
+    color: $light-text-primary;
+    font-size: $fs-sm;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    &:focus { outline: none; border-color: $light-accent; box-shadow: 0 0 0 3px rgba($light-accent, 0.1); }
+    &::placeholder { color: $light-text-muted; }
+  }
+
+  &__btn-secondary {
+    padding: $space-3 $space-5;
+    background: $light-card; color: $light-text-primary;
+    border: 1px solid $light-border; border-radius: $radius-sm;
+    font-size: $fs-sm; font-weight: $fw-medium; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__btn-ghost {
+    padding: $space-3 $space-5;
+    background: transparent; color: $light-text-muted;
+    border: none; border-radius: $radius-sm;
+    font-size: $fs-sm; cursor: pointer;
+    &:hover { color: $light-text-primary; background: $light-card-hover; }
+  }
+
+  // ============================================
+  // ERROR
+  // ============================================
+
+  &__error {
+    display: flex; align-items: center; gap: $space-2;
+    padding: $space-3 $space-4;
+    background: $light-error-light;
+    border: 1px solid $light-error-border;
+    border-radius: $radius-sm;
+    color: $light-error;
+    font-size: $fs-sm;
+    margin-bottom: $space-4;
+  }
+
+  // ============================================
+  // TABLE
+  // ============================================
+
+  &__table-wrapper {
+    background: $light-card;
+    border: 1px solid $light-border;
+    border-radius: $radius-lg;
+    overflow: hidden;
+  }
+
+  &__loading {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: $space-12; gap: $space-4; color: $light-text-muted;
+  }
+
+  &__empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: $space-12; gap: $space-4; color: $light-text-muted;
+    p { margin: 0; }
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $fs-sm;
+
+    thead {
+      background: $light-surface;
+      th {
+        padding: $space-3 $space-4;
+        text-align: left;
+        font-weight: $fw-semibold;
+        color: $light-text-muted;
+        font-size: $fs-xs;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid $light-border;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $light-border;
+        transition: background 0.2s;
+        &:hover { background: $light-card-hover; }
+        &:last-child { border-bottom: none; }
+      }
+
+      td {
+        padding: $space-3 $space-4;
+        color: $light-text-primary;
+        vertical-align: middle;
+      }
+    }
+  }
+
+  &__th-actions { text-align: right !important; }
+
+  &__td-id {
+    font-family: monospace;
+    font-size: $fs-sm;
+    color: $light-text-muted;
+  }
+
+  &__td-name {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+
+    &-main { font-weight: $fw-medium; color: $light-text-primary; }
+    &-sub { font-size: $fs-sm; color: $light-text-muted; }
+  }
+
+  &__td-actions {
+    display: flex;
+    gap: $space-1;
+    justify-content: flex-end;
+  }
+
+  // ============================================
+  // ACTION BUTTONS
+  // ============================================
+
+  &__action {
+    display: flex; align-items: center; justify-content: center;
+    width: 2rem; height: 2rem;
+    border: 1px solid $light-border;
+    border-radius: $radius-sm;
+    background: transparent; color: $light-text-primary;
+    cursor: pointer; transition: all 0.2s;
+
+    &:hover { background: $light-accent-light; border-color: $light-accent; color: $light-accent; }
+
+    &--primary {
+      background: $light-accent; color: white; border-color: $light-accent;
+      &:hover { background: $light-accent-hover; }
+    }
+
+    &--danger {
+      &:hover { background: $light-error-light; border-color: $light-error; color: $light-error; }
+    }
+  }
+
+  // ============================================
+  // ESTADO BADGE
+  // ============================================
+
+  &__estado {
+    display: inline-block;
+    padding: $space-1 $space-2;
+    border-radius: 9999px;
+    font-size: $fs-xs;
+    font-weight: $fw-medium;
+    text-transform: capitalize;
+
+    &--activo { background: $light-success-light; color: $light-success; }
+    &--inactivo { background: $light-error-light; color: $light-error; }
+    &--default { background: $light-card-hover; color: $light-text-muted; }
+  }
+
+  // ============================================
+  // PAGINATION
+  // ============================================
+
+  &__pagination {
+    display: flex; align-items: center; justify-content: center;
+    gap: $space-4; padding: $space-4;
+    border-top: 1px solid $light-border;
+  }
+
+  &__page-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 2rem; height: 2rem;
+    border-radius: $radius-sm;
+    border: 1px solid $light-border;
+    background: transparent; color: $light-text-primary;
+    cursor: pointer; transition: all 0.2s;
+    &:hover:not(:disabled) { background: $light-accent-light; border-color: $light-accent; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &__page-info {
+    font-size: $fs-sm;
+    color: $light-text-muted;
+  }
+
+  // ============================================
+  // WIZARD MODE
+  // ============================================
+
+  &--wizard {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+
+  &__wizard-header {
+    display: flex; align-items: center; gap: $space-4;
+    padding: $space-3 $space-6;
+    background: $light-card; border-bottom: 1px solid $light-border;
+    flex-shrink: 0;
+  }
+
+  &__back {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    border: 1px solid $light-border; border-radius: $radius-md;
+    background: transparent; color: $light-text-secondary; cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: $light-card-hover; color: $light-text-primary; }
+  }
+
+  &__wizard-info { flex: 1; display: flex; align-items: baseline; gap: $space-3; min-width: 0; }
+
+  &__wizard-title {
+    font-size: $fs-base; font-weight: $fw-bold; color: $light-text-primary; margin: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  &__wizard-id { font-size: $fs-xs; color: $light-text-muted; flex-shrink: 0; }
+
+  &__saved-badge {
+    display: flex; align-items: center; gap: $space-1;
+    font-size: $fs-xs; color: $light-success; font-weight: $fw-semibold;
+    animation: fadeIn 0.3s;
+  }
+
+  // ============================================
+  // STEPPER
+  // ============================================
+
+  &__stepper {
+    display: flex; align-items: center; justify-content: center;
+    padding: $space-4 $space-6;
+    background: $light-surface;
+    border-bottom: 1px solid $light-border;
+    flex-shrink: 0; gap: 0;
+  }
+
+  &__step-wrapper { display: flex; align-items: center; }
+
+  &__step {
+    display: flex; align-items: center; gap: $space-2;
+    padding: $space-2 $space-3;
+    border: none; border-radius: $radius-md;
+    background: transparent; color: $light-text-muted;
+    font-size: $fs-xs; font-weight: $fw-medium;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+
+    &:disabled { cursor: default; }
+
+    &--active { background: $light-accent-light; color: $light-accent; font-weight: $fw-semibold; }
+    &--done { color: $light-success; cursor: pointer; }
+    &:hover:not(:disabled):not(.--active) { background: $light-card-hover; }
+  }
+
+  &__step-line {
+    width: 24px; height: 2px; background: $light-border; margin: 0 $space-1;
+    transition: background 0.2s;
+    &--done { background: $light-success; }
+  }
+
+  // ============================================
+  // CONTENT + FOOTER
+  // ============================================
+
+  &__content {
+    flex: 1; overflow-y: auto;
+    padding: $space-6 $space-8;
+  }
+
+  &__footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: $space-3 $space-6;
+    background: $light-card;
+    border-top: 1px solid $light-border;
+    flex-shrink: 0;
+  }
+
+  &__step-indicator { color: $light-text-muted; font-size: $fs-xs; }
+
+  &__btn-prev, &__btn-next, &__btn-save {
+    display: flex; align-items: center; gap: $space-2;
+    padding: $space-2 $space-5;
+    border: none; border-radius: $radius-md;
+    font-size: $fs-sm; font-weight: $fw-semibold;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  &__btn-prev {
+    background: transparent; color: $light-text-secondary; border: 1px solid $light-border;
+    &:hover { background: $light-card-hover; }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+
+  &__btn-next {
+    background: $light-accent; color: $light-text-inverse;
+    &:hover { background: $light-accent-hover; }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+
+  &__btn-save {
+    background: $light-success; color: white;
+    &:hover { background: #16a34a; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+}
+
+// ============================================
+// WIZARD STEP COMPONENT STYLES
+// ============================================
+
+.wizard-step {
+  max-width: 800px;
+  margin: 0 auto;
+  animation: fadeIn 0.3s;
+
+  &__header {
+    display: flex; flex-direction: column; align-items: center; gap: $space-2;
+    margin-bottom: $space-6; text-align: center; color: $light-text-secondary;
+    h3 { font-size: $fs-lg; font-weight: $fw-bold; color: $light-text-primary; margin: 0; }
+    p { font-size: $fs-sm; color: $light-text-muted; margin: 0; }
+  }
+
+  &__form-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-4;
+    &--compact { gap: $space-3; }
+  }
+
+  &__field {
+    display: flex; flex-direction: column; gap: $space-1;
+    label { font-size: $fs-xs; font-weight: $fw-medium; color: $light-text-muted; }
+
+    input, select, textarea {
+      padding: $space-2 $space-3;
+      background: $light-bg;
+      border: 1px solid $light-border;
+      border-radius: $radius-md;
+      font-size: $fs-sm;
+      color: $light-text-primary;
+      transition: border-color 0.2s;
+      font-family: inherit;
+      &:focus { outline: none; border-color: $light-accent; box-shadow: 0 0 0 2px $light-accent-light; }
+      &::placeholder { color: $light-text-muted; }
+    }
+
+    textarea { resize: vertical; }
+    &--full { grid-column: 1 / -1; }
+    &--action { display: flex; align-items: flex-end; }
+    &--separator {
+      grid-column: 1 / -1; padding: $space-2 0;
+      hr { border: none; border-top: 1px solid $light-border; margin: 0; }
+    }
+  }
+
+  &__mediciones { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-6; }
+
+  &__med-card {
+    display: flex; flex-direction: column; align-items: center; gap: $space-3;
+    padding: $space-6;
+    background: $light-card; border: 1px solid $light-border; border-radius: $radius-lg;
+    text-align: center;
+    label { font-size: $fs-sm; font-weight: $fw-medium; color: $light-text-secondary; }
+    input {
+      width: 100%; padding: $space-3; text-align: center;
+      font-size: $fs-xl; font-weight: $fw-bold; color: $light-text-primary;
+      background: $light-bg; border: 1px solid $light-border; border-radius: $radius-md;
+      &:focus { outline: none; border-color: $light-accent; box-shadow: 0 0 0 2px $light-accent-light; }
+    }
+    &--result { background: $light-accent-light; border-color: $light-accent-border; }
+  }
+
+  &__med-icon {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: $light-accent-light;
+    display: flex; align-items: center; justify-content: center;
+    color: $light-accent;
+  }
+
+  &__imc-value { font-size: $fs-3xl; font-weight: $fw-bold; color: $light-text-primary; }
+
+  &__imc-label {
+    font-size: $fs-sm; font-weight: $fw-semibold;
+    padding: $space-1 $space-3; border-radius: 9999px;
+    &--ok { background: $light-success-light; color: $light-success; }
+    &--warn { background: $light-warning-light; color: $light-warning; }
+  }
+
+  &__membresia-form { margin-bottom: $space-6; }
+
+  &__btn-add {
+    display: flex; align-items: center; gap: $space-2;
+    padding: $space-2 $space-4;
+    background: $light-success; color: white;
+    border: none; border-radius: $radius-md;
+    font-size: $fs-sm; font-weight: $fw-semibold; cursor: pointer; height: fit-content;
+    &:hover { background: #16a34a; }
+  }
+
+  &__membresia-list { display: flex; flex-direction: column; gap: $space-3; }
+
+  &__membresia-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: $space-4;
+    background: $light-card; border: 1px solid $light-border; border-radius: $radius-lg;
+    transition: border-color 0.2s;
+    &--activa { border-color: $light-success-border; background: $light-success-light; }
+  }
+
+  &__membresia-info { display: flex; align-items: center; gap: $space-4; flex-wrap: wrap; }
+  &__membresia-tipo { font-weight: $fw-bold; color: $light-text-primary; font-size: $fs-sm; }
+  &__membresia-fechas { display: flex; align-items: center; gap: $space-1; font-size: $fs-xs; color: $light-text-muted; }
+
+  &__membresia-estado {
+    font-size: $fs-xs; font-weight: $fw-semibold;
+    padding: $space-1 $space-2; border-radius: $radius-sm;
+    &--activa { background: $light-success-light; color: $light-success; }
+    &--vencida { background: $light-warning-light; color: $light-warning; }
+    &--cancelada { background: $light-error-light; color: $light-error; }
+  }
+
+  &__btn-delete {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px;
+    border: none; border-radius: $radius-md;
+    background: transparent; color: $light-text-muted; cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: $light-error-light; color: $light-error; }
+  }
+
+  &__empty {
+    display: flex; flex-direction: column; align-items: center; gap: $space-3;
+    padding: $space-10; color: $light-text-muted; text-align: center;
+  }
+
+  &__firma-content { max-width: 600px; margin: 0 auto; text-align: center; }
+
+  &__firma-info {
+    background: $light-card; border: 1px solid $light-border; border-radius: $radius-lg;
+    padding: $space-6; margin-bottom: $space-6;
+    p { color: $light-text-secondary; font-size: $fs-sm; line-height: 1.6; margin: $space-2 0; }
+  }
+
+  &__btn-firma {
+    display: inline-flex; align-items: center; gap: $space-2;
+    padding: $space-3 $space-6;
+    background: $light-accent; color: white;
+    border: none; border-radius: $radius-lg;
+    font-size: $fs-base; font-weight: $fw-semibold; cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $light-accent-hover; }
+  }
+
+  &__firma-sent {
+    h4 { color: $light-text-primary; margin: $space-4 0 $space-2; }
+    p { color: $light-text-secondary; font-size: $fs-sm; }
+  }
+
+  &__firma-check { color: $light-success; }
+
+  &__firma-link-box {
+    display: flex; gap: $space-2; margin: $space-4 0;
+    background: $light-bg; border: 1px solid $light-border; border-radius: $radius-md;
+    padding: $space-2;
+  }
+
+  &__firma-link {
+    flex: 1; border: none; background: transparent;
+    font-size: $fs-xs; color: $light-accent; padding: $space-2;
+    font-family: monospace;
+  }
+
+  &__btn-copy {
+    display: flex; align-items: center; gap: $space-1;
+    padding: $space-2 $space-3;
+    background: $light-accent; color: white;
+    border: none; border-radius: $radius-sm;
+    font-size: $fs-xs; cursor: pointer;
+    &:hover { background: $light-accent-hover; }
+  }
+
+  &__firma-note { font-size: $fs-xs; color: $light-text-muted; font-style: italic; margin-top: $space-4; }
+
+  &__resumen { display: flex; flex-direction: column; gap: $space-4; }
+
+  &__resumen-section {
+    background: $light-card; border: 1px solid $light-border; border-radius: $radius-lg;
+    padding: $space-4;
+    h4 {
+      display: flex; align-items: center; gap: $space-2;
+      font-size: $fs-sm; font-weight: $fw-bold; color: $light-text-primary;
+      margin: 0 0 $space-3; padding-bottom: $space-2;
+      border-bottom: 1px solid $light-border;
+    }
+  }
+
+  &__resumen-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: $space-2;
+    span { font-size: $fs-sm; color: $light-text-secondary; }
+    strong { color: $light-text-primary; }
+  }
+
+  &__resumen-empty { font-size: $fs-sm; color: $light-text-muted; font-style: italic; }
+  &__resumen-ok { font-size: $fs-sm; color: $light-success; display: flex; align-items: center; gap: $space-1; }
+  &__resumen-pending { font-size: $fs-sm; color: $light-warning; }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+.spinner {
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ============================================
+// POST-ADMISSION PANEL
+// ============================================
+
+.post-admision {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $space-8;
+  text-align: center;
+
+  &__header {
+    margin-bottom: $space-6;
+    h2 { font-size: $fs-2xl; font-weight: $fw-bold; color: $light-text-primary; margin: $space-3 0 $space-1; }
+  }
+
+  &__check { color: $light-success; }
+
+  &__patient {
+    font-size: $fs-lg; font-weight: $fw-semibold; color: $light-text-primary;
+  }
+
+  &__id {
+    font-size: $fs-sm; color: $light-text-muted;
+  }
+
+  &__question {
+    font-size: $fs-base; color: $light-text-secondary; margin-bottom: $space-6;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-4;
+    max-width: 600px;
+    width: 100%;
+    margin-bottom: $space-6;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-6;
+    background: $light-card;
+    border: 1px solid $light-border;
+    border-radius: $radius-lg;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+
+    &:hover {
+      border-color: $light-accent-border;
+      box-shadow: $light-shadow-md;
+      transform: translateY(-2px);
+    }
+  }
+
+  &__card-icon {
+    width: 56px; height: 56px;
+    border-radius: $radius-lg;
+    display: flex; align-items: center; justify-content: center;
+
+    &--blue { background: $light-accent-light; color: $light-accent; }
+    &--green { background: $light-success-light; color: $light-success; }
+    &--purple { background: #f3e8ff; color: #9333ea; }
+    &--orange { background: $light-warning-light; color: $light-warning; }
+  }
+
+  &__card-label {
+    font-size: $fs-sm; font-weight: $fw-semibold; color: $light-text-primary;
+  }
+
+  &__card-desc {
+    font-size: $fs-xs; color: $light-text-muted; line-height: 1.4;
+  }
+
+  &__btn-back {
+    display: flex; align-items: center; gap: $space-2;
+    padding: $space-3 $space-6;
+    background: transparent;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    color: $light-text-secondary;
+    font-size: $fs-sm; font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { background: $light-card-hover; color: $light-text-primary; }
+  }
+}
+
+// ============================================
+// AGENDAR CITA MODAL
+// ============================================
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $space-4;
+}
+
+.modal-content {
+  background: $light-card;
+  border-radius: $radius-xl;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: $light-shadow-lg;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-4 $space-6;
+  border-bottom: 1px solid $light-border;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-base;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+    margin: 0;
+  }
+}
+
+.modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border: none;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $light-text-muted;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: $light-card-hover; color: $light-text-primary; }
+}
+
+.modal-body {
+  padding: $space-6;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-3;
+  padding: $space-4 $space-6;
+  border-top: 1px solid $light-border;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-5;
+  border: none;
+  border-radius: $radius-md;
+  font-size: $fs-sm;
+  font-weight: $fw-semibold;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &--primary {
+    background: $light-accent;
+    color: white;
+    &:hover { background: $light-accent-hover; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $light-text-secondary;
+    border: 1px solid $light-border;
+    &:hover { background: $light-card-hover; }
+  }
+}
+
+.agendar-cita-modal {
+  &__paciente {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    background: $light-accent-light;
+    border-radius: $radius-md;
+    margin-bottom: $space-5;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+  }
+
+  &__paciente-id {
+    margin-left: auto;
+    font-weight: 400;
+    color: $light-text-muted;
+    font-size: $fs-xs;
+  }
+
+  &__fields {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-4;
+    margin-bottom: $space-5;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    label {
+      font-size: $fs-xs;
+      font-weight: $fw-medium;
+      color: $light-text-muted;
+      display: flex;
+      align-items: center;
+      gap: $space-1;
+    }
+
+    select, input, textarea {
+      padding: $space-2 $space-3;
+      background: $light-bg;
+      border: 1px solid $light-border;
+      border-radius: $radius-md;
+      font-size: $fs-sm;
+      color: $light-text-primary;
+      font-family: inherit;
+
+      &:focus { outline: none; border-color: $light-accent; box-shadow: 0 0 0 2px $light-accent-light; }
+    }
+
+    &--full { grid-column: 1 / -1; }
+  }
+
+  &__slots {
+    margin-bottom: $space-5;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: $space-1;
+      font-size: $fs-xs;
+      font-weight: $fw-medium;
+      color: $light-text-muted;
+      margin-bottom: $space-3;
+    }
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    color: $light-text-muted;
+    font-size: $fs-sm;
+    padding: $space-4;
+  }
+
+  &__no-slots {
+    text-align: center;
+    color: $light-text-muted;
+    font-size: $fs-sm;
+    padding: $space-4;
+    background: $light-bg;
+    border-radius: $radius-md;
+  }
+
+  &__slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: $space-2;
+  }
+
+  &__slot {
+    padding: $space-2;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    background: $light-bg;
+    font-size: $fs-xs;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+
+    &--disponible {
+      background: $light-success-light;
+      border-color: $light-success-border;
+      color: $light-success;
+      &:hover { background: $light-success; color: white; }
+    }
+
+    &--ocupado {
+      background: $light-error-light;
+      border-color: $light-error-border;
+      color: $light-error;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    &--selected {
+      background: $light-accent !important;
+      border-color: $light-accent !important;
+      color: white !important;
+    }
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3;
+    background: $light-error-light;
+    border: 1px solid $light-error-border;
+    border-radius: $radius-md;
+    color: $light-error;
+    font-size: $fs-sm;
+    margin-top: $space-4;
+  }
+
+  &__exito {
+    text-align: center;
+    padding: $space-8;
+    color: $light-success;
+
+    h4 { margin: $space-3 0 $space-1; color: $light-text-primary; }
+    p { color: $light-text-secondary; font-size: $fs-sm; }
+  }
+}
+
+// ============================================
+// VER DISPONIBILIDAD MODAL
+// ============================================
+
+.ver-disp-modal {
+  max-width: 900px;
+
+  &__controls {
+    display: flex;
+    align-items: flex-end;
+    gap: $space-4;
+    margin-bottom: $space-5;
+    flex-wrap: wrap;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    label {
+      font-size: $fs-xs;
+      font-weight: $fw-medium;
+      color: $light-text-muted;
+    }
+
+    select {
+      padding: $space-2 $space-3;
+      background: $light-bg;
+      border: 1px solid $light-border;
+      border-radius: $radius-md;
+      font-size: $fs-sm;
+      color: $light-text-primary;
+
+      &:focus { outline: none; border-color: $light-accent; }
+    }
+  }
+
+  &__week-nav {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin-left: auto;
+  }
+
+  &__week-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $light-text-primary;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__week-label {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-primary;
+    white-space: nowrap;
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-10;
+    color: $light-text-muted;
+  }
+
+  &__table-wrapper {
+    overflow-x: auto;
+    border: 1px solid $light-border;
+    border-radius: $radius-lg;
+    margin-bottom: $space-4;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $fs-sm;
+
+    th, td {
+      padding: $space-2 $space-3;
+      text-align: center;
+      border: 1px solid $light-border;
+    }
+  }
+
+  &__th-hora {
+    background: $light-surface;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    font-size: $fs-xs;
+    text-transform: uppercase;
+    width: 70px;
+  }
+
+  &__th-dia {
+    background: $light-surface;
+    min-width: 80px;
+  }
+
+  &__dia-name {
+    display: block;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    font-size: $fs-xs;
+  }
+
+  &__dia-fecha {
+    display: block;
+    font-size: 10px;
+    color: $light-text-muted;
+    font-weight: 400;
+  }
+
+  &__td-hora {
+    font-weight: $fw-medium;
+    color: $light-text-secondary;
+    background: $light-surface;
+    font-size: $fs-xs;
+  }
+
+  &__td {
+    font-size: $fs-sm;
+    cursor: default;
+
+    &--disponible { background: $light-success-light; }
+    &--ocupado { background: $light-error-light; }
+    &--no-configurado { background: $light-bg; color: $light-text-muted; }
+  }
+
+  &__legend {
+    display: flex;
+    gap: $space-4;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: $space-1;
+    }
+  }
+
+  &__legend-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+
+    &--ok { background: $light-success; }
+    &--no { background: $light-error; }
+    &--none { background: $light-border; }
+  }
+}
+
+// ============================================
+// PASO CONTRATO STYLES
+// ============================================
+
+.wizard-step {
+  &__contrato-estado {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-4;
+    background: $light-success-light;
+    border: 1px solid $light-success-border;
+    border-radius: $radius-lg;
+    margin-bottom: $space-4;
+    color: $light-success;
+  }
+
+  &__contrato-estado-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+  }
+
+  &__contrato-estado-tipo {
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+    font-size: $fs-sm;
+  }
+
+  &__contrato-estado-detalle {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__contrato-estado-check {
+    color: $light-success;
+  }
+
+  &__contrato-section {
+    margin-bottom: $space-5;
+  }
+
+  &__contrato-subtitle {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+    margin: 0 0 $space-3;
+  }
+
+  &__btn-contrato {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-5;
+    background: $light-bg;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    color: $light-text-primary;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    justify-content: center;
+
+    &:hover { background: $light-card-hover; border-color: $light-accent; }
+  }
+
+  &__contrato-doc {
+    border: 1px solid $light-border;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    margin-bottom: $space-4;
+  }
+
+  &__contrato-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-3 $space-4;
+    background: $light-surface;
+    border-bottom: 1px solid $light-border;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__btn-contrato-close {
+    padding: $space-1 $space-3;
+    background: transparent;
+    border: 1px solid $light-border;
+    border-radius: $radius-sm;
+    color: $light-text-muted;
+    font-size: $fs-xs;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { background: $light-card-hover; color: $light-text-primary; }
+  }
+
+  &__contrato-body {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: $space-4;
+    background: $light-card;
+    font-size: $fs-xs;
+    line-height: 1.6;
+    color: $light-text-secondary;
+
+    p {
+      margin: 0;
+      white-space: pre-wrap;
+    }
+  }
+
+  &__contrato-firma {
+    margin-top: $space-4;
+  }
+
+  &__contrato-firma-pendiente {
+    text-align: center;
+    padding: $space-4;
+    background: $light-bg;
+    border-radius: $radius-lg;
+
+    p {
+      font-size: $fs-sm;
+      color: $light-text-secondary;
+      margin-bottom: $space-3;
+    }
+  }
+
+  &__contrato-firma-enviado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-4;
+    background: $light-success-light;
+    border: 1px solid $light-success-border;
+    border-radius: $radius-lg;
+    text-align: center;
+
+    span {
+      font-size: $fs-sm;
+      font-weight: $fw-semibold;
+      color: $light-success;
+    }
+  }
+
+  &__btn-firma {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-6;
+    background: $light-accent;
+    color: white;
+    border: none;
+    border-radius: $radius-lg;
+    font-size: $fs-base;
+    font-weight: $fw-semibold;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover { background: $light-accent-hover; }
+  }
+
+  &__firma-check { color: $light-success; }
+
+  &__firma-link-box {
+    display: flex;
+    gap: $space-2;
+    width: 100%;
+    max-width: 500px;
+    background: $light-bg;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    padding: $space-2;
+    margin: $space-2 0;
+  }
+
+  &__firma-link {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: $fs-xs;
+    color: $light-accent;
+    padding: $space-2;
+    font-family: monospace;
+  }
+
+  &__btn-copy {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    padding: $space-2 $space-3;
+    background: $light-accent;
+    color: white;
+    border: none;
+    border-radius: $radius-sm;
+    font-size: $fs-xs;
+    cursor: pointer;
+    &:hover { background: $light-accent-hover; }
+  }
+
+  &__firma-note {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    font-style: italic;
+    margin: 0;
+  }
+}

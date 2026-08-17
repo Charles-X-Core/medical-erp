@@ -1,0 +1,864 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+@use '../themes/light' as *;
+
+// ============================================
+// Dashboard Page — Glassmorphism Light
+// ============================================
+
+// Glass mixin reutilizable
+@mixin glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: $radius-xl;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+@mixin glass-subtle {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: $radius-lg;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+@mixin glass-inset {
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: $radius-md;
+}
+
+// ---------- Page wrapper ----------
+.dashboard-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease;
+
+  &__loading {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-4;
+    min-height: 400px;
+    color: $light-text-muted;
+
+    .spinner {
+      animation: spin 1s linear infinite;
+      color: $light-accent;
+    }
+  }
+
+  &__error {
+    @include glass-card;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-4;
+    padding: $space-4 $space-5;
+    margin-bottom: $space-6;
+    border-left: 4px solid $light-error;
+    background: rgba(254, 242, 242, 0.85);
+    border-color: $light-error-border;
+
+    button {
+      @include btn-base;
+      padding: $space-2 $space-4;
+      background: $light-error;
+      color: $light-text-inverse;
+      border: none;
+      border-radius: $radius-sm;
+      font-weight: $fw-medium;
+      transition: all 150ms ease;
+
+      &:hover { background: #dc2626; }
+    }
+  }
+
+  &__body {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: $space-6;
+    align-items: start;
+
+    @include respond-to(wide) {
+      grid-template-columns: 1fr;
+    }
+
+    @include respond-to(desktop) {
+      grid-template-columns: 1fr 300px;
+    }
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: $space-6;
+    min-width: 0;
+  }
+
+  &__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: $space-6;
+
+    @include respond-to(wide) {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// ---------- Header ----------
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-6 $space-8;
+  margin-bottom: $space-6;
+  @include glass-card;
+
+  @include respond-to(tablet) {
+    padding: $space-4 $space-5;
+  }
+
+  &__title-group {
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+  }
+
+  &__icon {
+    @include flex-center;
+    width: 52px;
+    height: 52px;
+    border-radius: $radius-lg;
+    background: linear-gradient(135deg, $light-accent, $light-accent-hover);
+    color: $light-text-inverse;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: $fs-2xl;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+
+    @include respond-to(tablet) {
+      font-size: $fs-xl;
+    }
+  }
+
+  &__subtitle {
+    margin: $space-1 0 0;
+    font-size: $fs-sm;
+    color: $light-text-muted;
+    text-transform: capitalize;
+  }
+
+  &__time-badge {
+    @include flex-center;
+    gap: $space-2;
+    padding: $space-2 $space-4;
+    @include glass-inset;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @include respond-to(mobile) {
+      display: none;
+    }
+  }
+}
+
+// ---------- KPI row ----------
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+  animation: fadeIn 0.5s ease;
+
+  @include respond-to(desktop) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to(mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpi-card {
+  @include glass-card;
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  padding: $space-5;
+  transition: all 200ms ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+
+  &--skeleton {
+    justify-content: center;
+    min-height: 96px;
+    color: $light-text-muted;
+  }
+
+  &__icon {
+    @include flex-center;
+    width: 52px;
+    height: 52px;
+    border-radius: $radius-lg;
+    flex-shrink: 0;
+  }
+
+  &--blue &__icon {
+    color: $light-accent;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  }
+
+  &--teal &__icon {
+    color: $light-success;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
+  }
+
+  &--purple &__icon {
+    color: #7C3AED;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(124, 58, 237, 0.08));
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+  }
+
+  &--red &__icon {
+    color: $light-error;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__value {
+    font-size: $fs-2xl;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+    line-height: 1.1;
+  }
+
+  &__label {
+    font-size: $fs-sm;
+    color: $light-text-secondary;
+    font-weight: $fw-medium;
+    margin-top: $space-1;
+  }
+
+  &__hint {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    margin-top: $space-1;
+  }
+}
+
+// ---------- Proximo paciente (hero) ----------
+.proximo-paciente {
+  @include glass-card;
+  display: flex;
+  align-items: center;
+  gap: $space-6;
+  padding: $space-8;
+  margin-bottom: $space-6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(147, 197, 253, 0.12), rgba(255, 255, 255, 0.8));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  animation: fadeIn 0.4s ease;
+
+  @include respond-to(tablet) {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: $space-6;
+  }
+
+  &--urgente {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(254, 202, 202, 0.12), rgba(255, 255, 255, 0.8));
+    border-color: rgba(239, 68, 68, 0.25);
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.08);
+  }
+
+  &--skeleton {
+    min-height: 120px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  &--empty {
+    justify-content: center;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.6);
+
+    .btn {
+      margin-left: auto;
+      @include respond-to(tablet) { margin-left: 0; }
+    }
+  }
+
+  &__badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    letter-spacing: 0.04em;
+    padding: $space-1 $space-3;
+    border-radius: 0 $radius-xl 0 $radius-md;
+    color: $text-primary;
+
+    .proximo-paciente--normal &,
+    .proximo-paciente--urgente & {
+      background: rgba(37, 211, 255, 0.15);
+      color: $light-accent;
+    }
+
+    .proximo-paciente--urgente & {
+      background: rgba(239, 68, 68, 0.12);
+      color: $light-error;
+    }
+  }
+
+  &__avatar {
+    @include flex-center;
+    width: 80px;
+    height: 80px;
+    border-radius: $radius-xl;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 197, 253, 0.3));
+    color: $light-accent;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+
+    h3 {
+      margin: 0 0 $space-2;
+      font-size: $fs-xl;
+      font-weight: $fw-bold;
+      color: $light-text-primary;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+    flex-wrap: wrap;
+    font-size: $fs-sm;
+    color: $light-text-secondary;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: $space-2;
+    }
+  }
+
+  &__empty-icon {
+    @include flex-center;
+    width: 60px;
+    height: 60px;
+    border-radius: $radius-xl;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
+    color: $light-success;
+  }
+
+  &__empty-text {
+    h3 {
+      margin: 0 0 $space-1;
+      font-size: $fs-md;
+      color: $light-text-primary;
+    }
+
+    p {
+      margin: 0;
+      font-size: $fs-sm;
+      color: $light-text-muted;
+    }
+  }
+}
+
+// ---------- Panel genérico ----------
+.panel {
+  @include glass-card;
+  padding: $space-5;
+  min-width: 0;
+  transition: all 200ms ease;
+
+  &:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  }
+
+  &--skeleton {
+    min-height: 160px;
+    @include flex-center;
+  }
+
+  &__loader {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid rgba(59, 130, 246, 0.15);
+    border-top-color: $light-accent;
+    animation: spin 0.8s linear infinite;
+  }
+
+  &__header {
+    @include flex-between;
+    margin-bottom: $space-4;
+  }
+
+  &__title {
+    @include flex-center;
+    gap: $space-2;
+    margin: 0;
+    font-size: $fs-md;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+
+    svg {
+      color: $light-accent;
+    }
+  }
+
+  &__count {
+    @include flex-center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: $radius-sm;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+  }
+
+  &__empty {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-3;
+    padding: $space-8 $space-4;
+    color: $light-text-muted;
+    text-align: center;
+
+    p { margin: 0; }
+  }
+}
+
+// ---------- Citas de hoy ----------
+.citas-hoy {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 150ms ease;
+
+    &:hover {
+      border-color: rgba(59, 130, 246, 0.15);
+      background: rgba(255, 255, 255, 0.7);
+      transform: translateX(2px);
+    }
+  }
+
+  &__time {
+    @include flex-center;
+    gap: $space-1;
+    width: 84px;
+    flex-shrink: 0;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__name {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__motivo {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__open {
+    @include flex-center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      color: $light-accent;
+      background: rgba(59, 130, 246, 0.1);
+    }
+  }
+}
+
+// ---------- Chip ----------
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: $space-1 $space-3;
+  font-size: $fs-xs;
+  font-weight: $fw-semibold;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+
+  &--neutral {
+    color: $light-text-secondary;
+    background: rgba(100, 116, 139, 0.1);
+    border: 1px solid rgba(100, 116, 139, 0.15);
+  }
+
+  &--info {
+    color: $light-accent;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+  }
+
+  &--success {
+    color: $light-success;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.15);
+  }
+
+  &--warning {
+    color: $light-warning;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+  }
+
+  &--danger {
+    color: $light-error;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+  }
+}
+
+// ---------- Tratamientos activos ----------
+.tratamientos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: $space-3;
+}
+
+.tratamiento-card {
+  @include glass-subtle;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+  transition: all 150ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  &__top {
+    @include flex-between;
+    gap: $space-2;
+  }
+
+  &__name {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__tipo {
+    font-size: $fs-xs;
+    font-weight: $fw-regular;
+    color: $light-text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__open {
+    @include flex-center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 150ms ease;
+
+    &:hover {
+      color: $light-accent;
+      background: rgba(59, 130, 246, 0.1);
+    }
+  }
+
+  &__progress {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    span {
+      font-size: $fs-xs;
+      color: $light-text-muted;
+    }
+  }
+
+  &__progress-track {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(59, 130, 246, 0.1);
+    overflow: hidden;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, $light-accent, $light-accent-hover);
+    transition: width 300ms ease;
+  }
+}
+
+// ---------- Alertas ----------
+.alertas-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.alerta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: $space-4;
+  border-radius: $radius-md;
+  border-left: 4px solid;
+  transition: all 150ms ease;
+
+  &--danger {
+    border-color: $light-error;
+    background: rgba(239, 68, 68, 0.06);
+  }
+
+  &--warning {
+    border-color: $light-warning;
+    background: rgba(245, 158, 11, 0.06);
+  }
+
+  &--info {
+    border-color: $light-accent;
+    background: rgba(59, 130, 246, 0.06);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    min-width: 0;
+  }
+
+  &__tipo {
+    font-size: $fs-xs;
+    font-weight: $fw-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    .alerta--danger & { color: $light-error; }
+    .alerta--warning & { color: $light-warning; }
+    .alerta--info & { color: $light-accent; }
+  }
+
+  &__mensaje {
+    margin: 0;
+    font-size: $fs-sm;
+    color: $light-text-secondary;
+    line-height: 1.4;
+  }
+
+  &__paciente {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    font-weight: $fw-medium;
+  }
+
+  &__open {
+    @include flex-center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 150ms ease;
+
+    &:hover {
+      color: $light-accent;
+      background: rgba(59, 130, 246, 0.1);
+    }
+  }
+}
+
+// ---------- Proximas citas (sidebar) ----------
+.proximas-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 150ms ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.65);
+      border-color: rgba(59, 130, 246, 0.12);
+      transform: translateX(2px);
+    }
+  }
+
+  &__time {
+    @include flex-center;
+    gap: $space-1;
+    width: 70px;
+    flex-shrink: 0;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__name {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__motivo {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__open {
+    @include flex-center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 150ms ease;
+
+    &:hover {
+      color: $light-accent;
+      background: rgba(59, 130, 246, 0.1);
+    }
+  }
+}
+
+// ---------- Animations ----------
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

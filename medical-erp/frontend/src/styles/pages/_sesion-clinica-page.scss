@@ -1,0 +1,759 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+@use '../themes/light' as *;
+
+.sesion-page {
+  padding: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  &__back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: $light-card;
+    border: 1px solid $light-border;
+    border-radius: 8px;
+    color: $light-text-secondary;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: $light-card-hover;
+      color: $light-text-primary;
+    }
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: $light-text-primary;
+    margin: 0;
+  }
+
+  &__patient {
+    font-size: 14px;
+    color: $light-accent;
+    padding: 4px 12px;
+    background: $light-accent-light;
+    border-radius: 20px;
+  }
+
+  // Progress Bar
+  &__progress {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 28px;
+    padding: 12px;
+    background: $light-surface;
+    border-radius: 14px;
+    overflow-x: auto;
+  }
+
+  &__step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: default;
+    transition: all 0.2s;
+    min-width: 0;
+
+    &--active {
+      background: $light-accent-light;
+      .sesion-page__step-number {
+        background: $light-accent;
+        color: $light-text-inverse;
+      }
+      .sesion-page__step-label {
+        color: $light-text-primary;
+      }
+    }
+
+    &--done {
+      cursor: pointer;
+      .sesion-page__step-number {
+        background: $light-success;
+        color: $light-text-inverse;
+      }
+      .sesion-page__step-label {
+        color: $light-text-muted;
+      }
+    }
+  }
+
+  &__step-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: $light-border;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: $light-text-muted;
+    flex-shrink: 0;
+  }
+
+  &__step-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: $light-text-muted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: $light-error-light;
+    border: 1px solid $light-error-border;
+    border-radius: 10px;
+    color: $light-error;
+    margin-bottom: 20px;
+
+    button {
+      background: none;
+      border: none;
+      color: $light-error;
+      font-size: 20px;
+      cursor: pointer;
+    }
+  }
+
+  &__content {
+    min-height: 400px;
+  }
+
+  &__nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid $light-border;
+  }
+}
+
+// Wizard Step (shared)
+.wizard-step {
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    color: $light-text-primary;
+    margin: 0 0 20px 0;
+  }
+
+  &--empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: $light-text-muted;
+    text-align: center;
+    gap: 12px;
+
+    h3 { color: $light-text-secondary; margin: 0; }
+    p { margin: 0; }
+  }
+}
+
+// Wizard Card
+.wizard-card {
+  background: $light-card;
+  border: 1px solid $light-border;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+
+  &--highlight {
+    border-color: $light-accent-border;
+    background: $light-accent-light;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  &__subtitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: $light-text-secondary;
+    margin: 0 0 16px 0;
+  }
+
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, $light-accent-light, $light-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: $light-text-inverse;
+    border: 1px solid $light-accent-border;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    h3 { margin: 0; color: $light-text-primary; font-size: 16px; }
+    span { font-size: 13px; color: $light-text-muted; }
+  }
+}
+
+// Wizard Grid
+.wizard-grid {
+  display: grid;
+  gap: 14px;
+
+  &--1 { grid-template-columns: 1fr; }
+  &--2 { grid-template-columns: 1fr 1fr; }
+  &--3 { grid-template-columns: 1fr 1fr 1fr; }
+  &--4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+}
+
+// Wizard Field
+.wizard-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: $light-text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  span {
+    font-size: 14px;
+    color: $light-text-primary;
+  }
+
+  &--warn span {
+    color: $light-warning;
+  }
+}
+
+// Inputs
+.wizard-input,
+.wizard-select,
+.wizard-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: $light-card;
+  border: 1px solid $light-border;
+  border-radius: 8px;
+  color: $light-text-primary;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: $light-accent;
+    box-shadow: 0 0 0 2px rgba($light-accent, 0.1);
+  }
+
+  &::placeholder {
+    color: $light-text-muted;
+  }
+}
+
+.wizard-textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.wizard-select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236B7D95' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+// Chips
+.wizard-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wizard-chip {
+  padding: 8px 16px;
+  background: $light-card;
+  border: 1px solid $light-border;
+  border-radius: 20px;
+  color: $light-text-secondary;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: $light-accent-light;
+    border-color: $light-accent-border;
+  }
+
+  &--active {
+    background: $light-accent;
+    color: $light-text-inverse;
+    border-color: $light-accent;
+    font-weight: 600;
+  }
+}
+
+// Catalogo de tratamientos
+.wizard-catalogo-list {
+  margin-top: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid $light-border;
+  border-radius: 8px;
+}
+
+.wizard-catalogo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid $light-border;
+  color: $light-text-secondary;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: $light-accent-light;
+  }
+
+  &__nombre {
+    display: block;
+    font-weight: 500;
+    font-size: 14px;
+    color: $light-text-primary;
+  }
+
+  &__categoria {
+    display: block;
+    font-size: 12px;
+    color: $light-text-muted;
+    margin-top: 2px;
+  }
+}
+
+// Diagnostico texto (resumen)
+.wizard-diagnostico-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// Resumen detail styles
+.wizard-list__item--column {
+  flex-direction: column;
+  align-items: flex-start !important;
+  gap: 4px;
+}
+
+.wizard-list__receta-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: $light-accent;
+  margin-bottom: 2px;
+}
+
+.wizard-list__med {
+  font-size: 13px;
+  color: $light-text-secondary;
+  padding-left: 12px;
+
+  &::before {
+    content: '• ';
+    color: $light-text-muted;
+  }
+}
+
+.wizard-list__indicaciones {
+  font-size: 12px;
+  color: $light-text-muted;
+  font-style: italic;
+  padding-left: 12px;
+  margin-top: 2px;
+}
+
+// Checkbox
+.wizard-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: $light-text-primary;
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: $light-accent;
+    cursor: pointer;
+  }
+}
+
+// Upload Zone
+.wizard-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  background: $light-surface;
+  border: 2px dashed $light-border;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 20px;
+  color: $light-text-muted;
+
+  &:hover {
+    border-color: $light-accent;
+    background: $light-accent-light;
+    color: $light-accent;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    color: $light-text-secondary;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+  }
+}
+
+// Evidence Grid
+.wizard-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.wizard-evidence-card {
+  background: $light-card;
+  border: 1px solid $light-border;
+  border-radius: 12px;
+  overflow: hidden;
+
+  &__preview {
+    position: relative;
+    height: 160px;
+    background: $light-surface;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $light-text-muted;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: $light-error;
+    }
+  }
+
+  &__fields {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+// Med Row
+.wizard-meds {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wizard-med-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+// Buttons
+.wizard-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+
+  &--primary {
+    background: $light-accent;
+    color: $light-text-inverse;
+    &:hover { box-shadow: 0 4px 16px rgba($light-accent, 0.3); }
+  }
+
+  &--secondary {
+    background: $light-card;
+    color: $light-text-secondary;
+    border: 1px solid $light-border;
+    &:hover { background: $light-card-hover; }
+  }
+
+  &--text {
+    background: none;
+    color: $light-accent;
+    padding: 6px 10px;
+    &:hover { background: $light-accent-light; }
+  }
+
+  &--save {
+    background: linear-gradient(135deg, $light-success, #16a34a);
+    color: $light-text-inverse;
+    &:hover { box-shadow: 0 4px 16px rgba($light-success, 0.4); }
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.wizard-btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: $light-card;
+  border: 1px solid $light-border;
+  color: $light-text-muted;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: $light-card-hover; color: $light-text-primary; }
+  &--danger:hover { background: $light-error-light; color: $light-error; }
+}
+
+// Wizard Actions
+.wizard-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+// Total
+.wizard-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba($gold, 0.1);
+  border: 1px solid rgba($gold, 0.25);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: $light-text-primary;
+
+  &--small {
+    margin-top: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  &--final {
+    margin-top: 20px;
+    padding: 20px 24px;
+    font-size: 18px;
+    background: linear-gradient(135deg, rgba($gold, 0.15), rgba($gold, 0.05));
+    border-color: rgba($gold, 0.35);
+    gap: 12px;
+  }
+
+  &__amount {
+    font-size: 22px;
+    font-weight: 700;
+    color: $gold;
+  }
+}
+
+// List
+.wizard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: $light-surface;
+    border-radius: 8px;
+    font-size: 14px;
+    color: $light-text-primary;
+  }
+
+  &__code {
+    font-family: monospace;
+    font-weight: 700;
+    color: $light-accent;
+    margin-right: 12px;
+  }
+
+  &__cost {
+    font-weight: 600;
+    color: $gold;
+  }
+}
+
+// Empty
+.wizard-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: $light-text-muted;
+  text-align: center;
+  background: $light-surface;
+  border-radius: 16px;
+  border: 1px dashed $light-border;
+
+  p { margin: 0; font-size: 14px; }
+}
+
+.wizard-text--muted {
+  color: $light-text-muted;
+  font-size: 14px;
+}
+
+// Navigation buttons (in sesion-page)
+.sesion-page__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+
+  &--secondary {
+    background: $light-card;
+    color: $light-text-secondary;
+    border: 1px solid $light-border;
+    &:hover { background: $light-card-hover; }
+  }
+
+  &--primary {
+    background: $light-accent;
+    color: $light-text-inverse;
+    &:hover { box-shadow: 0 4px 16px rgba($light-accent, 0.3); }
+  }
+
+  &--save {
+    background: linear-gradient(135deg, $light-success, #16a34a);
+    color: $light-text-inverse;
+    &:hover { box-shadow: 0 4px 16px rgba($light-success, 0.4); }
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .wizard-grid {
+    &--3, &--4 { grid-template-columns: 1fr 1fr; }
+  }
+
+  .sesion-page__progress {
+    overflow-x: auto;
+  }
+
+  .wizard-step-label {
+    display: none;
+  }
+}

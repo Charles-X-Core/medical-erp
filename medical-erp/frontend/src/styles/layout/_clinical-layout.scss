@@ -1,0 +1,109 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.clinical-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: $bg-primary;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+    padding: $space-4 $space-6;
+    background: $bg-surface;
+    border-bottom: 1px solid $border-color;
+    position: sticky;
+    top: 0;
+    z-index: $z-header;
+
+    @include respond-to(tablet) {
+      flex-wrap: wrap;
+      padding: $space-3 $space-4;
+    }
+  }
+
+  &__back {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    background: none;
+    border: none;
+    color: $text-secondary;
+    font-size: $fs-sm;
+    cursor: pointer;
+    padding: $space-2;
+    border-radius: $radius-sm;
+    transition: all 150ms ease;
+    white-space: nowrap;
+
+    &:hover {
+      color: $accent-primary;
+      background: rgba(37, 211, 255, 0.08);
+    }
+  }
+
+  &__title-area {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__icon {
+    color: $accent-primary;
+    flex-shrink: 0;
+  }
+
+  &__title-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    @include respond-to(tablet) {
+      flex-direction: row;
+      gap: $space-2;
+      align-items: baseline;
+    }
+  }
+
+  &__patient-name {
+    font-size: $fs-lg;
+    font-weight: $fw-semibold;
+    color: $text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @include respond-to(tablet) {
+      font-size: $fs-base;
+    }
+  }
+
+  &__subtitle {
+    font-size: $fs-sm;
+    color: $text-muted;
+  }
+
+  &__topbar-area {
+    flex-shrink: 0;
+
+    @include respond-to(tablet) {
+      width: 100%;
+      order: 3;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    padding: $space-6;
+    overflow-y: auto;
+    @include custom-scrollbar;
+
+    @include respond-to(tablet) {
+      padding: $space-4;
+    }
+  }
+}

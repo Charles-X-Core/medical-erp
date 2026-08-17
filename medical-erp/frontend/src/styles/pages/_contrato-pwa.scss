@@ -1,0 +1,346 @@
+@use '../variables' as *;
+@use '../themes/light' as *;
+
+.contrato-pwa {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e0f2f1 100%);
+  font-family: $font-family;
+  padding: $space-4;
+
+  // --- Login ---
+  &__login {
+    max-width: 420px;
+    width: 100%;
+    background: $light-card;
+    border: 1px solid $light-border;
+    border-radius: $radius-xl;
+    box-shadow: $light-shadow-lg;
+    padding: $space-8;
+  }
+
+  &__login-header {
+    text-align: center;
+    margin-bottom: $space-6;
+
+    h1 { color: $light-text-primary; margin: $space-2 0 0; font-size: $fs-2xl; }
+    p { color: $light-text-secondary; margin: $space-1 0 0; font-size: $fs-sm; }
+  }
+
+  &__login-form {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    label {
+      font-size: $fs-sm;
+      font-weight: $fw-medium;
+      color: $light-text-secondary;
+    }
+
+    input {
+      padding: 14px $space-3;
+      border: 1px solid $light-border;
+      border-radius: $radius-md;
+      font-size: 16px;
+      background: $light-bg;
+      color: $light-text-primary;
+      transition: border-color 0.2s;
+      &:focus { outline: none; border-color: $light-accent; }
+    }
+  }
+
+  // --- Kiosco waiting ---
+  &__kiosco {
+    max-width: 500px;
+    width: 100%;
+    background: $light-card;
+    border: 1px solid $light-border;
+    border-radius: $radius-xl;
+    box-shadow: $light-shadow-lg;
+    padding: $space-8;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-6;
+  }
+
+  &__kiosco-header {
+    h2 { color: $light-text-primary; margin: $space-3 0 0; font-size: $fs-xl; }
+    p { color: $light-text-secondary; font-size: $fs-sm; margin: $space-1 0 0; }
+  }
+
+  &__kiosco-spinner {
+    padding: $space-4 0;
+  }
+
+  &__spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid $light-border;
+    border-top-color: #2D6A4F;
+    border-radius: 50%;
+    animation: contrato-pwa-spin 0.8s linear infinite;
+  }
+
+  // --- Contrato display ---
+  &__contrato {
+    width: 100%;
+    max-width: 800px;
+    max-height: 100vh;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: $light-card;
+    border: 1px solid $light-border;
+    border-radius: $radius-xl;
+    box-shadow: $light-shadow-lg;
+    overflow: hidden;
+  }
+
+  &__contrato-header {
+    padding: $space-4 $space-6;
+    border-bottom: 1px solid $light-border;
+    background: #2D6A4F;
+    color: white;
+  }
+
+  &__contrato-paciente {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+
+    h3 { margin: 0; font-size: $fs-lg; color: white; }
+    span { font-size: $fs-sm; opacity: 0.85; }
+  }
+
+  &__contrato-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: $space-6;
+    font-size: 15px;
+    line-height: 1.7;
+    color: $light-text-primary;
+
+    h1, h2, h3, h4 {
+      color: #2D6A4F;
+      margin-top: $space-4;
+    }
+
+    strong { color: $light-text-primary; }
+  }
+
+  // --- Firma section ---
+  &__contrato-firma {
+    padding: $space-4 $space-6 $space-6;
+    border-top: 2px solid #2D6A4F;
+    background: $light-bg;
+
+    h4 {
+      margin: 0 0 $space-3;
+      color: #2D6A4F;
+      font-size: $fs-base;
+    }
+  }
+
+  &__canvas-wrapper {
+    width: 100%;
+    position: relative;
+    border: 2px dashed $light-border-strong;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    background: white;
+    margin-bottom: $space-3;
+  }
+
+  &__canvas {
+    width: 100%;
+    height: 200px;
+    cursor: crosshair;
+    display: block;
+    touch-action: none;
+  }
+
+  &__canvas-label {
+    position: absolute;
+    bottom: $space-2;
+    right: $space-3;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  &__contrato-actions {
+    display: flex;
+    gap: $space-3;
+  }
+
+  // --- Buttons ---
+  &__btn-primary {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: 14px;
+    background: #2D6A4F;
+    color: white;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $fs-base;
+    font-weight: $fw-semibold;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: #245539; }
+  }
+
+  &__btn-clear {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    color: $light-text-secondary;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__btn-sign {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: 14px;
+    background: #2D6A4F;
+    color: white;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: #245539; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &__btn-logout {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-4;
+    background: transparent;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    color: $light-text-muted;
+    font-size: $fs-xs;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $light-card-hover; }
+  }
+
+  // --- Exito ---
+  &__exito {
+    max-width: 500px;
+    width: 100%;
+    background: $light-card;
+    border: 1px solid #c8e6c9;
+    border-radius: $radius-xl;
+    box-shadow: $light-shadow-lg;
+    padding: $space-10;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-4;
+
+    h2 { color: #2D6A4F; margin: 0; font-size: $fs-2xl; }
+    p { color: $light-text-secondary; font-size: $fs-base; margin: 0; }
+  }
+
+  &__exito-icon { color: #2D6A4F; }
+
+  &__exito-time {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  // --- Error ---
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3;
+    background: $light-error-light;
+    border: 1px solid $light-error-border;
+    border-radius: $radius-md;
+    color: $light-error;
+    font-size: $fs-sm;
+    width: 100%;
+  }
+
+  // --- Icon ---
+  &__icon { color: #2D6A4F; }
+}
+
+@keyframes contrato-pwa-spin {
+  to { transform: rotate(360deg); }
+}
+
+// --- Landscape tablet optimization ---
+@media (min-width: 768px) and (orientation: landscape) {
+  .contrato-pwa {
+    padding: $space-2;
+
+    &__contrato {
+      max-height: 96vh;
+      max-height: 96dvh;
+    }
+
+    &__canvas {
+      height: 160px;
+    }
+
+    &__contrato-body {
+      font-size: 14px;
+      padding: $space-4;
+    }
+  }
+}
+
+// --- Portrait tablet ---
+@media (min-width: 768px) and (orientation: portrait) {
+  .contrato-pwa {
+    padding: $space-2;
+
+    &__contrato {
+      max-height: 92vh;
+      max-height: 92dvh;
+    }
+
+    &__canvas {
+      height: 220px;
+    }
+  }
+}
