@@ -94,16 +94,27 @@ const agendaService = {
 
   // --- Citas ---
 
-  async crearCita(citaData) {
+  async crearCita({ pacienteId, usuarioId, fecha, hora, duracionMinutos, tipoCitaId, motivo, notas, prioridad }) {
+    const payload = {
+      pacienteId,
+      usuarioId,
+      fecha,
+      hora,
+      duracionMinutos: duracionMinutos || 30,
+      tipoCitaId: tipoCitaId || undefined,
+      motivo: motivo || 'Consulta',
+      notas: notas || undefined,
+      prioridad: prioridad || 'NORMAL',
+    };
     return apiClient('/api/v1/citas', {
       method: 'POST',
-      body: JSON.stringify(citaData),
+      body: JSON.stringify(payload),
     });
   },
 
   async confirmarCita(citaId) {
     return apiClient(`/api/v1/citas/${citaId}/confirmar`, {
-      method: 'PUT',
+      method: 'PATCH',
     });
   },
 
@@ -140,14 +151,25 @@ const agendaService = {
   },
 
   // Disponibilidad semanal
-  getDisponibilidadSemana: async (usuarioId, inicio, fin) => {
+  getDisponibilidadSemana: async (usuarioId, inicio, fin, duracion = 30) => {
     try {
       const response = await apiClient(
-        `/api/v1/agenda/${usuarioId}/disponibilidad-semana?inicio=${inicio}&fin=${fin}`
+        `/api/v1/agenda/${usuarioId}/disponibilidad-semana?inicio=${inicio}&fin=${fin}&duracion=${duracion}`
       );
       return response;
     } catch (error) {
       console.error('Error fetching disponibilidad semanal:', error);
+      return { success: false, data: [] };
+    }
+  },
+
+  // Tipos de cita
+  getTiposCita: async () => {
+    try {
+      const response = await apiClient('/api/v1/agenda/tipos');
+      return response;
+    } catch (error) {
+      console.error('Error fetching tipos de cita:', error);
       return { success: false, data: [] };
     }
   },
@@ -169,7 +191,7 @@ const agendaService = {
   // Doctores
   getDoctores: async () => {
     try {
-      const response = await apiClient('/api/v1/usuarios?rol=DOCTORA');
+      const response = await apiClient('/api/v1/agenda/doctoras');
       return response;
     } catch (error) {
       console.error('Error fetching doctores:', error);

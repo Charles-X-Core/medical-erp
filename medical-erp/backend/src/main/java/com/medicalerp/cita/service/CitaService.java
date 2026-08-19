@@ -89,6 +89,14 @@ public class CitaService {
         cita.setDuracionMinutos(duracion);
         cita.setEstado("pendiente");
 
+        // Ensure motivo has a value (DB column was previously NOT NULL)
+        if (cita.getMotivo() == null || cita.getMotivo().isBlank()) {
+            TipoCita tipoCitaDefault = request.getTipoCitaId() != null
+                    ? tipoCitaRepository.findById(request.getTipoCitaId()).orElse(null)
+                    : null;
+            cita.setMotivo(tipoCitaDefault != null ? tipoCitaDefault.getNombre() : "Consulta");
+        }
+
         // MapStruct ignores fechaHora (no matching field in CitaRequest), so set it manually
         if (request.getFecha() != null && request.getHora() != null) {
             cita.setFechaHora(request.getFecha().atTime(request.getHora()));
@@ -160,6 +168,14 @@ public class CitaService {
         cita.setUsuario(usuario);
         cita.setDuracionMinutos(duracion);
         cita.setEstado("solicitada");
+
+        // Ensure motivo has a value
+        if (cita.getMotivo() == null || cita.getMotivo().isBlank()) {
+            TipoCita tipoCitaDefault = request.getTipoCitaId() != null
+                    ? tipoCitaRepository.findById(request.getTipoCitaId()).orElse(null)
+                    : null;
+            cita.setMotivo(tipoCitaDefault != null ? tipoCitaDefault.getNombre() : "Consulta");
+        }
 
         // Set solicitadaPor from current user (the doctora)
         Long currentUserId = securityUtils.getCurrentUserId();
@@ -500,7 +516,7 @@ public class CitaService {
 
         // Only validate availability when explicitly reassigning a doctor
         if (request.getUsuarioId() != null) {
-            validarDisponibilidad(request.getUsuarioId(), request.getFecha(), request.getHora(), duracion);
+            validarDisponibilidad(request.getUsuarioId(), request.getFecha(), request.getHora(), duracion, id);
         }
 
         citaMapper.updateEntity(cita, request);
@@ -627,6 +643,10 @@ public class CitaService {
      * 5. No hay conflicto con otra Cita
      */
     private void validarDisponibilidad(Long usuarioId, LocalDate fecha, LocalTime hora, Integer duracion) {
+        validarDisponibilidad(usuarioId, fecha, hora, duracion, null);
+    }
+
+    private void validarDisponibilidad(Long usuarioId, LocalDate fecha, LocalTime hora, Integer duracion, Long excludeId) {
         // 1. Check Agenda exists
         Agenda agenda = agendaRepository.findByUsuarioId(usuarioId).orElse(null);
         if (agenda == null) {
@@ -667,7 +687,7 @@ public class CitaService {
 
         // 5. Check no Cita conflict
         boolean conflicto = citaRepository.countConflictingCita(
-                usuarioId, fecha, hora, horaFin) > 0;
+                usuarioId, fecha, hora, horaFin, excludeId != null ? excludeId : 0L) > 0;
         if (conflicto) {
             throw new BusinessRuleException("APPOINTMENT_CONFLICT",
                     "Horario no disponible para el profesional");
@@ -675,6 +695,7 @@ public class CitaService {
     }
 
     private void validateFechaNoPasada(LocalDate fecha, LocalTime hora) {
+        if (fecha == null || hora == null) return;
         LocalDateTime fechaHora = fecha.atTime(hora);
         if (fechaHora.isBefore(LocalDateTime.now())) {
             throw new BusinessRuleException("PAST_DATE", "No se pueden agendar citas en el pasado");
@@ -760,7 +781,7 @@ public class CitaService {
                     slot.put("estado", estado);
                     result.add(slot);
 
-                    slotInicio = slotInicio.plusMinutes(30); // 30-min increments
+                    slotInicio = slotInicio.plusMinutes(duracionMin); // Use actual duration
                 }
             }
         }

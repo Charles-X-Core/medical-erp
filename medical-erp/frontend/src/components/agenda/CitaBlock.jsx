@@ -1,3 +1,7 @@
+import { useContext, createContext } from 'react';
+
+export const DragCitaCtx = createContext(null);
+
 const ESTADO_COLORS = {
   solicitada: '#F59E0B', pendiente: '#3B82F6', programada: '#06B6D4',
   confirmada: '#22C55E', asistio: '#F59E0B', completada: '#6B7D95',
@@ -17,7 +21,8 @@ function formatTime(timeStr) {
   return timeStr.substring(0, 5);
 }
 
-export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30, col = 0, numCols = 1, onClick }) {
+export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30, col = 0, numCols = 1, onClick, onResize }) {
+  const drag = useContext(DragCitaCtx);
   const [h, m] = (cita.hora || '00:00').split(':').map(Number);
   const startMin = h * 60 + m;
   const offsetMin = startMin - hour * 60;
@@ -32,8 +37,42 @@ export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30,
   const showDetails = duracion >= 20;
   const showType = duracion >= 30;
 
+  const handleResizeStart = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const startY = e.clientY;
+    const startDuracion = duracion;
+    const pxPerMinute = pxPerMin;
+
+    const handleMouseMove = (moveEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const deltaMinutos = Math.round(deltaY / pxPerMinute / 5) * 5;
+      const nuevaDuracion = Math.max(15, startDuracion + deltaMinutos);
+      onResize?.(cita, nuevaDuracion);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const dragStyle = drag?.dragStyle || {};
+  const dragZIndex = drag?.zIndex ?? 1;
+  const dragOpacity = drag?.isDragging ? 0.5 : 1;
+
   return (
     <div
+      ref={drag?.setNodeRef}
+      {...(drag?.listeners || {})}
+      {...(drag?.attributes || {})}
       className="agenda-week__cita"
       style={{
         top: `${topPx}px`,
@@ -42,6 +81,10 @@ export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30,
         width: `calc(${widthPercent}% - 4px)`,
         backgroundColor: ESTADO_BGS[cita.estado] || 'rgba(59,130,246,0.12)',
         borderLeft: `3px solid ${ESTADO_COLORS[cita.estado] || '#3B82F6'}`,
+        opacity: dragOpacity,
+        cursor: 'grab',
+        zIndex: dragZIndex,
+        ...dragStyle,
       }}
       onClick={() => onClick?.(cita)}
     >
@@ -49,6 +92,13 @@ export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30,
       <span className="agenda-week__cita-name">{cita.pacienteNombre}</span>
       {showType && cita.tipoCitaNombre && (
         <span className="agenda-week__cita-type">{cita.tipoCitaNombre}</span>
+      )}
+      {duracion >= 20 && (
+        <div
+          className="agenda-week__cita-resize"
+          onMouseDown={handleResizeStart}
+          title="Arrastrar para cambiar duración"
+        />
       )}
     </div>
   );

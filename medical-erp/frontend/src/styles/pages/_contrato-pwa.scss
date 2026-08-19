@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e0f2f1 100%);
+  background: #f0f0f0;
   font-family: $font-family;
   padding: $space-4;
 
@@ -25,7 +25,6 @@
   &__login-header {
     text-align: center;
     margin-bottom: $space-6;
-
     h1 { color: $light-text-primary; margin: $space-2 0 0; font-size: $fs-2xl; }
     p { color: $light-text-secondary; margin: $space-1 0 0; font-size: $fs-sm; }
   }
@@ -40,13 +39,7 @@
     display: flex;
     flex-direction: column;
     gap: $space-1;
-
-    label {
-      font-size: $fs-sm;
-      font-weight: $fw-medium;
-      color: $light-text-secondary;
-    }
-
+    label { font-size: $fs-sm; font-weight: $fw-medium; color: $light-text-secondary; }
     input {
       padding: 14px $space-3;
       border: 1px solid $light-border;
@@ -80,113 +73,72 @@
     p { color: $light-text-secondary; font-size: $fs-sm; margin: $space-1 0 0; }
   }
 
-  &__kiosco-spinner {
-    padding: $space-4 0;
-  }
+  &__kiosco-spinner { padding: $space-4 0; }
 
   &__spinner {
     width: 48px;
     height: 48px;
     border: 4px solid $light-border;
-    border-top-color: #2D6A4F;
+    border-top-color: $light-accent;
     border-radius: 50%;
     animation: contrato-pwa-spin 0.8s linear infinite;
   }
 
-  // --- Contrato display ---
-  &__contrato {
-    width: 100%;
-    max-width: 800px;
-    max-height: 100vh;
-    max-height: 100dvh;
-    display: flex;
+  // ==============================
+  // READING MODE - HOJA ESCRITORIO
+  // ==============================
+  &--reading {
+    padding: 0;
+    background: #e8e8e8;
     flex-direction: column;
-    background: $light-card;
-    border: 1px solid $light-border;
-    border-radius: $radius-xl;
-    box-shadow: $light-shadow-lg;
+    align-items: stretch;
+    justify-content: flex-start;
     overflow: hidden;
   }
 
-  &__contrato-header {
-    padding: $space-4 $space-6;
-    border-bottom: 1px solid $light-border;
-    background: #2D6A4F;
-    color: white;
-  }
-
-  &__contrato-paciente {
+  // --- Top bar ---
+  &__topbar {
     display: flex;
     align-items: center;
-    gap: $space-3;
-
-    h3 { margin: 0; font-size: $fs-lg; color: white; }
-    span { font-size: $fs-sm; opacity: 0.85; }
+    justify-content: space-between;
+    padding: 10px $space-4;
+    background: #fff;
+    border-bottom: 1px solid $light-border;
+    flex-shrink: 0;
+    z-index: 10;
   }
 
-  &__contrato-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: $space-6;
-    font-size: 15px;
-    line-height: 1.7;
-    color: $light-text-primary;
-
-    h1, h2, h3, h4 {
-      color: #2D6A4F;
-      margin-top: $space-4;
-    }
-
-    strong { color: $light-text-primary; }
-  }
-
-  // --- Firma section ---
-  &__contrato-firma {
-    padding: $space-4 $space-6 $space-6;
-    border-top: 2px solid #2D6A4F;
-    background: $light-bg;
-
-    h4 {
-      margin: 0 0 $space-3;
-      color: #2D6A4F;
-      font-size: $fs-base;
-    }
-  }
-
-  &__canvas-wrapper {
-    width: 100%;
-    position: relative;
-    border: 2px dashed $light-border-strong;
-    border-radius: $radius-lg;
-    overflow: hidden;
-    background: white;
-    margin-bottom: $space-3;
-  }
-
-  &__canvas {
-    width: 100%;
-    height: 200px;
-    cursor: crosshair;
-    display: block;
-    touch-action: none;
-  }
-
-  &__canvas-label {
-    position: absolute;
-    bottom: $space-2;
-    right: $space-3;
-    font-size: $fs-xs;
-    color: $light-text-muted;
-    font-style: italic;
-    pointer-events: none;
-  }
-
-  &__contrato-actions {
+  &__topbar-left {
     display: flex;
-    gap: $space-3;
+    align-items: center;
+    gap: $space-2;
+    color: $light-text-secondary;
   }
 
-  // --- Buttons ---
+  &__topbar-name {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__topbar-actions { display: flex; gap: $space-2; }
+
+  &__btn-minimize {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: $light-card-hover; color: $light-text-primary; }
+  }
+
+  // --- Buttons (used by login, kiosco, and passed to HtmlDocViewer) ---
   &__btn-primary {
     width: 100%;
     display: flex;
@@ -194,7 +146,7 @@
     justify-content: center;
     gap: $space-2;
     padding: 14px;
-    background: #2D6A4F;
+    background: $light-accent;
     color: white;
     border: none;
     border-radius: $radius-md;
@@ -202,16 +154,15 @@
     font-weight: $fw-semibold;
     cursor: pointer;
     transition: background 0.2s;
-    &:hover { background: #245539; }
+    &:hover { background: $light-accent-hover; }
   }
 
   &__btn-clear {
-    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: $space-2;
-    padding: 14px;
+    padding: 10px $space-4;
     background: transparent;
     border: 1px solid $light-border;
     border-radius: $radius-md;
@@ -223,14 +174,30 @@
     &:hover { background: $light-card-hover; }
   }
 
-  &__btn-sign {
-    flex: 2;
+  &__btn-scroll {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: $space-2;
-    padding: 14px;
-    background: #2D6A4F;
+    padding: 10px $space-4;
+    background: transparent;
+    border: 1px solid $light-accent;
+    border-radius: $radius-md;
+    color: $light-accent;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: rgba($light-accent, 0.08); }
+  }
+
+  &__btn-sign {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: 10px $space-6;
+    background: $light-accent;
     color: white;
     border: none;
     border-radius: $radius-md;
@@ -238,7 +205,7 @@
     font-weight: $fw-semibold;
     cursor: pointer;
     transition: background 0.2s;
-    &:hover { background: #245539; }
+    &:hover { background: $light-accent-hover; }
     &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 
@@ -257,12 +224,14 @@
     &:hover { background: $light-card-hover; }
   }
 
-  // --- Exito ---
+  // ==============================
+  // EXITO
+  // ==============================
   &__exito {
     max-width: 500px;
     width: 100%;
     background: $light-card;
-    border: 1px solid #c8e6c9;
+    border: 1px solid $light-border;
     border-radius: $radius-xl;
     box-shadow: $light-shadow-lg;
     padding: $space-10;
@@ -271,12 +240,11 @@
     flex-direction: column;
     align-items: center;
     gap: $space-4;
-
-    h2 { color: #2D6A4F; margin: 0; font-size: $fs-2xl; }
+    h2 { color: $light-text-primary; margin: 0; font-size: $fs-2xl; }
     p { color: $light-text-secondary; font-size: $fs-base; margin: 0; }
   }
 
-  &__exito-icon { color: #2D6A4F; }
+  &__exito-icon { color: $light-success; }
 
   &__exito-time {
     display: flex;
@@ -286,7 +254,9 @@
     color: $light-text-muted;
   }
 
-  // --- Error ---
+  // ==============================
+  // ERROR
+  // ==============================
   &__error {
     display: flex;
     align-items: center;
@@ -300,47 +270,141 @@
     width: 100%;
   }
 
-  // --- Icon ---
-  &__icon { color: #2D6A4F; }
+  // ==============================
+  // INSTALL BANNER
+  // ==============================
+  &__install-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: $light-accent;
+    color: white;
+    padding: $space-3 $space-4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+
+  &__install-banner-content {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+  }
+
+  &__install-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    strong { font-size: $fs-sm; }
+    small { font-size: $fs-xs; opacity: 0.85; }
+  }
+
+  &__install-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &__install-btn {
+    padding: $space-2 $space-4;
+    background: white;
+    color: $light-accent;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: #f0f0f0; }
+  }
+
+  &__install-dismiss {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    border-radius: $radius-sm;
+    transition: background 0.2s, color 0.2s;
+    &:hover { background: rgba(255,255,255,0.1); color: white; }
+  }
+
+  &__icon { color: $light-accent; }
+}
+
+// ============================================================
+// Mobile responsive
+// ============================================================
+@media (max-width: 768px) {
+  .contrato-pwa {
+    padding: $space-2;
+
+    &__login {
+      padding: $space-5;
+      border-radius: $radius-lg;
+    }
+
+    &__login-header {
+      margin-bottom: $space-4;
+      h1 { font-size: $fs-xl; }
+    }
+
+    &__kiosco {
+      padding: $space-5;
+      border-radius: $radius-lg;
+    }
+
+    &__kiosco-header h2 { font-size: $fs-lg; }
+
+    &--reading {
+      padding: 0;
+      background: #f0f0f0;
+    }
+
+    &__btn-primary,
+    &__btn-sign,
+    &__btn-scroll,
+    &__btn-clear {
+      min-height: 44px;
+      font-size: $fs-base;
+    }
+
+    &__btn-logout {
+      min-height: 40px;
+      padding: $space-3 $space-4;
+    }
+
+    &__exito {
+      padding: $space-6;
+      border-radius: $radius-lg;
+      h2 { font-size: $fs-xl; }
+    }
+
+    &__install-banner {
+      flex-direction: column;
+      gap: $space-2;
+      padding: $space-2 $space-3;
+    }
+
+    &__install-banner-content { font-size: $fs-xs; }
+
+    &__install-banner-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
 }
 
 @keyframes contrato-pwa-spin {
   to { transform: rotate(360deg); }
-}
-
-// --- Landscape tablet optimization ---
-@media (min-width: 768px) and (orientation: landscape) {
-  .contrato-pwa {
-    padding: $space-2;
-
-    &__contrato {
-      max-height: 96vh;
-      max-height: 96dvh;
-    }
-
-    &__canvas {
-      height: 160px;
-    }
-
-    &__contrato-body {
-      font-size: 14px;
-      padding: $space-4;
-    }
-  }
-}
-
-// --- Portrait tablet ---
-@media (min-width: 768px) and (orientation: portrait) {
-  .contrato-pwa {
-    padding: $space-2;
-
-    &__contrato {
-      max-height: 92vh;
-      max-height: 92dvh;
-    }
-
-    &__canvas {
-      height: 220px;
-    }
-  }
 }

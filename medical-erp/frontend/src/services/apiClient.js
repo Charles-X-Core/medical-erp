@@ -68,8 +68,8 @@ async function apiClient(endpoint, options = {}) {
 
   let response = await fetch(url, config);
 
-  // If 401, try to refresh token
-  if (response.status === 401 && token) {
+  // If 401 or 403, try to refresh token (403 may mean expired JWT)
+  if ((response.status === 401 || response.status === 403) && token && !options._retried) {
     if (!isRefreshing) {
       isRefreshing = true;
       try {
@@ -90,7 +90,7 @@ async function apiClient(endpoint, options = {}) {
     });
 
     const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
-    response = await fetch(url, { ...config, headers: retryHeaders });
+    response = await fetch(url, { ...config, headers: retryHeaders, _retried: true });
   }
 
   const data = await response.json().catch(() => null);

@@ -214,7 +214,7 @@ class CitaServiceTest {
     void create_WithConflict_ShouldThrowBusinessRuleException() {
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
-        when(citaRepository.countConflictingCita(any(), any(), any(), any())).thenReturn(1L);
+        when(citaRepository.countConflictingCita(any(), any(), any(), any(), any())).thenReturn(1L);
 
         BusinessRuleException ex = assertThrows(BusinessRuleException.class,
                 () -> citaService.create(request));

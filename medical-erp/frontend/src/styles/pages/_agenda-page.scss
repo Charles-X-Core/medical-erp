@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../variables' as *;
 @use '../mixins' as *;
 @use '../themes/light' as *;
@@ -355,6 +356,7 @@
 
   &__cell {
     position: relative;
+    z-index: 0;
     border-right: 1px solid rgba(226, 232, 240, 0.3);
     height: 100%;
     overflow: visible;
@@ -847,23 +849,33 @@
 // --- Cita Popover ---
 .cita-popover-wrapper {
   position: relative;
+
+  &--active {
+    z-index: 60;
+  }
 }
 
 .cita-popover {
   position: absolute;
-  z-index: 50;
+  z-index: 100;
   width: 280px;
   left: calc(100% + 8px);
   top: 0;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: $radius-lg;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   padding: $space-4;
   opacity: 0;
   pointer-events: none;
   transform: translateX(8px);
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+
+  &--left {
+    left: auto;
+    right: calc(100% + 8px);
+    transform: translateX(-8px);
+  }
 
   &--visible {
     opacity: 1;
@@ -1294,8 +1306,7 @@
   }
 
   &__cita-wrapper {
-    position: absolute;
-    inset: 0;
+    display: contents;
   }
 
   &__cita--dragging {
@@ -1591,7 +1602,7 @@
     &--confirm {
       background: $light-success;
       color: #fff;
-      &:hover:not(:disabled) { background: darken($light-success, 8%); }
+      &:hover:not(:disabled) { background: color.adjust($light-success, $lightness: -8%); }
     }
 
     &--reject {
@@ -2001,7 +2012,7 @@
     &--save {
       background: $light-accent;
       color: #fff;
-      &:hover:not(:disabled) { background: darken($light-accent, 8%); }
+      &:hover:not(:disabled) { background: color.adjust($light-accent, $lightness: -8%); }
     }
 
     &--cancel {
@@ -2021,4 +2032,275 @@
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+// ============================================
+// RESIZE HANDLE FOR CITABLOCK
+// ============================================
+
+.agenda-week__cita-resize {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  background: transparent;
+  border-radius: 0 0 3px 3px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.15);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 1px;
+  }
+}
+
+// ============================================
+// TIMER IN CITA DETALLE MODAL
+// ============================================
+
+.cita-detalle-modal__timer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-3 $space-4;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid $light-border;
+  border-radius: $radius-md;
+  margin-bottom: $space-4;
+
+  &--active {
+    background: rgba(34, 197, 94, 0.05);
+    border-color: $light-success;
+  }
+}
+
+.cita-detalle-modal__timer-display {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  color: $light-text-primary;
+}
+
+.cita-detalle-modal__timer-elapsed {
+  font-size: $fs-xl;
+  font-weight: $fw-bold;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+.cita-detalle-modal__timer-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $light-success;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.cita-detalle-modal__timer-actions {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.cita-detalle-modal__timer-btn {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $space-2 $space-3;
+  border: none;
+  border-radius: $radius-md;
+  font-size: $fs-xs;
+  font-weight: $fw-semibold;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &--start {
+    background: $light-success;
+    color: white;
+    &:hover { background: color.adjust($light-success, $lightness: -8%); }
+  }
+
+  &--stop {
+    background: $light-error;
+    color: white;
+    &:hover { background: color.adjust($light-error, $lightness: -8%); }
+  }
+}
+
+.cita-detalle-modal__timer-duracion {
+  font-size: $fs-xs;
+  color: $light-text-muted;
+}
+
+// ============================================
+// REAJUSTE MODAL
+// ============================================
+
+.reajuste-modal {
+  max-width: 480px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-5;
+    border-bottom: 1px solid $light-border;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      margin: 0;
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $light-text-primary;
+    }
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border: none;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 0.15s;
+    &:hover { background: $light-card-hover; color: $light-text-primary; }
+  }
+
+  &__body {
+    padding: $space-5;
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+
+  &__conflict-info {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    color: $light-warning;
+    font-weight: $fw-semibold;
+  }
+
+  &__conflict-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-2 $space-3;
+    background: $light-error-light;
+    border: 1px solid $light-error-border;
+    border-radius: $radius-sm;
+    font-size: $fs-xs;
+    color: $light-error;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    label {
+      font-size: $fs-xs;
+      font-weight: $fw-medium;
+      color: $light-text-muted;
+      display: flex;
+      align-items: center;
+      gap: $space-1;
+    }
+
+    select {
+      padding: $space-2 $space-3;
+      background: $light-bg;
+      border: 1px solid $light-border;
+      border-radius: $radius-md;
+      font-size: $fs-sm;
+      color: $light-text-primary;
+      &:focus { outline: none; border-color: $light-accent; }
+    }
+
+    optgroup {
+      font-weight: $fw-semibold;
+      font-size: $fs-xs;
+      color: $light-text-muted;
+      font-style: normal;
+    }
+  }
+
+  &__slots-loading,
+  &__slots-empty {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+  }
+
+  &__slots-loading {
+    background: rgba(59, 130, 246, 0.06);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    color: $light-accent;
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  &__slots-empty {
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    color: $light-error;
+  }
+
+  &__preview {
+    padding: $space-2 $space-3;
+    background: $light-accent-light;
+    border: 1px solid $light-accent-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    color: $light-accent;
+    font-weight: $fw-medium;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__warning {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    font-size: $fs-xs;
+    color: $light-error;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: $space-3;
+    padding: $space-4 $space-5;
+    border-top: 1px solid $light-border;
+  }
 }

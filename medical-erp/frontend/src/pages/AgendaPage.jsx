@@ -3,6 +3,7 @@ import {
   CalendarDays, ChevronLeft, ChevronRight, Loader2, Clock, Users,
   AlertTriangle, LayoutGrid, List, Settings, Plus, Trash2, Save,
   ChevronDown, ChevronUp, Bell, CheckCheck, Eye, GripVertical,
+  X, AlertCircle,
 } from 'lucide-react';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
@@ -16,7 +17,7 @@ import CitaDetalleModal from '../components/agenda/CitaDetalleModal';
 import MiniCalendar from '../components/agenda/MiniCalendar';
 import NowLine from '../components/agenda/NowLine';
 import CitaPopover from '../components/agenda/CitaPopover';
-import CitaBlock from '../components/agenda/CitaBlock';
+import CitaBlock, { DragCitaCtx } from '../components/agenda/CitaBlock';
 import QuickFilters from '../components/agenda/QuickFilters';
 
 const HORA_INICIO = 8;
@@ -158,17 +159,21 @@ function layoutOverlappingCitas(citas, slotDuracion = 30) {
   return sorted;
 }
 
-// --- Draggable Cita ---
-function DraggableCita({ cita, children }) {
+// --- Draggable Cita (context provider, no wrapper div) ---
+function DraggableCita({ cita, children, index = 0 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `cita-${cita.id}`,
     data: { cita },
   });
-  const style = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : {};
+  const dragStyle = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : {};
+  const zIndex = isDragging ? 100 : 10 - index;
+  const value = useMemo(() => ({
+    setNodeRef, listeners, attributes, dragStyle, zIndex, isDragging
+  }), [setNodeRef, listeners, attributes, dragStyle, zIndex, isDragging]);
   return (
-    <div ref={setNodeRef} {...listeners} {...attributes} style={{ ...style, opacity: isDragging ? 0.5 : 1, cursor: 'grab', zIndex: isDragging ? 100 : 1 }} className="agenda-week__cita-wrapper">
+    <DragCitaCtx.Provider value={value}>
       {children}
-    </div>
+    </DragCitaCtx.Provider>
   );
 }
 
@@ -457,6 +462,111 @@ function ConfigTab({ agendaId, usuarioId }) {
   );
 }
 
+// --- Reajuste Modal ---
+function ReajusteModal({ cita, conflictos, fecha, horaActual, todasLasCitas, onConfirm, onCancel }) {
+  const [horaSeleccionada, setHoraSeleccionada] = useState(horaActual);
+
+  const latestConflictEnd = useMemo(() => {
+    return conflictos.reduce((maxEnd, c) => {
+      const end = parseTime(c.hora) + (c.duracionMinutos || 30);
+      return Math.max(maxEnd, end);
+    }, 0);
+  }, [conflictos]);
+
+  const duracion = cita.duracionMinutos || 30;
+
+  const horas = useMemo(() => {
+    const cellStart = parseTime(horaActual);
+    const cellEnd = cellStart + 60;
+    const result = [];
+    for (let mins = cellStart; mins < cellEnd; mins += 5) {
+      if (mins < latestConflictEnd) continue;
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      const newStart = mins;
+      const newEnd = newStart + duracion;
+      const hasConflict = (todasLasCitas || []).some(c => {
+        if (c.id === cita.id) return false;
+        if (c.fecha !== fecha) return false;
+        if (c.estado === 'cancelada') return false;
+        const cStart = parseTime(c.hora);
+        const cEnd = cStart + (c.duracionMinutos || 30);
+        return newStart < cEnd && newEnd > cStart;
+      });
+      if (!hasConflict) result.push(timeStr);
+    }
+    return result;
+  }, [horaActual, latestConflictEnd, todasLasCitas, cita, fecha, duracion]);
+
+  useEffect(() => {
+    if (horas.length > 0 && !horas.includes(horaSeleccionada)) {
+      setHoraSeleccionada(horas[0]);
+    }
+  }, [horas, horaSeleccionada]);
+
+  const [selH, selM] = horaSeleccionada.split(':').map(Number);
+  const finMin = selH * 60 + selM + duracion;
+  const finH = Math.floor(finMin / 60);
+  const finM = finMin % 60;
+  const horaFinStr = `${String(finH).padStart(2, '0')}:${String(finM).padStart(2, '0')}`;
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content reajuste-modal" onClick={e => e.stopPropagation()}>
+        <div className="reajuste-modal__header">
+          <h3><AlertCircle size={20} /> Ajustar Horario</h3>
+          <button className="reajuste-modal__close" onClick={onCancel}><X size={20} /></button>
+        </div>
+        <div className="reajuste-modal__body">
+          <div className="reajuste-modal__conflict-info">
+            <AlertTriangle size={16} />
+            <span>Hay conflicto con {conflictos.length} cita{conflictos.length > 1 ? 's' : ''}:</span>
+          </div>
+          {conflictos.map(c => (
+            <div key={c.id} className="reajuste-modal__conflict-item">
+              <span>{c.pacienteNombre}</span>
+              <span>{c.hora?.substring(0, 5)} - {(() => {
+                const [h, m] = c.hora.split(':').map(Number);
+                const end = h * 60 + m + (c.duracionMinutos || 30);
+                return `${String(Math.floor(end / 60)).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
+              })()}</span>
+            </div>
+          ))}
+          <div className="reajuste-modal__field">
+            <label><Clock size={14} /> Nueva hora para {cita.pacienteNombre}</label>
+            {horas.length === 0 ? (
+              <div className="reajuste-modal__slots-empty">
+                <AlertCircle size={16} />
+                <span>No hay horarios disponibles en esta celda</span>
+              </div>
+            ) : (
+              <select value={horaSeleccionada} onChange={e => setHoraSeleccionada(e.target.value)}>
+                {horas.map(h => (
+                  <option key={h} value={h}>{h}</option>
+                ))}
+              </select>
+            )}
+          </div>
+          <div className="reajuste-modal__preview">
+            <span>{horaSeleccionada} - {horaFinStr} ({duracion} min)</span>
+          </div>
+        </div>
+        <div className="reajuste-modal__footer">
+          <button className="btn btn--ghost" onClick={onCancel}>Cancelar</button>
+          <button
+            className="btn btn--primary"
+            onClick={() => onConfirm(horaSeleccionada)}
+            disabled={horas.length === 0}
+          >
+            Confirmar Horario
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // --- Main AgendaPage ---
 export default function AgendaPage() {
   const { user } = useAuth();
@@ -468,8 +578,10 @@ export default function AgendaPage() {
   const [slots, setSlots] = useState([]);
   const [weekSlots, setWeekSlots] = useState([]);
   const [agendaData, setAgendaData] = useState(null);
-  const [activeCita, setActiveCita] = useState(null);
   const [selectedCita, setSelectedCita] = useState(null);
+  const [activeCita, setActiveCita] = useState(null);
+  const [resizeCita, setResizeCita] = useState(null);
+  const [reajusteData, setReajusteData] = useState(null);
   const timelineRef = useRef(null);
 
   const primaryRole = getPrimaryRole(user);
@@ -582,19 +694,83 @@ export default function AgendaPage() {
     const [_, newDateKey, newHour] = over.id.split('::');
     const newHora = `${String(newHour).padStart(2, '0')}:00`;
     if (cita.fecha === newDateKey && cita.hora === newHora) return;
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    if (newDateKey < today) { setError('No se puede mover una cita a una fecha pasada'); return; }
+
+    const duracion = cita.duracionMinutos || 30;
+    const newStartMin = parseTime(newHora);
+    const newEndMin = newStartMin + duracion;
+
+    const conflictos = citas.filter(c => {
+      if (c.id === cita.id) return false;
+      if (c.fecha !== newDateKey) return false;
+      if (c.estado === 'cancelada') return false;
+      const cStart = parseTime(c.hora);
+      const cEnd = cStart + (c.duracionMinutos || 30);
+      return newStartMin < cEnd && newEndMin > cStart;
+    });
+
+    if (conflictos.length > 0) {
+      setReajusteData({ cita, nuevaFecha: newDateKey, nuevaHora: newHora, conflictos });
+      return;
+    }
+
+    try {
+      await agendaService.updateCita(cita.id, {
+        pacienteId: cita.pacienteId, usuarioId: cita.usuarioId,
+        fecha: newDateKey, hora: newHora + ':00',
+        duracionMinutos: duracion, motivo: cita.motivo || 'Reprogramada',
+        tipoCitaId: cita.tipoCitaId, prioridad: cita.prioridad, notas: cita.notas,
+      });
+      loadWeek();
+    } catch { setError('Error al mover cita'); }
+  };
+
+  const handleResizeCita = async (cita, nuevaDuracion) => {
     try {
       await agendaService.updateCita(cita.id, {
         pacienteId: cita.pacienteId,
-        fecha: newDateKey,
-        hora: newHora,
+        usuarioId: cita.usuarioId,
+        fecha: cita.fecha,
+        hora: cita.hora,
+        duracionMinutos: nuevaDuracion,
+        motivo: cita.motivo,
+        tipoCitaId: cita.tipoCitaId,
+        prioridad: cita.prioridad,
+        notas: cita.notas,
+      });
+      loadWeek();
+    } catch { setError('Error al cambiar duración'); }
+  };
+
+  const handleReajusteConfirm = async (nuevaHora) => {
+    if (!reajusteData) return;
+    const { cita, nuevaFecha } = reajusteData;
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    if (nuevaFecha < today) {
+      setError('No se puede mover una cita a una fecha pasada');
+      return;
+    }
+
+    try {
+      await agendaService.updateCita(cita.id, {
+        pacienteId: cita.pacienteId,
+        usuarioId: cita.usuarioId,
+        fecha: nuevaFecha,
+        hora: nuevaHora + ':00',
         duracionMinutos: cita.duracionMinutos || 30,
         motivo: cita.motivo || 'Reprogramada',
         tipoCitaId: cita.tipoCitaId,
         prioridad: cita.prioridad,
         notas: cita.notas,
       });
+      setReajusteData(null);
       loadWeek();
-    } catch { setError('Error al mover cita'); }
+    } catch { setError('Error al reprogramar cita'); }
   };
 
   const handleCitaClick = (cita) => {
@@ -711,9 +887,9 @@ export default function AgendaPage() {
                               <span className="agenda-week__slot-label" style={{ color: getSlotLabelColor(slotData.estado) }}>{getSlotLabel(slotData.estado)}</span>
                             </div>
                           )}
-                          {layouted.map((cita) => (
-                            <DraggableCita key={cita.id} cita={cita}>
-                              <CitaPopover cita={cita}>
+                          {layouted.map((cita, idx) => (
+                            <DraggableCita key={cita.id} cita={cita} index={idx}>
+                              <CitaPopover cita={cita} col={cita._col || 0} numCols={cita._numCols || 1}>
                                 <CitaBlock
                                   cita={cita}
                                   hour={hour}
@@ -722,6 +898,7 @@ export default function AgendaPage() {
                                   col={cita._col || 0}
                                   numCols={cita._numCols || 1}
                                   onClick={handleCitaClick}
+                                  onResize={handleResizeCita}
                                 />
                               </CitaPopover>
                             </DraggableCita>
@@ -808,6 +985,19 @@ export default function AgendaPage() {
           cita={selectedCita}
           onClose={() => setSelectedCita(null)}
           onRefresh={handleRefreshAfterModal}
+        />
+      )}
+
+      {/* Reajuste Modal - when drag creates conflict */}
+      {reajusteData && (
+        <ReajusteModal
+          cita={reajusteData.cita}
+          conflictos={reajusteData.conflictos}
+          fecha={reajusteData.nuevaFecha}
+          horaActual={reajusteData.nuevaHora}
+          todasLasCitas={citas}
+          onConfirm={handleReajusteConfirm}
+          onCancel={() => setReajusteData(null)}
         />
       )}
     </div>

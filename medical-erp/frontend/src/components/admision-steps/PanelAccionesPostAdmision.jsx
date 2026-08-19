@@ -1,6 +1,6 @@
-import { Calendar, ClipboardList, Send, Eye, Home, CheckCircle } from 'lucide-react';
+import { Calendar, Send, Eye, Home, CheckCircle } from 'lucide-react';
 
-export default function PanelAccionesPostAdmision({ paciente, onAgendarCita, onVerDisponibilidad, onEnviarContrato, onVerPaciente, onVolver }) {
+export default function PanelAccionesPostAdmision({ paciente, onAgendarCita, onEnviarContrato, onVerPaciente, onVolver }) {
   const fullName = `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`.trim();
 
   return (
@@ -20,15 +20,7 @@ export default function PanelAccionesPostAdmision({ paciente, onAgendarCita, onV
             <Calendar size={28} />
           </div>
           <span className="post-admision__card-label">Agendar Cita</span>
-          <span className="post-admision__card-desc">Programar consulta con la doctora</span>
-        </button>
-
-        <button className="post-admision__card" onClick={onVerDisponibilidad}>
-          <div className="post-admision__card-icon post-admision__card-icon--green">
-            <ClipboardList size={28} />
-          </div>
-          <span className="post-admision__card-label">Ver Disponibilidad</span>
-          <span className="post-admision__card-desc">Consultar horarios de la doctora</span>
+          <span className="post-admision__card-desc">Ver disponibilidad y programar consulta</span>
         </button>
 
         <button className="post-admision__card" onClick={onEnviarContrato}>

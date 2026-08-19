@@ -44,4 +44,7 @@ public class ContratoSigningSession {
 
     @Column(name = "signed_at")
     private LocalDateTime signedAt;
+
+    @Column(name = "contrato_storage_path", length = 500)
+    private String contratoStoragePath;
 }

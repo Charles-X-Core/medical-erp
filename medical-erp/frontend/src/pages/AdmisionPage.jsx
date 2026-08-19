@@ -20,7 +20,6 @@ import PasoContrato from '../components/admision-steps/PasoContrato';
 import PasoResumen from '../components/admision-steps/PasoResumen';
 import PanelAccionesPostAdmision from '../components/admision-steps/PanelAccionesPostAdmision';
 import AgendarCitaModal from '../components/admision-steps/AgendarCitaModal';
-import VerDisponibilidadModal from '../components/admision-steps/VerDisponibilidadModal';
 
 function extractList(data) {
   if (!data) return [];
@@ -69,7 +68,6 @@ export default function AdmisionPage() {
 
   const [view, setView] = useState('list');
   const [showAgendarCita, setShowAgendarCita] = useState(false);
-  const [showVerDisponibilidad, setShowVerDisponibilidad] = useState(false);
 
   const loadPacientes = useCallback(async () => {
     try {
@@ -136,7 +134,6 @@ export default function AdmisionPage() {
       parentescoEmergencia: p.parentescoEmergencia || '',
     });
     setMediciones({ peso: p.peso || '', estatura: p.estatura || '' });
-    setFirmaSent(false);
     setCurrentStep(1);
     setSaved(false);
     setView('wizard');
@@ -201,7 +198,7 @@ export default function AdmisionPage() {
     setMembresias([]);
     setCurrentStep(1);
     setSaved(false);
-    setFirmaSent(false);
+    setContratoFirmado(false);
     setView('list');
   };
 
@@ -250,7 +247,6 @@ export default function AdmisionPage() {
         <PanelAccionesPostAdmision
           paciente={selectedPatient}
           onAgendarCita={() => setShowAgendarCita(true)}
-          onVerDisponibilidad={() => setShowVerDisponibilidad(true)}
           onEnviarContrato={() => { setView('wizard'); setCurrentStep(5); }}
           onVerPaciente={() => navigate(`/pacientes/${selectedPatient.id}/workspace`)}
           onVolver={exitWizard}
@@ -260,11 +256,6 @@ export default function AdmisionPage() {
           onClose={() => setShowAgendarCita(false)}
           paciente={selectedPatient}
           onCitaCreada={exitWizard}
-        />
-        <VerDisponibilidadModal
-          isOpen={showVerDisponibilidad}
-          onClose={() => setShowVerDisponibilidad(false)}
-          onAgendar={() => setShowAgendarCita(true)}
         />
       </div>
     );

@@ -20,6 +20,8 @@ import com.medicalerp.cita.entity.Cita;
 import com.medicalerp.cita.repository.CitaRepository;
 import com.medicalerp.seguridad.entity.Usuario;
 import com.medicalerp.seguridad.repository.UsuarioRepository;
+import com.medicalerp.seguridad.mapper.UsuarioMapper;
+import com.medicalerp.seguridad.dto.UsuarioResponse;
 import com.medicalerp.common.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,7 @@ public class AgendaService {
     private final CitaRepository citaRepository;
     private final AgendaMapper agendaMapper;
     private final TipoCitaMapper tipoCitaMapper;
+    private final UsuarioMapper usuarioMapper;
     private final SecurityUtils securityUtils;
     private final AvailabilityEngine availabilityEngine;
 
@@ -291,7 +294,7 @@ public class AgendaService {
         List<Disponibilidad> disponibilidades = disponibilidadRepository
                 .findByAgendaIdAndDiaSemana(agenda.getId(), diaSemana);
         List<Bloqueo> bloqueos = bloqueoRepository.findByAgendaId(agenda.getId());
-        List<Cita> citas = citaRepository.findByUsuarioIdAndFecha(usuarioId, fecha);
+        List<Cita> citas = citaRepository.findActivasByFechaBetween(fecha, fecha);
 
         return availabilityEngine.calcularSlots(agenda, disponibilidades, bloqueos, citas, fecha, duracion);
     }
@@ -315,15 +318,25 @@ public class AgendaService {
     /**
      * GET /api/v1/agenda/{usuarioId}/disponibilidad-semana?inicio=YYYY-MM-DD&fin=YYYY-MM-DD
      */
-    public List<SlotDisponibilidad> getDisponibilidadSemana(Long usuarioId, LocalDate inicio, LocalDate fin) {
+    public List<SlotDisponibilidad> getDisponibilidadSemana(Long usuarioId, LocalDate inicio, LocalDate fin, Integer duracion) {
         Agenda agenda = agendaRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Agenda del usuario", usuarioId));
 
         List<Disponibilidad> disponibilidades = disponibilidadRepository.findByAgendaId(agenda.getId());
         List<Bloqueo> bloqueos = bloqueoRepository.findByAgendaId(agenda.getId());
-        List<Cita> citas = citaRepository.findListByUsuarioId(usuarioId);
+        List<Cita> citas = citaRepository.findActivasByFechaBetween(inicio, fin);
 
-        return availabilityEngine.calcularSlotsSemana(agenda, disponibilidades, bloqueos, citas, inicio, fin, 30);
+        return availabilityEngine.calcularSlotsSemana(agenda, disponibilidades, bloqueos, citas, inicio, fin, duracion);
+    }
+
+    /**
+     * GET /api/v1/agenda/doctoras
+     * Returns all active users with DOCTORA role.
+     */
+    public List<UsuarioResponse> getDoctoras() {
+        return usuarioRepository.findByRolNombre("DOCTORA").stream()
+                .map(usuarioMapper::toResponse)
+                .toList();
     }
 
 }

@@ -18,10 +18,18 @@ export const contratoPwaService = {
     return apiClient(BASE + '/render?token=' + encodeURIComponent(token));
   },
 
-  async firmar(token, firmaImagen) {
+  async getPreview(pacienteId, templateCode = 'CONTRATO_MEMBRESIA') {
+    return apiClient(BASE + '/preview?pacienteId=' + pacienteId + '&templateCode=' + encodeURIComponent(templateCode));
+  },
+
+  async checkFirmado(pacienteId) {
+    return apiClient(BASE + '/check?pacienteId=' + pacienteId);
+  },
+
+  async firmar(token, firmaImagen, htmlContent) {
     return apiClient(BASE + '/firmar', {
       method: 'POST',
-      body: JSON.stringify({ token, firmaImagen }),
+      body: JSON.stringify({ token, firmaImagen, htmlContent }),
     });
   },
 

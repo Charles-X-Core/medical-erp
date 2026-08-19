@@ -18,4 +18,5 @@ public class ContratoPwaResponse {
     private Long consentimientoId;
     private String htmlContent;
     private String mensaje;
+    private String contratoStoragePath;
 }

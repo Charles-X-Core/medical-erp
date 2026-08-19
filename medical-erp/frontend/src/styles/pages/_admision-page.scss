@@ -589,9 +589,31 @@
   &__resumen-empty { font-size: $fs-sm; color: $light-text-muted; font-style: italic; }
   &__resumen-ok { font-size: $fs-sm; color: $light-success; display: flex; align-items: center; gap: $space-1; }
   &__resumen-pending { font-size: $fs-sm; color: $light-warning; }
+
+  // --- Contract preview (legacy - kept for reference) ---
+  &__btn-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    padding: $space-2 $space-3;
+    background: $light-accent;
+    color: white;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: $light-accent-hover; }
+  }
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+@keyframes pulse-dot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
 
 .spinner {
   animation: spin 0.6s linear infinite;
@@ -793,6 +815,8 @@
 }
 
 .agendar-cita-modal {
+  max-width: 900px;
+
   &__paciente {
     display: flex;
     align-items: center;
@@ -813,11 +837,25 @@
     font-size: $fs-xs;
   }
 
-  &__fields {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+  &__controls {
+    display: flex;
+    align-items: flex-end;
     gap: $space-4;
     margin-bottom: $space-5;
+    flex-wrap: wrap;
+  }
+
+  &__doctora-fija {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    background: $light-bg;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
   }
 
   &__field {
@@ -847,138 +885,6 @@
     }
 
     &--full { grid-column: 1 / -1; }
-  }
-
-  &__slots {
-    margin-bottom: $space-5;
-
-    label {
-      display: flex;
-      align-items: center;
-      gap: $space-1;
-      font-size: $fs-xs;
-      font-weight: $fw-medium;
-      color: $light-text-muted;
-      margin-bottom: $space-3;
-    }
-  }
-
-  &__loading {
-    display: flex;
-    align-items: center;
-    gap: $space-2;
-    color: $light-text-muted;
-    font-size: $fs-sm;
-    padding: $space-4;
-  }
-
-  &__no-slots {
-    text-align: center;
-    color: $light-text-muted;
-    font-size: $fs-sm;
-    padding: $space-4;
-    background: $light-bg;
-    border-radius: $radius-md;
-  }
-
-  &__slots-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: $space-2;
-  }
-
-  &__slot {
-    padding: $space-2;
-    border: 1px solid $light-border;
-    border-radius: $radius-md;
-    background: $light-bg;
-    font-size: $fs-xs;
-    font-weight: $fw-medium;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-
-    &--disponible {
-      background: $light-success-light;
-      border-color: $light-success-border;
-      color: $light-success;
-      &:hover { background: $light-success; color: white; }
-    }
-
-    &--ocupado {
-      background: $light-error-light;
-      border-color: $light-error-border;
-      color: $light-error;
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-
-    &--selected {
-      background: $light-accent !important;
-      border-color: $light-accent !important;
-      color: white !important;
-    }
-  }
-
-  &__error {
-    display: flex;
-    align-items: center;
-    gap: $space-2;
-    padding: $space-3;
-    background: $light-error-light;
-    border: 1px solid $light-error-border;
-    border-radius: $radius-md;
-    color: $light-error;
-    font-size: $fs-sm;
-    margin-top: $space-4;
-  }
-
-  &__exito {
-    text-align: center;
-    padding: $space-8;
-    color: $light-success;
-
-    h4 { margin: $space-3 0 $space-1; color: $light-text-primary; }
-    p { color: $light-text-secondary; font-size: $fs-sm; }
-  }
-}
-
-// ============================================
-// VER DISPONIBILIDAD MODAL
-// ============================================
-
-.ver-disp-modal {
-  max-width: 900px;
-
-  &__controls {
-    display: flex;
-    align-items: flex-end;
-    gap: $space-4;
-    margin-bottom: $space-5;
-    flex-wrap: wrap;
-  }
-
-  &__field {
-    display: flex;
-    flex-direction: column;
-    gap: $space-1;
-
-    label {
-      font-size: $fs-xs;
-      font-weight: $fw-medium;
-      color: $light-text-muted;
-    }
-
-    select {
-      padding: $space-2 $space-3;
-      background: $light-bg;
-      border: 1px solid $light-border;
-      border-radius: $radius-md;
-      font-size: $fs-sm;
-      color: $light-text-primary;
-
-      &:focus { outline: none; border-color: $light-accent; }
-    }
   }
 
   &__week-nav {
@@ -1050,6 +956,9 @@
   &__th-dia {
     background: $light-surface;
     min-width: 80px;
+    transition: background 0.2s;
+
+    &--selected { background: $light-accent-light; }
   }
 
   &__dia-name {
@@ -1076,10 +985,12 @@
   &__td {
     font-size: $fs-sm;
     cursor: default;
+    transition: all 0.15s;
 
     &--disponible { background: $light-success-light; }
     &--ocupado { background: $light-error-light; }
     &--no-configurado { background: $light-bg; color: $light-text-muted; }
+    &--selected { background: $light-accent !important; color: white !important; font-weight: $fw-bold; }
   }
 
   &__legend {
@@ -1087,6 +998,7 @@
     gap: $space-4;
     font-size: $fs-xs;
     color: $light-text-muted;
+    margin-bottom: $space-4;
 
     span {
       display: flex;
@@ -1102,7 +1014,492 @@
 
     &--ok { background: $light-success; }
     &--no { background: $light-error; }
+    &--buffer { background: $light-warning-light; }
+    &--blocked { background: $light-text-muted; opacity: 0.5; }
     &--none { background: $light-border; }
+  }
+
+  &__th-dia {
+    &--inactive { opacity: 0.5; }
+  }
+
+  &__td {
+    &--buffer { background: $light-warning-light; color: $light-text-muted; }
+    &--bloqueado { background: #E5E7EB; color: $light-text-muted; }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-10;
+    color: $light-text-muted;
+    text-align: center;
+
+    p { font-size: $fs-sm; margin: 0; }
+  }
+
+  &__confirm {
+    border: 2px solid $light-accent;
+    border-radius: $radius-lg;
+    padding: $space-4;
+    background: $light-accent-light;
+    animation: agendar-slide-in 0.2s ease-out;
+  }
+
+  &__confirm-header {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+    margin-bottom: $space-3;
+  }
+
+  &__confirm-fields {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: $space-4;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3;
+    background: $light-error-light;
+    border: 1px solid $light-error-border;
+    border-radius: $radius-md;
+    color: $light-error;
+    font-size: $fs-sm;
+    margin-top: $space-4;
+  }
+
+  &__exito {
+    text-align: center;
+    padding: $space-8;
+    color: $light-success;
+
+    h4 { margin: $space-3 0 $space-1; color: $light-text-primary; }
+    p { color: $light-text-secondary; font-size: $fs-sm; }
+  }
+}
+
+@keyframes agendar-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ============================================
+// AGENDAR CITA V2
+// ============================================
+
+.agendar-v2 {
+  max-width: 640px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-5;
+    border-bottom: 1px solid $light-border;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      margin: 0;
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $light-text-primary;
+    }
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border: none;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover { background: $light-card-hover; color: $light-text-primary; }
+  }
+
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: $space-5;
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+
+  &__paciente {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    background: $light-accent-light;
+    border: 1px solid $light-accent-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    label {
+      font-size: $fs-xs;
+      font-weight: $fw-medium;
+      color: $light-text-muted;
+      display: flex;
+      align-items: center;
+      gap: $space-1;
+    }
+
+    select, input, textarea {
+      padding: $space-2 $space-3;
+      background: $light-bg;
+      border: 1px solid $light-border;
+      border-radius: $radius-md;
+      font-size: $fs-sm;
+      color: $light-text-primary;
+      font-family: inherit;
+      transition: border-color 0.15s;
+
+      &:focus { outline: none; border-color: $light-accent; box-shadow: 0 0 0 2px $light-accent-light; }
+    }
+
+    &--full { grid-column: 1 / -1; }
+  }
+
+  &__badge-sugerido {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 6px;
+    background: $light-warning-light;
+    border: 1px solid $light-warning-border;
+    border-radius: $radius-sm;
+    font-size: 9px;
+    font-weight: $fw-semibold;
+    color: $light-warning;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  &__tipo-info {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    background: $light-accent-light;
+    border: 1px solid $light-accent-border;
+    border-radius: $radius-md;
+    font-size: $fs-xs;
+    color: $light-accent;
+    font-weight: $fw-medium;
+  }
+
+  &__seccion {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+  }
+
+  &__seccion-titulo {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    margin: 0;
+  }
+
+  &__week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-3;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-secondary;
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border: 1px solid $light-border;
+      border-radius: $radius-md;
+      background: transparent;
+      color: $light-text-primary;
+      cursor: pointer;
+      transition: all 0.15s;
+
+      &:hover { background: $light-card-hover; }
+    }
+  }
+
+  &__dias {
+    display: flex;
+    gap: $space-2;
+    overflow-x: auto;
+    padding-bottom: $space-1;
+  }
+
+  &__dia {
+    flex: 1;
+    min-width: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: $space-2 $space-2;
+    border: 2px solid $light-border;
+    border-radius: $radius-md;
+    background: $light-bg;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover:not(:disabled) { border-color: $light-accent; background: $light-accent-light; }
+    &:disabled { opacity: 0.4; cursor: default; }
+
+    &--selected {
+      border-color: $light-accent !important;
+      background: $light-accent !important;
+      color: white !important;
+
+      .agendar-v2__dia-nombre,
+      .agendar-v2__dia-num,
+      .agendar-v2__dia-count { color: white !important; }
+    }
+
+    &--empty { opacity: 0.45; }
+    &--hoy { border-color: $light-success; }
+
+    &--pasado {
+      opacity: 0.35;
+      cursor: default;
+      pointer-events: none;
+
+      .agendar-v2__dia-nombre,
+      .agendar-v2__dia-num,
+      .agendar-v2__dia-count { text-decoration: line-through; }
+    }
+
+    &--lleno {
+      border-color: $light-error;
+      background: $light-error-light;
+
+      .agendar-v2__dia-count { color: $light-error; font-weight: $fw-semibold; }
+    }
+  }
+
+  &__dia-nombre {
+    font-size: 10px;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    text-transform: uppercase;
+  }
+
+  &__dia-num {
+    font-size: $fs-lg;
+    font-weight: $fw-bold;
+    color: $light-text-primary;
+    line-height: 1;
+  }
+
+  &__dia-count {
+    font-size: 10px;
+    color: $light-text-muted;
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-8;
+    color: $light-text-muted;
+    font-size: $fs-sm;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-6;
+    color: $light-text-muted;
+    text-align: center;
+    font-size: $fs-sm;
+
+    p { margin: 0; }
+  }
+
+  &__hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-6;
+    color: $light-text-muted;
+    text-align: center;
+    font-size: $fs-sm;
+
+    p { margin: 0; }
+  }
+
+  &__slots {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    max-height: 260px;
+    overflow-y: auto;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    padding: $space-2;
+  }
+
+  &__slot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-2 $space-3;
+    border: 1px solid transparent;
+    border-radius: $radius-sm;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.12s;
+    text-align: left;
+    font-family: inherit;
+
+    &:hover:not(:disabled) { background: $light-accent-light; }
+
+    &--disponible {
+      background: $light-success-light;
+      border-color: $light-success-border;
+
+      &:hover { background: darken($light-success-light, 3%); }
+    }
+
+    &--ocupado {
+      background: $light-error-light;
+      opacity: 0.6;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    &--bloqueado {
+      background: $light-card-hover;
+      opacity: 0.5;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    &--en_buffer {
+      background: $light-warning-light;
+      opacity: 0.6;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    &--pasado {
+      opacity: 0.3;
+      cursor: default;
+      pointer-events: none;
+      text-decoration: line-through;
+    }
+
+    &--selected {
+      background: $light-accent !important;
+      border-color: $light-accent !important;
+      color: white;
+
+      .agendar-v2__slot-hora,
+      .agendar-v2__slot-estado { color: white; }
+    }
+
+    &:disabled { cursor: default; }
+  }
+
+  &__slot-hora {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__slot-estado {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3;
+    background: $light-error-light;
+    border: 1px solid $light-error-border;
+    border-radius: $radius-md;
+    color: $light-error;
+    font-size: $fs-sm;
+  }
+
+  &__resumen {
+    padding: $space-3 $space-4;
+    background: $light-accent-light;
+    border: 2px solid $light-accent;
+    border-radius: $radius-md;
+    animation: agendar-slide-in 0.2s ease-out;
+  }
+
+  &__resumen-linea {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    color: $light-accent;
+    font-weight: $fw-semibold;
+
+    &--sub {
+      font-size: $fs-xs;
+      font-weight: $fw-regular;
+      color: $light-text-muted;
+      margin-top: $space-1;
+    }
+  }
+
+  &__exito {
+    text-align: center;
+    padding: $space-8;
+    color: $light-success;
+
+    h4 { margin: $space-3 0 $space-1; color: $light-text-primary; }
+    p { color: $light-text-secondary; font-size: $fs-sm; }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: $space-3;
+    padding: $space-4 $space-5;
+    border-top: 1px solid $light-border;
   }
 }
 

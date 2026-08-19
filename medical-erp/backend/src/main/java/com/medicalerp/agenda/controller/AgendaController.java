@@ -130,9 +130,16 @@ public class AgendaController {
     public ResponseEntity<ApiResponse<List<SlotDisponibilidad>>> getDisponibilidadSemana(
             @PathVariable Long usuarioId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin,
+            @RequestParam(defaultValue = "30") Integer duracion) {
         return ResponseEntity.ok(ApiResponse.success(
-                agendaService.getDisponibilidadSemana(usuarioId, inicio, fin)));
+                agendaService.getDisponibilidadSemana(usuarioId, inicio, fin, duracion)));
+    }
+
+    @GetMapping("/doctoras")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<com.medicalerp.seguridad.dto.UsuarioResponse>>> getDoctoras() {
+        return ResponseEntity.ok(ApiResponse.success(agendaService.getDoctoras()));
     }
 
 }

@@ -37,13 +37,15 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     @Query(value = "SELECT COUNT(*) FROM citas c WHERE c.usuario_id = :usuarioId AND DATE(c.fecha_hora) = :fecha " +
            "AND c.estado NOT IN ('cancelada', 'completada') " +
-           "AND (TIME(c.fecha_hora) < :horaFin AND :hora < ADDTIME(TIME(c.fecha_hora), CONCAT(c.duracion_minutos, ':0')))",
+           "AND c.id != :excludeId " +
+           "AND (TIME(c.fecha_hora) < :horaFin AND :hora < ADDTIME(TIME(c.fecha_hora), SEC_TO_TIME(c.duracion_minutos * 60)))",
            nativeQuery = true)
     Long countConflictingCita(
             @Param("usuarioId") Long usuarioId,
             @Param("fecha") LocalDate fecha,
             @Param("hora") LocalTime hora,
-            @Param("horaFin") LocalTime horaFin);
+            @Param("horaFin") LocalTime horaFin,
+            @Param("excludeId") Long excludeId);
 
     @Query("SELECT c FROM Cita c WHERE c.paciente.id = :pacienteId AND FUNCTION('DATE', c.fechaHora) = :fecha AND c.estado <> :estado")
     Optional<Cita> findByPacienteIdAndFechaAndEstadoNot(
@@ -59,5 +61,16 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
 
     @Query("SELECT c FROM Cita c WHERE c.usuario.id = :usuarioId")
     List<Cita> findListByUsuarioId(@Param("usuarioId") Long usuarioId);
+
+    @Query("SELECT c FROM Cita c WHERE c.usuario.id = :usuarioId AND FUNCTION('DATE', c.fechaHora) >= :inicio AND FUNCTION('DATE', c.fechaHora) <= :fin AND c.estado NOT IN ('cancelada', 'completada')")
+    List<Cita> findByUsuarioIdAndFechaBetween(
+            @Param("usuarioId") Long usuarioId,
+            @Param("inicio") LocalDate inicio,
+            @Param("fin") LocalDate fin);
+
+    @Query("SELECT c FROM Cita c WHERE FUNCTION('DATE', c.fechaHora) >= :inicio AND FUNCTION('DATE', c.fechaHora) <= :fin AND c.estado NOT IN ('cancelada', 'completada')")
+    List<Cita> findActivasByFechaBetween(
+            @Param("inicio") LocalDate inicio,
+            @Param("fin") LocalDate fin);
 
 }

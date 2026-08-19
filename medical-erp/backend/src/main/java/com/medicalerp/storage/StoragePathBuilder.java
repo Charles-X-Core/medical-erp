@@ -33,7 +33,15 @@ public class StoragePathBuilder {
         return String.format("%d/templates", clinicaId);
     }
 
+    public String buildContratoPath(Long clinicaId, Long pacienteId) {
+        return String.format("%d/contratos/%d", clinicaId, pacienteId);
+    }
+
     public Path getFullTemplatePath(String storagePath) {
+        return Paths.get(uploadDir, storagePath);
+    }
+
+    public Path getFullStoragePath(String storagePath) {
         return Paths.get(uploadDir, storagePath);
     }
 }

@@ -51,7 +51,7 @@ public class Cita {
     @Builder.Default
     private Integer duracionMinutos = 30;
 
-    @Column(name = "motivo", nullable = false, length = 500)
+    @Column(name = "motivo", length = 500)
     private String motivo;
 
     @Column(name = "tratamiento_id")

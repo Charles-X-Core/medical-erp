@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Clock, User, FileText, AlertTriangle } from 'lucide-react';
+import { Clock, User, FileText, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 
 const ESTADO_LABELS = {
   solicitada: 'Solicitada', pendiente: 'Pendiente', programada: 'Programada',
@@ -13,7 +13,12 @@ const ESTADO_COLORS = {
   cancelada: '#EF4444', reprogramada: '#A78BFA', no_show: '#EF4444',
 };
 
-const PRIORIDAD_LABELS = { URGENTE: 'Urgente', NORMAL: 'Normal', BAJA: 'Baja' };
+const PRIORIDAD_CONFIG = {
+  URGENTE: { label: 'Urgente', icon: AlertCircle, color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
+  ALTA: { label: 'Alta', icon: AlertTriangle, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
+  NORMAL: { label: 'Normal', icon: Info, color: '#3B82F6', bg: 'rgba(59,130,246,0.1)' },
+  BAJA: { label: 'Baja', icon: Info, color: '#6B7D95', bg: 'rgba(107,125,149,0.1)' },
+};
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -33,19 +38,39 @@ function formatTimeRange(hora, duracionMinutos) {
   return `${start} - ${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 }
 
-export default function CitaPopover({ cita, children }) {
+export default function CitaPopover({ cita, children, col = 0, numCols = 1 }) {
   const [visible, setVisible] = useState(false);
+  const [position, setPosition] = useState({ side: 'right', vertical: 'top' });
   const timeoutRef = useRef(null);
   const containerRef = useRef(null);
 
   const handleMouseEnter = () => {
     clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => setVisible(true), 400);
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const viewportW = window.innerWidth;
+      const viewportH = window.innerHeight;
+
+      let side = 'right';
+      if (col >= Math.ceil(numCols / 2)) {
+        side = 'left';
+      } else if (rect.right + 300 > viewportW) {
+        side = 'left';
+      }
+
+      let vertical = 'top';
+      if (rect.top + 200 > viewportH) {
+        vertical = 'bottom';
+      }
+
+      setPosition({ side, vertical });
+    }
+    timeoutRef.current = setTimeout(() => setVisible(true), 300);
   };
 
   const handleMouseLeave = () => {
     clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => setVisible(false), 150);
+    timeoutRef.current = setTimeout(() => setVisible(false), 100);
   };
 
   useEffect(() => {
@@ -54,17 +79,33 @@ export default function CitaPopover({ cita, children }) {
 
   if (!cita) return children;
 
+  const prioridad = PRIORIDAD_CONFIG[cita.prioridad] || PRIORIDAD_CONFIG.NORMAL;
+  const PrioridadIcon = prioridad.icon;
+
+  const popoverStyle = {};
+  if (position.side === 'left') {
+    popoverStyle.right = 'calc(100% + 8px)';
+    popoverStyle.left = 'auto';
+  }
+  if (position.vertical === 'bottom') {
+    popoverStyle.bottom = '0';
+    popoverStyle.top = 'auto';
+  }
+
   return (
     <div
       ref={containerRef}
-      className="cita-popover-wrapper"
+      className={`cita-popover-wrapper ${visible ? 'cita-popover-wrapper--active' : ''}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{ position: 'relative' }}
     >
       {children}
       {visible && (
-        <div className="cita-popover cita-popover--visible">
+        <div
+          className={`cita-popover cita-popover--visible cita-popover--${position.side}`}
+          style={popoverStyle}
+        >
           <div className="cita-popover__header">
             <span className="cita-popover__name">{cita.pacienteNombre}</span>
             <span
@@ -85,10 +126,10 @@ export default function CitaPopover({ cita, children }) {
                 <span>{cita.tipoCitaNombre}{cita.duracionMinutos ? ` · ${cita.duracionMinutos} min` : ''}</span>
               </div>
             )}
-            {cita.prioridad && (
-              <div className="cita-popover__row">
-                <AlertTriangle size={13} />
-                <span>{PRIORIDAD_LABELS[cita.prioridad] || cita.prioridad}</span>
+            {cita.prioridad && cita.prioridad !== 'NORMAL' && (
+              <div className="cita-popover__row" style={{ color: prioridad.color }}>
+                <PrioridadIcon size={13} />
+                <span style={{ fontWeight: 600 }}>{prioridad.label}</span>
               </div>
             )}
             {cita.motivo && (

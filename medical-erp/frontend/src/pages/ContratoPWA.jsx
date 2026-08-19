@@ -1,14 +1,40 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { contratoPwaService } from '../services/contratoPwaService';
-import { FileText, Send, CheckCircle, AlertTriangle, RotateCcw, LogOut, Clock } from 'lucide-react';
+import HtmlDocViewer from '../components/common/HtmlDocViewer';
+import { FileText, Send, CheckCircle, AlertTriangle, RotateCcw, LogOut, Clock, Download, X, Smartphone, ChevronDown } from 'lucide-react';
 
 const POLL_INTERVAL = 3000;
+
+function detectPlatform() {
+  const ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/.test(ua)) return 'android';
+  return 'desktop';
+}
+
+function getInstallInstructions(platform) {
+  switch (platform) {
+    case 'android':
+      return { text: 'Toca los 3 puntos y selecciona "Instalar app"', icon: '⋮' };
+    case 'ios':
+      return { text: 'Toca el boton de compartir y selecciona "Anadir a pantalla de inicio"', icon: '⬆' };
+    default:
+      return { text: 'Haz clic en el icono de instalacion en la barra de direccion', icon: '⬇' };
+  }
+}
 
 export default function ContratoPWA() {
   const [step, setStep] = useState('login');
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
+
+  // PWA install
+  const deferredPrompt = useRef(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const platform = useRef(detectPlatform());
 
   // Login
   const [email, setEmail] = useState('');
@@ -18,37 +44,54 @@ export default function ContratoPWA() {
   const [pacienteNombre, setPacienteNombre] = useState('');
   const [htmlContent, setHtmlContent] = useState('');
 
-  // Firma
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  // Viewer ref
+  const viewerRef = useRef(null);
+
+  // Signature state — driven by HtmlDocViewer callback
   const [hasSignature, setHasSignature] = useState(false);
 
-  // Canvas setup
+  // Cooldown post-firma
+  const signedCooldownUntil = useRef(0);
+  const lastSignedToken = useRef('');
+
+  // PWA install prompt
   useEffect(() => {
-    if (step !== 'firma') return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * 2;
-    canvas.height = rect.height * 2;
-    ctx.scale(2, 2);
-    ctx.strokeStyle = '#1A2332';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-  }, [step]);
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      setIsInstalled(true);
+      return;
+    }
+    const onBeforeInstall = (e) => { e.preventDefault(); deferredPrompt.current = e; setIsInstallable(true); };
+    const onInstalled = () => { setIsInstalled(true); setIsInstallable(false); deferredPrompt.current = null; };
+    window.addEventListener('beforeinstallprompt', onBeforeInstall);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (deferredPrompt.current) {
+      deferredPrompt.current.prompt();
+      const { outcome } = await deferredPrompt.current.userChoice;
+      if (outcome === 'accepted') setIsInstallable(false);
+      deferredPrompt.current = null;
+    }
+  };
 
   // Polling for pending contracts (kiosco mode)
   useEffect(() => {
     if (step !== 'kiosco') return;
     let active = true;
+    let timerId;
 
     const poll = async () => {
+      if (Date.now() < signedCooldownUntil.current) return;
       try {
-        const data = await contratoPwaService.getSiguiente();
+        const res = await contratoPwaService.getSiguiente();
         if (!active) return;
-        if (data.status === 'PENDIENTE' && data.token) {
+        const data = res.data || res;
+        if (data.status === 'PENDIENTE' && data.token && data.token !== lastSignedToken.current) {
           setToken(data.token);
           setPacienteNombre(data.pacienteNombre);
           loadContract(data.token);
@@ -58,22 +101,25 @@ export default function ContratoPWA() {
       }
     };
 
-    poll();
-    const interval = setInterval(poll, POLL_INTERVAL);
-    return () => { active = false; clearInterval(interval); };
+    timerId = setTimeout(() => {
+      poll();
+      const interval = setInterval(poll, POLL_INTERVAL);
+      timerId = interval;
+    }, 3000);
+
+    return () => { active = false; clearTimeout(timerId); clearInterval(timerId); };
   }, [step]);
 
   const loadContract = async (t) => {
     try {
-      const data = await contratoPwaService.render(t);
-      if (data.status === 'FIRMADO') {
-        setStep('already-signed');
-        return;
-      }
+      const res = await contratoPwaService.render(t);
+      const data = res.data || res;
+      if (data.status === 'FIRMADO') { setStep('already-signed'); return; }
       if (data.htmlContent) {
         setHtmlContent(data.htmlContent);
         setPacienteNombre(data.pacienteNombre);
         setStep('contrato');
+        setHasSignature(false);
       }
     } catch {
       setError('Error al cargar el contrato');
@@ -81,7 +127,6 @@ export default function ContratoPWA() {
     }
   };
 
-  // Login handler
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -103,50 +148,44 @@ export default function ContratoPWA() {
     }
   };
 
-  // Canvas drawing
-  const getPos = (e) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - rect.left, y: clientY - rect.top };
-  };
-
-  const startDraw = useCallback((e) => {
-    e.preventDefault();
-    const ctx = canvasRef.current.getContext('2d');
-    const pos = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    setIsDrawing(true);
+  // Called by HtmlDocViewer when user draws or clears
+  const handleSignatureChange = useCallback((signed) => {
+    setHasSignature(signed);
   }, []);
 
-  const draw = useCallback((e) => {
-    if (!isDrawing) return;
-    e.preventDefault();
-    const ctx = canvasRef.current.getContext('2d');
-    const pos = getPos(e);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    setHasSignature(true);
-  }, [isDrawing]);
-
-  const stopDraw = useCallback(() => setIsDrawing(false), []);
-
-  const clearCanvas = () => {
-    const ctx = canvasRef.current.getContext('2d');
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    setHasSignature(false);
+  const handleClear = () => {
+    viewerRef.current?.clearSignature();
   };
 
-  // Sign handler
+  const handleScrollToSignature = () => {
+    viewerRef.current?.scrollToSignature();
+  };
+
   const handleSign = async () => {
     if (!hasSignature || !token) return;
     setSending(true);
     setError('');
     try {
-      const firmaBase64 = canvasRef.current.toDataURL('image/png');
-      const data = await contratoPwaService.firmar(token, firmaBase64);
+      const firmaBase64 = viewerRef.current?.getSignatureDataUrl();
+      const container = viewerRef.current?.getContainer();
+      if (!firmaBase64 || !container) throw new Error('No se pudo obtener la firma');
+
+      // Clone container and replace canvas with image
+      const clone = container.cloneNode(true);
+      const canvasInClone = clone.querySelector('canvas');
+      if (canvasInClone) {
+        const img = document.createElement('img');
+        img.src = firmaBase64;
+        img.style.cssText = 'width:100%;max-height:140px;display:block;';
+        const wrapper = canvasInClone.parentElement;
+        wrapper.innerHTML = '';
+        wrapper.appendChild(img);
+      }
+      const htmlWithSignature = clone.innerHTML;
+
+      await contratoPwaService.firmar(token, firmaBase64, htmlWithSignature);
+      lastSignedToken.current = token;
+      signedCooldownUntil.current = Date.now() + 8000;
       setStep('exito');
       setTimeout(() => {
         setStep('kiosco');
@@ -169,47 +208,54 @@ export default function ContratoPWA() {
     setStep('login');
   };
 
-  // --- RENDER ---
+  const showInstallBanner = !isInstalled && !bannerDismissed;
+  const instructions = getInstallInstructions(platform.current);
+
+  const renderInstallBanner = () => {
+    if (!showInstallBanner) return null;
+    return (
+      <div className="contrato-pwa__install-banner">
+        <div className="contrato-pwa__install-banner-content">
+          <Smartphone size={18} />
+          <span className="contrato-pwa__install-text">
+            <strong>Instalar OHNow Contrato</strong>
+            <small>{instructions.text}</small>
+          </span>
+        </div>
+        <div className="contrato-pwa__install-banner-actions">
+          {isInstallable && (
+            <button className="contrato-pwa__install-btn" onClick={handleInstall}>
+              <Download size={14} /> Instalar
+            </button>
+          )}
+          <button className="contrato-pwa__install-dismiss" onClick={() => setBannerDismissed(true)}>
+            <X size={14} />
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   if (step === 'login') {
     return (
       <div className="contrato-pwa">
+        {renderInstallBanner()}
         <div className="contrato-pwa__login">
           <div className="contrato-pwa__login-header">
             <FileText size={48} className="contrato-pwa__icon" />
             <h1>OHNow Contrato</h1>
             <p>Kiosco de Firma</p>
           </div>
-
           <form onSubmit={handleLogin} className="contrato-pwa__login-form">
-            {error && (
-              <div className="contrato-pwa__error">
-                <AlertTriangle size={16} /> {error}
-              </div>
-            )}
-
+            {error && <div className="contrato-pwa__error"><AlertTriangle size={16} /> {error}</div>}
             <div className="contrato-pwa__field">
               <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="username"
-              />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" />
             </div>
-
             <div className="contrato-pwa__field">
               <label>Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
             </div>
-
             <button type="submit" className="contrato-pwa__btn-primary">
               <Send size={18} /> Iniciar kiosco
             </button>
@@ -222,6 +268,7 @@ export default function ContratoPWA() {
   if (step === 'kiosco') {
     return (
       <div className="contrato-pwa">
+        {renderInstallBanner()}
         <div className="contrato-pwa__kiosco">
           <div className="contrato-pwa__kiosco-header">
             <FileText size={40} className="contrato-pwa__icon" />
@@ -231,11 +278,7 @@ export default function ContratoPWA() {
           <div className="contrato-pwa__kiosco-spinner">
             <div className="contrato-pwa__spinner" />
           </div>
-          {error && (
-            <div className="contrato-pwa__error">
-              <AlertTriangle size={16} /> {error}
-            </div>
-          )}
+          {error && <div className="contrato-pwa__error"><AlertTriangle size={16} /> {error}</div>}
           <button className="contrato-pwa__btn-logout" onClick={handleLogout}>
             <LogOut size={16} /> Cerrar sesion
           </button>
@@ -245,64 +288,37 @@ export default function ContratoPWA() {
   }
 
   if (step === 'contrato') {
+    const pwaActions = (
+      <>
+        <button className="contrato-pwa__btn-scroll" onClick={handleScrollToSignature}>
+          <ChevronDown size={16} /> Ir a firma
+        </button>
+        <button className="contrato-pwa__btn-clear" onClick={handleClear} disabled={sending}>
+          <RotateCcw size={16} /> Limpiar firma
+        </button>
+        <button className="contrato-pwa__btn-sign" onClick={handleSign} disabled={!hasSignature || sending}>
+          <Send size={16} /> {sending ? 'Firmando...' : 'Confirmar firma'}
+        </button>
+      </>
+    );
+
+    const pwaOverlay = error ? (
+      <div className="contrato-pwa__error"><AlertTriangle size={16} /> {error}</div>
+    ) : null;
+
     return (
-      <div className="contrato-pwa contrato-pwa--signed">
-        <div className="contrato-pwa__contrato">
-          <div className="contrato-pwa__contrato-header">
-            <div className="contrato-pwa__contrato-paciente">
-              <FileText size={24} />
-              <div>
-                <h3>Contrato de Membresia</h3>
-                <span>{pacienteNombre}</span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="contrato-pwa__contrato-body"
-            dangerouslySetInnerHTML={{ __html: htmlContent }}
-          />
-
-          <div className="contrato-pwa__contrato-firma">
-            <h4>Firma del paciente</h4>
-
-            <div className="contrato-pwa__canvas-wrapper">
-              <canvas
-                ref={canvasRef}
-                className="contrato-pwa__canvas"
-                onMouseDown={startDraw}
-                onMouseMove={draw}
-                onMouseUp={stopDraw}
-                onMouseLeave={stopDraw}
-                onTouchStart={startDraw}
-                onTouchMove={draw}
-                onTouchEnd={stopDraw}
-              />
-              {!hasSignature && (
-                <span className="contrato-pwa__canvas-label">Firme aqui</span>
-              )}
-            </div>
-
-            {error && (
-              <div className="contrato-pwa__error">
-                <AlertTriangle size={16} /> {error}
-              </div>
-            )}
-
-            <div className="contrato-pwa__contrato-actions">
-              <button className="contrato-pwa__btn-clear" onClick={clearCanvas} disabled={sending}>
-                <RotateCcw size={16} /> Limpiar
-              </button>
-              <button
-                className="contrato-pwa__btn-sign"
-                onClick={handleSign}
-                disabled={!hasSignature || sending}
-              >
-                <Send size={16} /> {sending ? 'Firmando...' : 'Confirmar firma'}
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="contrato-pwa contrato-pwa--reading">
+        {renderInstallBanner()}
+        <HtmlDocViewer
+          ref={viewerRef}
+          htmlContent={htmlContent}
+          title={pacienteNombre}
+          fullscreen
+          enableSignature
+          onSignatureChange={handleSignatureChange}
+          actions={pwaActions}
+          overlay={pwaOverlay}
+        />
       </div>
     );
   }

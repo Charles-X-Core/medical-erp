@@ -4,6 +4,7 @@ import com.medicalerp.contratopwa.entity.ContratoSigningSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,4 +17,6 @@ public interface ContratoSigningSessionRepository extends JpaRepository<Contrato
     Optional<ContratoSigningSession> findFirstByClinicaIdAndStatusOrderByCreatedAtAsc(Long clinicaId, String status);
 
     boolean existsByClinicaIdAndPacienteIdAndStatus(Long clinicaId, Long pacienteId, String status);
+
+    List<ContratoSigningSession> findByPacienteIdAndClinicaIdAndStatus(Long pacienteId, Long clinicaId, String status);
 }

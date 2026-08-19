@@ -25,6 +25,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,6 +41,7 @@ public class ContratoPwaService {
     private final ConsentTemplateService templateService;
     private final ConsentimientoSignService signService;
     private final MembresiaService membresiaService;
+    private final ContratoStorageService contratoStorageService;
     private final SecurityUtils securityUtils;
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -52,8 +54,14 @@ public class ContratoPwaService {
         Paciente paciente = pacienteRepository.findByIdAndClinicaId(pacienteId, clinicaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
 
-        Optional<ContratoSigningSession> existing = sessionRepository
-                .findBySigningTokenAndClinicaId(generateToken(), clinicaId);
+        // Cancelar sesiones PENDIENTE anteriores del mismo paciente
+        List<ContratoSigningSession> staleSessions = sessionRepository
+                .findByPacienteIdAndClinicaIdAndStatus(pacienteId, clinicaId, "PENDIENTE");
+        for (ContratoSigningSession stale : staleSessions) {
+            stale.setStatus("EXPIRADO");
+        }
+        sessionRepository.saveAll(staleSessions);
+
         String token = generateUniqueToken(clinicaId);
 
         ContratoSigningSession session = ContratoSigningSession.builder()
@@ -75,6 +83,54 @@ public class ContratoPwaService {
                 .pacienteNombre(paciente.getApellidoPaterno() + " " + paciente.getNombres())
                 .pacienteId(pacienteId)
                 .mensaje("Contrato enviado a tablet para firma")
+                .build();
+    }
+
+    public ContratoPwaResponse getPreview(Long pacienteId, String templateCode) {
+        Long clinicaId = securityUtils.getCurrentClinicaId();
+
+        Paciente paciente = pacienteRepository.findByIdAndClinicaId(pacienteId, clinicaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
+
+        ConsentTemplate template = templateRepository.findByClinicaIdAndCodigoAndVersion(
+                clinicaId, templateCode, "1.0")
+                .orElseThrow(() -> new BusinessRuleException("TEMPLATE_NOT_FOUND",
+                        "Template de contrato no encontrado: " + templateCode));
+
+        String htmlContent = templateService.loadTemplateContent(template.getId());
+        Map<String, String> variables = buildVariables(paciente);
+        String renderedHtml = replaceVariables(htmlContent, variables);
+
+        return ContratoPwaResponse.builder()
+                .htmlContent(renderedHtml)
+                .pacienteNombre(paciente.getApellidoPaterno() + " " + paciente.getNombres())
+                .pacienteId(pacienteId)
+                .status("PREVIEW")
+                .build();
+    }
+
+    public ContratoPwaResponse checkFirmado(Long pacienteId) {
+        Long clinicaId = securityUtils.getCurrentClinicaId();
+
+        List<ContratoSigningSession> firmadas = sessionRepository
+                .findByPacienteIdAndClinicaIdAndStatus(pacienteId, clinicaId, "FIRMADO");
+
+        if (firmadas.isEmpty()) {
+            return ContratoPwaResponse.builder()
+                    .status("NO_FIRMADO")
+                    .pacienteId(pacienteId)
+                    .build();
+        }
+
+        ContratoSigningSession ultima = firmadas.get(firmadas.size() - 1);
+
+        return ContratoPwaResponse.builder()
+                .sessionId(ultima.getId())
+                .status("FIRMADO")
+                .pacienteId(pacienteId)
+                .contratoStoragePath(ultima.getContratoStoragePath())
+                .consentimientoId(ultima.getConsentimientoId())
+                .mensaje("Contrato ya firmado")
                 .build();
     }
 
@@ -112,6 +168,7 @@ public class ContratoPwaService {
                     .status("FIRMADO")
                     .pacienteId(session.getPacienteId())
                     .consentimientoId(session.getConsentimientoId())
+                    .contratoStoragePath(session.getContratoStoragePath())
                     .mensaje("Este contrato ya ha sido firmado")
                     .build();
         }
@@ -148,7 +205,7 @@ public class ContratoPwaService {
     }
 
     @Transactional
-    public ContratoPwaResponse firmar(String token, String firmaBase64) {
+    public ContratoPwaResponse firmar(String token, String firmaBase64, String htmlContentFromFrontend) {
         ContratoSigningSession session = sessionRepository.findBySigningToken(token)
                 .orElseThrow(() -> new BusinessRuleException("TOKEN_INVALID", "Token de firma inválido"));
 
@@ -179,11 +236,18 @@ public class ContratoPwaService {
                 .orElseThrow(() -> new BusinessRuleException("TEMPLATE_NOT_FOUND",
                         "Template no encontrado: " + session.getTemplateCode()));
 
-        String htmlContent = templateService.loadTemplateContent(template.getId());
         Paciente paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
-        Map<String, String> variables = buildVariables(paciente);
-        String renderedHtml = replaceVariables(htmlContent, variables);
+
+        // Usar el HTML del frontend si viene (con firma integrada), sino renderizar del template
+        String renderedHtml;
+        if (htmlContentFromFrontend != null && !htmlContentFromFrontend.isBlank()) {
+            renderedHtml = htmlContentFromFrontend;
+        } else {
+            String htmlContent = templateService.loadTemplateContent(template.getId());
+            Map<String, String> variables = buildVariables(paciente);
+            renderedHtml = replaceVariables(htmlContent, variables);
+        }
 
         // 3. Firmar via ConsentimientoSignService
         ConsentimientoFirmaRequest firmaReq = ConsentimientoFirmaRequest.builder()
@@ -195,14 +259,25 @@ public class ContratoPwaService {
         ConsentimientoFirmaResponse firmaResp = signService.firmar(
                 template.getId(), pacienteId, firmaReq);
 
-        // 4. Actualizar sesión
+        // 4. Guardar contrato en almacenamiento dedicado (PDF + firma.png + metadata.json)
+        String contratoPath;
+        try {
+            contratoPath = contratoStorageService.saveContrato(
+                    session, paciente, firmaBase64, renderedHtml);
+        } catch (Exception e) {
+            log.error("Error guardando contrato en almacenamiento: {}", e.getMessage());
+            contratoPath = null;
+        }
+
+        // 5. Actualizar sesión
         session.setStatus("FIRMADO");
         session.setConsentimientoId(firmaResp.getConsentimientoId());
         session.setSignedAt(LocalDateTime.now());
+        session.setContratoStoragePath(contratoPath);
         sessionRepository.save(session);
 
-        log.info("Contrato firmado: paciente={}, token={}, consentimiento={}",
-                pacienteId, token, firmaResp.getConsentimientoId());
+        log.info("Contrato firmado y almacenado: paciente={}, token={}, consentimiento={}, path={}",
+                pacienteId, token, firmaResp.getConsentimientoId(), contratoPath);
 
         return ContratoPwaResponse.builder()
                 .sessionId(session.getId())
@@ -211,6 +286,7 @@ public class ContratoPwaService {
                 .pacienteNombre(paciente.getApellidoPaterno() + " " + paciente.getNombres())
                 .pacienteId(pacienteId)
                 .consentimientoId(firmaResp.getConsentimientoId())
+                .contratoStoragePath(contratoPath)
                 .mensaje("Contrato firmado exitosamente")
                 .build();
     }
@@ -225,6 +301,7 @@ public class ContratoPwaService {
                 .status(session.getStatus())
                 .pacienteId(session.getPacienteId())
                 .consentimientoId(session.getConsentimientoId())
+                .contratoStoragePath(session.getContratoStoragePath())
                 .build();
     }
 
@@ -243,6 +320,15 @@ public class ContratoPwaService {
         vars.put("telefono", paciente.getTelefono() != null ? paciente.getTelefono() : "N/A");
         vars.put("email", paciente.getEmail() != null ? paciente.getEmail() : "N/A");
         vars.put("sexo", paciente.getSexo() != null ? paciente.getSexo() : "N/A");
+
+        java.time.LocalDate now = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter dayFmt = java.time.format.DateTimeFormatter.ofPattern("d");
+        java.time.format.DateTimeFormatter monthFmt = java.time.format.DateTimeFormatter.ofPattern("MMMM", java.util.Locale.ENGLISH);
+        java.time.format.DateTimeFormatter yearFmt = java.time.format.DateTimeFormatter.ofPattern("yyyy");
+        vars.put("fecha_dia", now.format(dayFmt));
+        vars.put("fecha_mes", now.format(monthFmt));
+        vars.put("fecha_anio", now.format(yearFmt));
+
         return vars;
     }
 
