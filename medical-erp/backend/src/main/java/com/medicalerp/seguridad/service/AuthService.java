@@ -14,6 +14,7 @@ import com.medicalerp.seguridad.mapper.UsuarioMapper;
 import com.medicalerp.seguridad.repository.RolRepository;
 import com.medicalerp.seguridad.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,18 +25,39 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import jakarta.annotation.PostConstruct;
+import java.time.LocalDateTime;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Authentication and User Management Service (SEC-002, SEC-003, SEC-OTP-005)
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuthService {
 
+    private static final int MAX_LOGIN_ATTEMPTS = 5;
+    private static final int LOCKOUT_MINUTES = 15;
+    private static final int IP_RATE_LIMIT = 10;
+    private static final int IP_RATE_WINDOW_MINUTES = 15;
+
+    // Rate limiting: IP -> list of timestamps
+    private final ConcurrentHashMap<String, java.util.List<LocalDateTime>> ipLoginAttempts = new ConcurrentHashMap<>();
+
     private final AuthenticationManager authenticationManager;
+    private final TransactionTemplate transactionTemplate;
     private final JwtUtils jwtUtils;
     private final JwtProperties jwtProperties;
+
+    @PostConstruct
+    public void init() {
+        transactionTemplate.setPropagationBehavior(
+                org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    }
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final ClinicaRepository clinicaRepository;
@@ -176,21 +198,41 @@ public class AuthService {
     }
 
     /**
-     * Legacy login method - kept for backward compatibility and internal use
+     * Direct login with email + password (primary login method)
+     * Includes brute force protection: rate limiting + account lockout
      */
     @Transactional
-    public LoginResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+    public LoginResponse login(LoginRequest request, String ipAddress) {
+        // 1. Check IP rate limit
+        checkIpRateLimit(ipAddress);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
+        // 2. Check account lockout
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", request.getEmail()));
+
+        if (usuario.getLockedUntil() != null && usuario.getLockedUntil().isAfter(LocalDateTime.now())) {
+            long minutesLeft = java.time.Duration.between(LocalDateTime.now(), usuario.getLockedUntil()).toMinutes() + 1;
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Cuenta bloqueada temporalmente. Intente de nuevo en " + minutesLeft + " minutos.");
+        }
+
+        // 3. Authenticate
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (BadCredentialsException e) {
+            // 4. On failure: increment failed attempts, lock if threshold reached
+            handleFailedLogin(usuario, ipAddress);
+            throw e;
+        }
+
+        // 5. On success: reset failed attempts, clear lockout
+        handleSuccessfulLogin(usuario);
 
         String role = usuario.getRoles().iterator().next().getNombre();
         org.springframework.security.core.userdetails.User userDetails =
@@ -208,6 +250,8 @@ public class AuthService {
         String refreshToken = jwtUtils.generateRefreshToken(usuario.getEmail(), usuario.getId(), role, clinicaId);
         long expiresInSeconds = jwtProperties.getExpiration() / 1000;
 
+        log.info("Login exitoso: email={}, ip={}", request.getEmail(), ipAddress);
+
         return LoginResponse.builder()
                 .token(token)
                 .refreshToken(refreshToken)
@@ -222,6 +266,49 @@ public class AuthService {
                         .clinicaNombre(clinica.getNombre())
                         .build())
                 .build();
+    }
+
+    private void checkIpRateLimit(String ipAddress) {
+        if (ipAddress == null) return;
+        LocalDateTime windowStart = LocalDateTime.now().minusMinutes(IP_RATE_WINDOW_MINUTES);
+        java.util.List<LocalDateTime> attempts = ipLoginAttempts.computeIfAbsent(ipAddress, k -> new java.util.ArrayList<>());
+        attempts.removeIf(t -> t.isBefore(windowStart));
+        if (attempts.size() >= IP_RATE_LIMIT) {
+            log.warn("Rate limit excedido para IP: {}", ipAddress);
+            throw new BadCredentialsException("Demasiados intentos de inicio de sesión. Espere unos minutos.");
+        }
+        attempts.add(LocalDateTime.now());
+    }
+
+    private void handleFailedLogin(Usuario usuario, String ipAddress) {
+        String email = usuario.getEmail();
+        int currentAttempts = (usuario.getFailedLoginAttempts() == null ? 0 : usuario.getFailedLoginAttempts()) + 1;
+
+        transactionTemplate.executeWithoutResult(status -> {
+            Usuario u = usuarioRepository.findByEmail(email).orElse(null);
+            if (u == null) return;
+            u.setFailedLoginAttempts(currentAttempts);
+            if (currentAttempts >= MAX_LOGIN_ATTEMPTS) {
+                u.setLockedUntil(LocalDateTime.now().plusMinutes(LOCKOUT_MINUTES));
+                log.warn("Cuenta bloqueada por {} intentos fallidos: email={}, ip={}", currentAttempts, email, ipAddress);
+            } else {
+                log.warn("Login fallido ({}/{}): email={}, ip={}", currentAttempts, MAX_LOGIN_ATTEMPTS, email, ipAddress);
+            }
+            usuarioRepository.save(u);
+        });
+    }
+
+    private void handleSuccessfulLogin(Usuario usuario) {
+        String email = usuario.getEmail();
+        if (usuario.getFailedLoginAttempts() != null && usuario.getFailedLoginAttempts() > 0) {
+            transactionTemplate.executeWithoutResult(status -> {
+                Usuario u = usuarioRepository.findByEmail(email).orElse(null);
+                if (u == null) return;
+                u.setFailedLoginAttempts(0);
+                u.setLockedUntil(null);
+                usuarioRepository.save(u);
+            });
+        }
     }
 
     public UsuarioResponse getCurrentUser() {

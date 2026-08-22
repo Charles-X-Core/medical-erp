@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../services/authService';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setPendingEmail } = useAuth();
+  const { storeAuth } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -18,16 +18,21 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const res = await authService.loginStep1(email, password);
-      if (res.success) {
-        setPendingEmail(email);
-        sessionStorage.setItem('pendingEmail', email);
-        navigate('/otp');
+      const res = await authService.login(email, password);
+      if (res.success && res.data?.token) {
+        storeAuth(res.data);
+        navigate('/dashboard');
       } else {
         setError(res.message || 'Error al iniciar sesión');
       }
     } catch (err) {
-      setError(err.message || 'Credenciales inválidas');
+      if (err.status === 423) {
+        setError('Cuenta bloqueada temporalmente por múltiples intentos fallidos. Espere unos minutos.');
+      } else if (err.status === 401) {
+        setError('Credenciales inválidas. Verifique su email y contraseña.');
+      } else {
+        setError(err.message || 'Error de conexión');
+      }
     } finally {
       setLoading(false);
     }
@@ -38,12 +43,13 @@ export default function LoginForm() {
       <div className="auth-form__brand">
         <img src="/logo.ico" alt="Logo" className="auth-form__logo" />
         <h2 className="auth-form__title">ERP Médico</h2>
-        <p className="auth-form__subtitle">Acceso seguro con OTP</p>
+        <p className="auth-form__subtitle">Optimal Health NOW</p>
       </div>
 
       <form className="auth-form" onSubmit={handleSubmit}>
         {error && (
           <div className="auth-form__error">
+            <AlertCircle size={16} />
             {error}
           </div>
         )}
@@ -60,6 +66,7 @@ export default function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              autoComplete="email"
             />
           </div>
         </div>
@@ -77,6 +84,7 @@ export default function LoginForm() {
               required
               disabled={loading}
               minLength={8}
+              autoComplete="current-password"
             />
           </div>
         </div>
@@ -90,7 +98,7 @@ export default function LoginForm() {
             <span className="spinner spinner--sm" />
           ) : (
             <>
-              Continuar <ArrowRight size={18} />
+              Iniciar Sesión <ArrowRight size={18} />
             </>
           )}
         </button>

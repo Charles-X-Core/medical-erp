@@ -96,9 +96,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException ex) {
         log.warn("Access denied: {}", ex.getMessage());
+        String message = ex.getMessage() != null ? ex.getMessage() : "No tiene permisos para realizar esta acción";
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error("ACCESS_DENIED", "No tiene permisos para realizar esta acción"));
+                .body(ApiResponse.error("ACCESS_DENIED", message));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

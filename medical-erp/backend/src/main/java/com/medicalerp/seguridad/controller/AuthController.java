@@ -23,8 +23,11 @@ public class AuthController {
     private final OtpCodeRepository otpCodeRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
-        LoginResponse response = authService.login(request);
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
+        String ipAddress = extractIpAddress(httpRequest);
+        LoginResponse response = authService.login(request, ipAddress);
         return ResponseEntity.ok(ApiResponse.success(response, "Login exitoso"));
     }
 

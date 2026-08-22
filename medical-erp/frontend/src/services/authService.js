@@ -22,6 +22,10 @@ async function post(endpoint, body, extraHeaders = {}) {
 }
 
 export const authService = {
+  async login(email, password) {
+    return post('/api/v1/auth/login', { email, password });
+  },
+
   async loginStep1(email, password) {
     return post('/api/v1/auth/login-step1', { email, password });
   },
