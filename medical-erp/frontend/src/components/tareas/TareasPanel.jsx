@@ -10,7 +10,7 @@ const TIPO_LABELS = {
   OTRO: { label: 'Otro', color: '#6B7280' },
 };
 
-export default function TareasPanel({ rol = 'enfermera' }) {
+export default function TareasPanel({ rol = 'doctora' }) {
   const navigate = useNavigate();
   const [tareas, setTareas] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -61,7 +61,7 @@ export default function TratamientosActivos({ tratamientos, loading }) {
                   </div>
                   <button
                     className="tratamiento-card__open"
-                    title="Abrir paciente"
+                    title="Abrir cliente"
                     onClick={() => navigate(`/pacientes/${t.pacienteId}/workspace`)}
                   >
                     <ChevronRight size={18} />

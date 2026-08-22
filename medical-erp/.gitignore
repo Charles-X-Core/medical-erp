@@ -17,6 +17,7 @@ target/
 # Node / Frontend
 node_modules/
 dist/
+dev-dist/
 .vite/
 *.local
 
@@ -32,3 +33,12 @@ desktop.ini
 
 # Logs
 *.log
+logs/
+
+# SSH / Deploy scripts
+plink_sess.bat
+ssh_*.txt
+fix_*.sql
+
+# Embedded repos
+optimal-health-now/

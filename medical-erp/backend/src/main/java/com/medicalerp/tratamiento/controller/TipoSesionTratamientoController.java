@@ -24,7 +24,7 @@ public class TipoSesionTratamientoController {
     private final SecurityUtils securityUtils;
 
     @GetMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<TipoSesionTratamientoResponse>>> listar() {
         Long clinicaId = securityUtils.getCurrentClinicaId();
         return ResponseEntity.ok(ApiResponse.success(service.findAllByClinica(clinicaId)));

@@ -23,6 +23,7 @@ import com.medicalerp.paciente.repository.PacienteDocumentoRepository;
 import com.medicalerp.paciente.repository.PacienteRepository;
 import com.medicalerp.paciente.repository.PacienteSeguroRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class PacienteService {
 
@@ -204,7 +206,12 @@ public class PacienteService {
         paciente.setPais(clinica.getPais());
         paciente.setEstado("activo");
         Paciente saved = pacienteRepository.save(paciente);
-        return buildFullResponse(saved);
+        try {
+            return buildFullResponse(saved);
+        } catch (Exception ex) {
+            log.warn("buildFullResponse failed for new paciente {}: {}", saved.getId(), ex.getMessage());
+            return pacienteMapper.toResponse(saved);
+        }
     }
 
     public PacienteResponse getById(Long id) {
@@ -251,7 +258,12 @@ public class PacienteService {
         paciente.setClinicaId(clinicaId);
         paciente.setPais(clinica.getPais());
         Paciente saved = pacienteRepository.save(paciente);
-        return buildFullResponse(saved);
+        try {
+            return buildFullResponse(saved);
+        } catch (Exception ex) {
+            log.warn("buildFullResponse failed for paciente {}: {}", saved.getId(), ex.getMessage());
+            return pacienteMapper.toResponse(saved);
+        }
     }
 
     @Transactional

@@ -36,7 +36,7 @@ export default function PasoMembresia({ pacienteId, membresias, onMembresiasChan
       <div className="wizard-step__header">
         <CreditCard size={24} />
         <h3>Membresia</h3>
-        <p>Registro de membresia del paciente</p>
+        <p>Registro de membresia del cliente</p>
       </div>
 
       <div className="wizard-step__membresia-form">

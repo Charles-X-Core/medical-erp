@@ -42,4 +42,8 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     long countByClinicaIdAndCreatedAtGreaterThanEqual(Long clinicaId, LocalDateTime desde);
 
+    long countByClinicaId(Long clinicaId);
+
+    boolean existsByEmailAndClinicaId(String email, Long clinicaId);
+
 }

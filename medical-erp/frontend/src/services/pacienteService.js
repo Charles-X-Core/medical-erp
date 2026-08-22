@@ -15,6 +15,11 @@ function toBackend(data) {
   if (out.estatura === '' || out.estatura === undefined) out.estatura = null;
   if (out.peso === '' || out.peso === undefined) out.peso = null;
   if (out.fechaNacimiento === '' || out.fechaNacimiento === undefined) out.fechaNacimiento = null;
+  // Convertir strings vacíos a null para campos opcionales con @Email/@Size
+  const optionalFields = ['email', 'telefono', 'estadoCivil', 'sexo', 'lugarNacimiento', 'lugarProcedencia', 'gradoInstruccion', 'ocupacion', 'nombreAcompanante', 'contactoEmergencia', 'telefonoEmergencia', 'parentescoEmergencia'];
+  for (const field of optionalFields) {
+    if (out[field] === '') out[field] = null;
+  }
   return out;
 }
 
@@ -92,5 +97,25 @@ export const pacienteService = {
   async filterByEstado(estado) {
     const res = await apiClient(`/api/v1/pacientes/estado/${estado}`);
     return mapList(res);
+  },
+
+  async importCsv(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient('/api/v1/pacientes/import/csv', {
+      method: 'POST',
+      body: formData,
+      isFormData: true,
+    });
+  },
+
+  async importExcel(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient('/api/v1/pacientes/import/excel', {
+      method: 'POST',
+      body: formData,
+      isFormData: true,
+    });
   },
 };

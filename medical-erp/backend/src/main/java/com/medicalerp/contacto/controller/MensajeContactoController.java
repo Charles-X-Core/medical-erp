@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * MensajeContacto Controller (API-002, DOM-CON-002)
  * Public POST endpoint for landing page contact form
- * Authenticated endpoints for admin/enfermera to manage messages
+ * Authenticated endpoints for admin to manage messages
  */
 @Slf4j
 @RestController
@@ -44,11 +44,11 @@ public class MensajeContactoController {
     }
 
     /**
-     * List all contact messages (admin/enfermera only)
+     * List all contact messages (admin only)
      * Filter by estado: pendiente, leido, respondido
      */
     @GetMapping("/messages")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ENFERMERA')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<MensajeContactoResponse>>> getAll(
             @RequestParam(required = false) String estado,
             Pageable pageable) {
@@ -59,7 +59,7 @@ public class MensajeContactoController {
      * Get single message by ID
      */
     @GetMapping("/messages/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ENFERMERA')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MensajeContactoResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(service.findById(id)));
     }
@@ -68,7 +68,7 @@ public class MensajeContactoController {
      * Mark message as read
      */
     @PatchMapping("/messages/{id}/leido")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ENFERMERA')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MensajeContactoResponse>> marcarLeido(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(
                 service.marcarLeido(id),
@@ -79,7 +79,7 @@ public class MensajeContactoController {
      * Mark message as replied
      */
     @PatchMapping("/messages/{id}/respondido")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('ENFERMERA')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MensajeContactoResponse>> marcarRespondido(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(
                 service.marcarRespondido(id),

@@ -32,7 +32,7 @@ export default function PacienteDetailPage() {
   }, [load]);
 
   const handleDelete = async () => {
-    if (!confirm('¿Eliminar paciente? Esta acción es irreversible.')) return;
+    if (!confirm('¿Eliminar cliente? Esta acción es irreversible.')) return;
     try {
       await pacienteService.delete(id);
       navigate('/pacientes');
@@ -46,7 +46,7 @@ export default function PacienteDetailPage() {
       <div className="paciente-detail-page">
         <div className="paciente-detail-page__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando paciente...</p>
+          <p>Cargando cliente...</p>
         </div>
       </div>
     );
@@ -55,7 +55,7 @@ export default function PacienteDetailPage() {
   if (!paciente) {
     return (
       <div className="paciente-detail-page">
-        <p className="paciente-detail-page__error">{error || 'Paciente no encontrado'}</p>
+        <p className="paciente-detail-page__error">{error || 'Cliente no encontrado'}</p>
       </div>
     );
   }
@@ -193,7 +193,7 @@ export default function PacienteDetailPage() {
         {activeTab === 'historia' && (
           <div className="detail-card">
             <h4>Historia Clínica</h4>
-            <p>Accede a la historia clínica completa y consultas del paciente.</p>
+            <p>Accede a la historia clínica completa y consultas del cliente.</p>
             <button className="btn btn--primary" onClick={() => navigate(`/pacientes/${id}/historia`)}>
               <FileText size={18} /> Ver Historia Clínica
             </button>

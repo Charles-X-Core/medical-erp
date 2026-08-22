@@ -4,16 +4,16 @@ export const DragCitaCtx = createContext(null);
 
 const ESTADO_COLORS = {
   solicitada: '#F59E0B', pendiente: '#3B82F6', programada: '#06B6D4',
-  confirmada: '#22C55E', asistio: '#F59E0B', completada: '#6B7D95',
-  cancelada: '#EF4444', reprogramada: '#A78BFA', no_show: '#EF4444',
+  confirmada: '#22C55E', asistio: '#F59E0B', en_atencion: '#16A34A',
+  completada: '#6B7D95', cancelada: '#EF4444', reprogramada: '#A78BFA', no_show: '#EF4444',
 };
 
 const ESTADO_BGS = {
   solicitada: 'rgba(245,158,11,0.12)', pendiente: 'rgba(59,130,246,0.12)',
   programada: 'rgba(6,182,212,0.12)', confirmada: 'rgba(34,197,94,0.12)',
-  asistio: 'rgba(245,158,11,0.12)', completada: 'rgba(107,125,149,0.12)',
-  cancelada: 'rgba(239,68,68,0.08)', reprogramada: 'rgba(167,139,250,0.12)',
-  no_show: 'rgba(239,68,68,0.08)',
+  asistio: 'rgba(245,158,11,0.12)', en_atencion: 'rgba(22,163,74,0.18)',
+  completada: 'rgba(107,125,149,0.12)', cancelada: 'rgba(239,68,68,0.08)',
+  reprogramada: 'rgba(167,139,250,0.12)', no_show: 'rgba(239,68,68,0.08)',
 };
 
 function formatTime(timeStr) {
@@ -67,6 +67,7 @@ export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30,
   const dragStyle = drag?.dragStyle || {};
   const dragZIndex = drag?.zIndex ?? 1;
   const dragOpacity = drag?.isDragging ? 0.5 : 1;
+  const hasDrag = !!drag?.listeners && Object.keys(drag.listeners).length > 0;
 
   return (
     <div
@@ -82,7 +83,7 @@ export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30,
         backgroundColor: ESTADO_BGS[cita.estado] || 'rgba(59,130,246,0.12)',
         borderLeft: `3px solid ${ESTADO_COLORS[cita.estado] || '#3B82F6'}`,
         opacity: dragOpacity,
-        cursor: 'grab',
+        cursor: hasDrag ? 'grab' : 'pointer',
         zIndex: dragZIndex,
         ...dragStyle,
       }}

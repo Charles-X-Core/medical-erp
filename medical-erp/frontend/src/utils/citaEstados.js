@@ -8,6 +8,8 @@ export const CITA_ESTADOS = {
   programada: { label: 'Programada', tone: 'info' },
   confirmada: { label: 'Confirmada', tone: 'info' },
   asistio: { label: 'Asistió', tone: 'success' },
+  llegada: { label: 'Llegó', tone: 'success' },
+  en_atencion: { label: 'En Atención', tone: 'active', icon: 'Stethoscope' },
   completada: { label: 'Completada', tone: 'success' },
   cancelada: { label: 'Cancelada', tone: 'danger' },
   reprogramada: { label: 'Reprogramada', tone: 'warning' },

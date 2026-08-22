@@ -1,10 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2, User, FileText, Activity, ArrowLeft, Stethoscope, AlertCircle, Calendar, Edit2, Save, X } from 'lucide-react';
+import { Loader2, User, FileText, Activity, ArrowLeft, Stethoscope, AlertCircle, Calendar, Edit2, Save, X, Play, Shield, CheckCircle } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import CitaSchedulerModal from '../components/agenda/CitaSchedulerModal';
+import FirmaContratoModal from '../components/paciente360/FirmaContratoModal';
 import { pacienteService } from '../services/pacienteService';
 import { historiaClinicaService } from '../services/historiaClinicaService';
 import { consultasService } from '../services/consultasService';
 import { tratamientoService } from '../services/tratamientoService';
+import { contratoPwaService } from '../services/contratoPwaService';
 import agendaService from '../services/agendaService';
 import ResumenSidebar from '../components/paciente360/ResumenSidebar';
 import AtencionSidebar from '../components/paciente360/AtencionSidebar';
@@ -13,6 +17,7 @@ import TabClinico from '../components/paciente360/TabClinico';
 import TabTratamientos from '../components/paciente360/TabTratamientos';
 import AtencionForm from '../components/atencion/AtencionForm';
 import SesionTratamientoView from '../components/atencion/SesionTratamientoView';
+import SmartTimerBar from '../components/atencion/SmartTimerBar';
 import { useAtencionType } from '../hooks/useAtencionType';
 import { getActiveAntecedentes } from '../components/ui/AntecedentesEditor';
 import AntecedentesEditor from '../components/ui/AntecedentesEditor';
@@ -32,6 +37,7 @@ const WORKSPACE_TABS = [
 export default function AtencionWorkspace() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('resumen');
   const [atencionView, setAtencionView] = useState('entry'); // entry | motivo | sesion
   const [paciente, setPaciente] = useState(null);
@@ -49,20 +55,36 @@ export default function AtencionWorkspace() {
   const [savingAntecedentes, setSavingAntecedentes] = useState(false);
   const [savedAntecedentes, setSavedAntecedentes] = useState(false);
   const [errorAntecedentes, setErrorAntecedentes] = useState('');
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [startingAttention, setStartingAttention] = useState(false);
+  const [startError, setStartError] = useState('');
+  const [contratoFirmado, setContratoFirmado] = useState(null);
+  const [showFirmaContrato, setShowFirmaContrato] = useState(false);
+  const [showContratoWarning, setShowContratoWarning] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [pRes, hRes, tRes, cRes, cfRes] = await Promise.allSettled([
+      const [pRes, hRes, tRes, cRes, cfRes, contratoRes] = await Promise.allSettled([
         pacienteService.getById(id),
         historiaClinicaService.getByPaciente(id),
         tratamientoService.listByPaciente(id),
         agendaService.getCitasHoy(),
         agendaService.getCitasPorPaciente(id),
+        contratoPwaService.checkFirmado(id),
       ]);
 
       if (pRes.status === 'fulfilled' && pRes.value?.success) setPaciente(pRes.value.data);
       if (hRes.status === 'fulfilled' && hRes.value?.success) setHistoria(hRes.value.data);
+      if (contratoRes.status === 'fulfilled') {
+        const ck = contratoRes.value?.data || contratoRes.value;
+        const firmado = ck?.status === 'FIRMADO';
+        setContratoFirmado(firmado);
+        if (!firmado) setShowContratoWarning(true);
+      } else {
+        setContratoFirmado(false);
+        setShowContratoWarning(true);
+      }
       if (tRes.status === 'fulfilled' && tRes.value?.success) {
         const list = Array.isArray(tRes.value.data) ? tRes.value.data : tRes.value.data?.content || [];
         setTratamientos(list);
@@ -74,30 +96,35 @@ export default function AtencionWorkspace() {
         if (cfRes.status === 'fulfilled' && cfRes.value?.success) {
           const todas = Array.isArray(cfRes.value.data) ? cfRes.value.data : [];
           const hoyStr = new Date().toISOString().split('T')[0];
+          const ahora = new Date();
+          const ahoraMin = ahora.getHours() * 60 + ahora.getMinutes();
 
-          // Citas pendientes (esperando confirmación de enfermera)
+          const esCitaFutura = (c) => {
+            if (c.fecha > hoyStr) return true;
+            if (c.fecha < hoyStr) return false;
+            if (c.hora) {
+              const [h, m] = c.hora.split(':').map(Number);
+              return (h * 60 + m) > ahoraMin;
+            }
+            return true;
+          };
+
+          // Citas pendientes — solo futuras
           const pendientes = todas.filter((c) =>
-            c.fecha >= hoyStr && c.estado === 'pendiente'
+            (c.estado === 'pendiente' || c.estado === 'solicitada') && esCitaFutura(c)
           );
           setCitasPendientes(pendientes);
 
-          // Set de IDs de tratamientos que tienen cita pendiente (bloqueados)
-          let bloqueados = new Set(
+          // Set de IDs de tratamientos que tienen cita pendiente futura (bloqueados)
+          const bloqueados = new Set(
             pendientes.filter((c) => c.tratamientoId).map((c) => c.tratamientoId)
           );
 
-          // Fallback: if pending citations exist but none have tratamientoId,
-          // block all active treatments (old citas without the column)
-          if (pendientes.length > 0 && bloqueados.size === 0) {
-            activos.forEach((t) => bloqueados.add(t.id));
-          }
-
           setTratamientosBloqueados(bloqueados);
 
-          // Todas las citas futuras (pendiente + confirmada) para mostrar info
+          // Todas las citas futuras (pendiente + solicitada + confirmada) para mostrar info
           const futuras = todas.filter((c) =>
-            c.fecha >= hoyStr &&
-            (c.estado === 'pendiente' || c.estado === 'confirmada')
+            (c.estado === 'pendiente' || c.estado === 'solicitada' || c.estado === 'confirmada') && esCitaFutura(c)
           );
           setCitasFuturas(futuras);
         }
@@ -124,6 +151,31 @@ export default function AtencionWorkspace() {
   );
   const hasActiveTreatment = activeTreatments.length > 0;
   const hasCitaHoy = citasHoy.length > 0;
+
+  // Find active cita (en_atencion)
+  const citaActiva = citasHoy.find(c => c.estado === 'en_atencion') || null;
+
+  // Warn before leaving during active session
+  useEffect(() => {
+    if (!citaActiva) return;
+    const handler = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [citaActiva]);
+
+  // Find next upcoming cita (future, not en_atencion)
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const hoyStr = now.toISOString().split('T')[0];
+  const siguienteCita = citasHoy.find(c => {
+    if (c.estado === 'en_atencion') return false;
+    if (!c.hora) return false;
+    const [h, m] = c.hora.split(':').map(Number);
+    return (h * 60 + m) > nowMin;
+  }) || null;
 
   // === Atención handlers ===
 
@@ -219,14 +271,8 @@ export default function AtencionWorkspace() {
     try {
       await tratamientoService.finalizar(tratamiento.id, data.resultadoFinal || 'Tratamiento completado');
 
-      if (data.quiereOtroTratamiento) {
-        // Stay in session view for new treatment
-        setAtencionView('sesion');
-      } else {
-        // Back to entry
-        setAtencionView('entry');
-      }
-      await load();
+      // Redirect to dashboard
+      navigate('/inicio');
     } catch (err) {
       console.error('Error finalizing:', err);
     }
@@ -234,15 +280,6 @@ export default function AtencionWorkspace() {
 
   const handleSchedule = async (tratamiento, scheduleData) => {
     try {
-      const payload = {
-        pacienteId: parseInt(id, 10),
-        tratamientoId: tratamiento?.id || null,
-        fecha: scheduleData.fechaDesde,
-        hora: scheduleData.horaPreferida || '09:00',
-        motivo: scheduleData.notas || 'Próxima sesión de tratamiento',
-        notas: scheduleData.notas || null,
-      };
-      await agendaService.crearCita(payload);
       setAtencionView('entry');
       await load();
     } catch (err) {
@@ -380,7 +417,93 @@ export default function AtencionWorkspace() {
   };
 
   const handleNewConsulta = () => {
-    setAtencionView('motivo');
+    handleStartWithoutCita();
+  };
+
+  const handleStartWithoutCita = async () => {
+    if (contratoFirmado === false) {
+      setShowFirmaContrato(true);
+      setStartingAttention(false);
+      return;
+    }
+    setStartingAttention(true);
+    setStartError('');
+    try {
+      const now = new Date();
+      const fecha = now.toISOString().split('T')[0];
+      const hora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      // Check professional availability for current time
+      const dispRes = await agendaService.getDisponibilidad(fecha, user?.id, 30);
+      if (!dispRes.success || !Array.isArray(dispRes.data) || !dispRes.data.length) {
+        setStartError('El profesional no tiene agenda configurada para este día.');
+        setStartingAttention(false);
+        return;
+      }
+
+      const slots = dispRes.data;
+      const [ch, cm] = hora.split(':').map(Number);
+      const currentMin = ch * 60 + cm;
+
+      const matchingSlot = slots.find(slot => {
+        if (!slot.inicio || !slot.fin) return false;
+        const [ih, im] = slot.inicio.split(':').map(Number);
+        const [fh, fm] = slot.fin.split(':').map(Number);
+        return currentMin >= (ih * 60 + im) && currentMin < (fh * 60 + fm);
+      });
+
+      if (!matchingSlot) {
+        setStartError(`Horario fuera de disponibilidad del profesional. No se puede iniciar atención a las ${hora}.`);
+        setStartingAttention(false);
+        return;
+      }
+
+      const slotEstado = matchingSlot.estado;
+      if (slotEstado === 'OCUPADO') {
+        setStartError(`Horario ocupado — ${matchingSlot.descripcion || 'el profesional ya tiene una cita en este horario'}.`);
+        setStartingAttention(false);
+        return;
+      }
+      if (slotEstado === 'BLOQUEADO') {
+        setStartError(`Horario bloqueado — ${matchingSlot.descripcion || 'no disponible'}.`);
+        setStartingAttention(false);
+        return;
+      }
+      if (slotEstado === 'EN_BUFFER') {
+        setStartError(`Horario de preparación — ${matchingSlot.descripcion || 'aún no disponible, esperando antes de la siguiente cita'}.`);
+        setStartingAttention(false);
+        return;
+      }
+      if (slotEstado === 'INSUFICIENTE') {
+        setStartError('Tiempo insuficiente — queda menos de 30 minutos para la siguiente cita.');
+        setStartingAttention(false);
+        return;
+      }
+
+      // Create cita and start attention
+      const citaRes = await agendaService.crearCita({
+        pacienteId: parseInt(id),
+        usuarioId: user?.id,
+        fecha,
+        hora,
+        duracionMinutos: 30,
+        motivo: 'Atención directa',
+      });
+
+      if (!citaRes.success) throw new Error(citaRes.message || 'Error al crear cita');
+
+      const citaId = citaRes.data?.id;
+      if (citaId) {
+        await agendaService.iniciarAtencion(citaId);
+      }
+
+      await load();
+      setAtencionView('motivo');
+    } catch (err) {
+      setStartError(err.message || 'Error al iniciar atención');
+    } finally {
+      setStartingAttention(false);
+    }
   };
 
   // === Loading/error states ===
@@ -399,7 +522,7 @@ export default function AtencionWorkspace() {
   if (!paciente) {
     return (
       <div className="workspace workspace--compact">
-        <div className="workspace__error">{error || 'Paciente no encontrado'}</div>
+        <div className="workspace__error">{error || 'Cliente no encontrado'}</div>
       </div>
     );
   }
@@ -427,14 +550,25 @@ export default function AtencionWorkspace() {
           </div>
         </div>
         <div className="workspace__header-actions">
-          <button className="btn btn--ghost btn--sm" onClick={() => navigate('/pacientes')}>
+          <button className="btn btn--ghost btn--sm" onClick={() => {
+            if (citaActiva && !window.confirm('Tiene una sesión activa. ¿Desea salir?')) return;
+            navigate('/pacientes');
+          }}>
             <ArrowLeft size={16} /> Volver
           </button>
-          <button className="btn btn--secondary btn--sm" onClick={() => navigate('/pacientes')}>
-            <ArrowLeft size={16} /> Volver a Pacientes
+          <button className="btn btn--secondary btn--sm" onClick={() => {
+            if (citaActiva && !window.confirm('Tiene una sesión activa. ¿Desea salir?')) return;
+            navigate('/pacientes');
+          }}>
+            <ArrowLeft size={16} /> Volver a Clientes
           </button>
         </div>
       </div>
+
+      {/* ==================== SMART TIMER BAR ==================== */}
+      {citaActiva && (
+        <SmartTimerBar citaActiva={citaActiva} siguienteCita={siguienteCita} />
+      )}
 
       {/* ==================== HORIZONTAL TABS ==================== */}
       <div className="workspace__tabs-bar">
@@ -484,12 +618,37 @@ export default function AtencionWorkspace() {
                                 ? `${activeTreatments[0].tipoSesionTratamiento?.nombre || activeTreatments[0].tipoTratamiento || 'Tratamiento'} — Sesión ${(activeTreatments[0].sesionesRealizadas || 0) + 1} de ${activeTreatments[0].sesionesPlaneadas || '?'}`
                                 : `${activeTreatments.length} tratamientos activos`}
                             </p>
+
+                            {/* Contract alert banner */}
+                            {contratoFirmado === false && (
+                              <div className="atencion-workspace__contrato-alert">
+                                <div className="atencion-workspace__contrato-alert-icon">
+                                  <AlertCircle size={18} />
+                                </div>
+                                <div className="atencion-workspace__contrato-alert-text">
+                                  <span className="atencion-workspace__contrato-alert-title">Consentimiento de Admisión pendiente</span>
+                                  <span className="atencion-workspace__contrato-alert-desc">El contrato debe ser firmado para iniciar tratamientos.</span>
+                                </div>
+                                <div className="atencion-workspace__contrato-alert-actions">
+                                  <button className="btn btn--primary btn--sm" onClick={() => setShowFirmaContrato(true)}>
+                                    <Shield size={14} /> Firmar
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                            {contratoFirmado === true && (
+                              <div className="atencion-workspace__contrato-alert atencion-workspace__contrato-alert--firmado">
+                                <CheckCircle size={16} />
+                                <span>Consentimiento de Admisión — Firmado</span>
+                              </div>
+                            )}
+
                             <div className="atencion-workspace__entry-actions">
                               {isBlocked ? (
                                 <>
                                   <div className="atencion-workspace__entry-info atencion-workspace__entry-info--pending">
                                     <Calendar size={14} />
-                                    <span>Esperando confirmación de fecha por la enfermera</span>
+                                    <span>Cita pendiente de confirmación</span>
                                     {pendingCita?.fecha && (
                                       <span className="atencion-workspace__entry-hint">
                                         Fecha sugerida: {formatDate(pendingCita.fecha)}
@@ -500,7 +659,7 @@ export default function AtencionWorkspace() {
                                     <Activity size={16} /> Continuar Tratamiento
                                   </button>
                                   <span className="atencion-workspace__entry-hint">
-                                    Disponible una vez que la enfermera confirme la fecha
+                                    Disponible una vez que se confirme la fecha
                                   </span>
                                 </>
                               ) : (
@@ -514,10 +673,26 @@ export default function AtencionWorkspace() {
                                   <button className="btn btn--primary" onClick={handleContinueTreatment}>
                                     <Activity size={16} /> Continuar Tratamiento
                                   </button>
+                                  <button className="btn btn--secondary" onClick={handleNewConsulta}>
+                                    <FileText size={16} /> Nueva Consulta
+                                  </button>
                                 </>
                               )}
-                              <button className="btn btn--secondary" onClick={handleNewConsulta}>
-                                <FileText size={16} /> Nueva Consulta
+                              {startError && (
+                                <div className="atencion-workspace__entry-error">
+                                  <AlertCircle size={14} /> {startError}
+                                </div>
+                              )}
+                              <button
+                                className="btn btn--secondary"
+                                onClick={handleStartWithoutCita}
+                                disabled={startingAttention}
+                              >
+                                {startingAttention ? <Loader2 size={16} className="spinner" /> : <Play size={16} />}
+                                {startingAttention ? 'Iniciando...' : 'Iniciar Atención'}
+                              </button>
+                              <button className="btn btn--secondary" onClick={() => setShowScheduler(true)}>
+                                <Calendar size={16} /> Agendar Cita
                               </button>
                             </div>
                           </div>
@@ -528,10 +703,50 @@ export default function AtencionWorkspace() {
                     <div className="atencion-workspace__entry-card atencion-workspace__entry-card--new">
                       <FileText size={24} />
                       <h3>Nueva Consulta</h3>
-                      <p>Este paciente no tiene tratamientos activos</p>
-                      <button className="btn btn--primary" onClick={handleNewConsulta}>
-                        <FileText size={16} /> Registrar Consulta
-                      </button>
+                      <p>Este cliente no tiene tratamientos activos</p>
+
+                      {/* Contract alert banner */}
+                      {contratoFirmado === false && (
+                        <div className="atencion-workspace__contrato-alert">
+                          <div className="atencion-workspace__contrato-alert-icon">
+                            <AlertCircle size={18} />
+                          </div>
+                          <div className="atencion-workspace__contrato-alert-text">
+                            <span className="atencion-workspace__contrato-alert-title">Consentimiento de Admisión pendiente</span>
+                            <span className="atencion-workspace__contrato-alert-desc">El contrato debe ser firmado para iniciar tratamientos.</span>
+                          </div>
+                          <div className="atencion-workspace__contrato-alert-actions">
+                            <button className="btn btn--primary btn--sm" onClick={() => setShowFirmaContrato(true)}>
+                              <Shield size={14} /> Firmar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {contratoFirmado === true && (
+                        <div className="atencion-workspace__contrato-alert atencion-workspace__contrato-alert--firmado">
+                          <CheckCircle size={16} />
+                          <span>Consentimiento de Admisión — Firmado</span>
+                        </div>
+                      )}
+
+                      {startError && (
+                        <div className="atencion-workspace__entry-error">
+                          <AlertCircle size={14} /> {startError}
+                        </div>
+                      )}
+                      <div className="atencion-workspace__entry-actions">
+                        <button
+                          className="btn btn--primary"
+                          onClick={handleStartWithoutCita}
+                          disabled={startingAttention}
+                        >
+                          {startingAttention ? <Loader2 size={16} className="spinner" /> : <Play size={16} />}
+                          {startingAttention ? 'Iniciando...' : 'Iniciar Atención'}
+                        </button>
+                        <button className="btn btn--secondary" onClick={() => setShowScheduler(true)}>
+                          <Calendar size={16} /> Agendar Cita
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -710,13 +925,70 @@ export default function AtencionWorkspace() {
 
         {/* RIGHT: Sidebar per tab */}
         <div className="workspace__sidebar-right">
-          {activeTab === 'resumen' && <ResumenSidebar pacienteId={id} />}
+          {activeTab === 'resumen' && <ResumenSidebar pacienteId={id} onFirmarContrato={() => setShowFirmaContrato(true)} contratoFirmado={contratoFirmado} />}
           {activeTab === 'atencion' && <AtencionSidebar paciente={paciente} historia={historia} signosVitales={signosVitales} onSignosVitalesChange={setSignosVitales} onPacienteUpdated={(u) => setPaciente(u)} pacienteId={id} />}
           {activeTab !== 'resumen' && activeTab !== 'atencion' && (
             <WorkspaceTimeline pacienteId={id} />
           )}
         </div>
       </div>
+
+      {/* Contrato Warning Modal */}
+      {showContratoWarning && contratoFirmado === false && (
+        <div className="modal-overlay" onClick={() => setShowContratoWarning(false)}>
+          <div className="modal" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal__header">
+              <div className="modal__title">
+                <AlertCircle size={20} style={{ color: '#F97316' }} />
+                <span>Consentimiento Pendiente</span>
+              </div>
+              <button className="modal__close" onClick={() => setShowContratoWarning(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal__body" style={{ textAlign: 'center' }}>
+              <Shield size={48} style={{ color: '#F97316', marginBottom: 16 }} />
+              <p style={{ fontSize: '1rem', fontWeight: 600, color: '#9A3412', marginBottom: 8 }}>
+                Consentimiento de Admisión pendiente
+              </p>
+              <p style={{ fontSize: '0.875rem', color: '#C2410C', marginBottom: 24, lineHeight: 1.5 }}>
+                El cliente no tiene el contrato firmado. El contrato es obligatorio para iniciar tratamientos.
+              </p>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                <button className="btn btn--primary" onClick={() => {
+                  setShowContratoWarning(false);
+                  setShowFirmaContrato(true);
+                }}>
+                  <Shield size={16} /> Firmar Ahora
+                </button>
+                <button className="btn btn--ghost" onClick={() => setShowContratoWarning(false)}>
+                  Ahora no
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scheduler Modal */}
+      <CitaSchedulerModal
+        isOpen={showScheduler}
+        onClose={() => setShowScheduler(false)}
+        paciente={paciente}
+      />
+
+      {/* Firma Contrato Modal */}
+      <FirmaContratoModal
+        open={showFirmaContrato}
+        onClose={() => setShowFirmaContrato(false)}
+        pacienteId={parseInt(id)}
+        pacienteNombre={paciente ? `${paciente.nombres} ${paciente.apellidos}` : ''}
+        onSigned={() => {
+          setContratoFirmado(true);
+          setShowFirmaContrato(false);
+          setShowContratoWarning(false);
+        }}
+      />
     </div>
   );
 }

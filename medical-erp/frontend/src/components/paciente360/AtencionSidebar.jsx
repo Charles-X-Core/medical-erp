@@ -5,7 +5,7 @@ import { pacienteService } from '../../services/pacienteService';
 
 // ============================================
 // AtencionSidebar — Read-only Peso/Estatura + Edit mode
-// Default: read-only (set by nurse). Click "Editar" to modify.
+// Default: read-only. Click "Editar" to modify.
 // Saves to Paciente entity via PUT /api/v1/pacientes/{id}
 // ============================================
 

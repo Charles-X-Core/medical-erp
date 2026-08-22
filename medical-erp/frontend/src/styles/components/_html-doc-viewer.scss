@@ -1,0 +1,420 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+@use '../themes/light' as *;
+
+// ============================================================
+// HtmlDocViewer — Reusable HTML document viewer
+// Two modes: compact (ERP wizard) and fullscreen (PWA kiosk)
+// ============================================================
+
+.html-doc-viewer {
+  display: flex;
+  flex-direction: column;
+  background: $light-card;
+  border: 1px solid $light-border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+
+  // --- Fullscreen mode (PWA) ---
+  &--fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    border-radius: 0;
+    border: none;
+    background: #e8e8e8;
+  }
+
+  // --- Header bar ---
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-3 $space-4;
+    background: $light-bg;
+    border-bottom: 1px solid $light-border;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  &__header-left {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    min-width: 0;
+  }
+
+  &__header-icon {
+    color: $light-text-muted;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $light-success;
+    background: $light-success-light;
+    padding: 2px $space-2;
+    border-radius: $radius-sm;
+    flex-shrink: 0;
+  }
+
+  &__header-actions {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    flex-shrink: 0;
+  }
+
+  // --- Icon button (minimize/maximize) ---
+  &__btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: $light-card-hover; color: $light-text-primary; }
+    &--accent {
+      border-color: $light-accent;
+      color: $light-accent;
+      &:hover { background: rgba($light-accent, 0.08); }
+    }
+  }
+
+  // --- Document body (scrollable) ---
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  // --- Sheet (white paper inside body) ---
+  &__sheet {
+    width: 100%;
+    min-width: 680px;
+    max-width: 900px;
+    min-height: 1000px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    padding: 48px 60px 72px;
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 13pt;
+    line-height: 1.6;
+    color: #1a1a1a;
+
+    h1, h2, h3, h4 { color: #333; }
+    p { margin: 0 0 14px; text-align: justify; }
+    ol { padding-left: 24px; }
+    ol > li { margin-bottom: 14px; text-align: justify; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 4px; }
+  }
+
+  // --- Compact body (ERP mode) ---
+  &__content {
+    padding: $space-5;
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #1a1a1a;
+  }
+
+  // --- Overlay (polling/waiting) ---
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    color: $light-text-secondary;
+    font-size: $fs-sm;
+    z-index: 5;
+  }
+
+  // --- Footer actions ---
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    background: $light-bg;
+    border-top: 1px solid $light-border;
+    flex-shrink: 0;
+  }
+
+  // --- Floating signature bar (PWA) ---
+  &__sig-bar {
+    flex-shrink: 0;
+    background: #fff;
+    border-top: 1px solid $light-border;
+    padding: 12px $space-4;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: $space-3;
+    position: relative;
+    z-index: 2;
+  }
+
+  &__sig-bar-actions {
+    display: flex;
+    gap: $space-3;
+    align-items: center;
+  }
+
+  // --- Minimized state ---
+  &__minimized {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $space-4;
+    color: $light-text-muted;
+    font-size: $fs-sm;
+  }
+
+  // --- Spinner ---
+  &__spin {
+    animation: html-doc-spin 0.8s linear infinite;
+  }
+
+  // --- Waiting dots ---
+  &__waiting {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: $space-2 0;
+  }
+
+  &__waiting-dot {
+    width: 8px;
+    height: 8px;
+    background: $light-accent;
+    border-radius: 50%;
+    animation: html-doc-pulse 1.4s infinite ease-in-out;
+
+    &:nth-child(1) { animation-delay: 0s; }
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+
+  // ============================================================
+  // Template HTML class styles (scoped to viewer only)
+  // ============================================================
+  &__content,
+  &__sheet {
+    * { box-sizing: border-box; }
+
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h1 { font-size: 20pt; margin: 0 0 4px; letter-spacing: 0.5px; }
+    .header h2 { font-size: 13pt; font-weight: normal; margin: 0 0 12px; font-style: italic; }
+    .header h3 {
+      font-size: 15pt;
+      margin: 10px 0 20px;
+      letter-spacing: 2px;
+      border-top: 2px solid #333;
+      border-bottom: 2px solid #333;
+      padding: 6px 0;
+    }
+
+    .intro { margin-bottom: 14px; text-align: justify; }
+
+    .patient-name {
+      display: inline-block;
+      min-width: 220px;
+      max-width: 60%;
+      border-bottom: 1px solid #333;
+      padding: 2px 4px;
+      vertical-align: baseline;
+      font-weight: bold;
+    }
+
+    .fill-short { display: inline-block; width: 50px; border-bottom: 1px solid #333; padding: 2px 4px; }
+    .fill-med { display: inline-block; width: 130px; border-bottom: 1px solid #333; padding: 2px 4px; }
+
+    ol.articles { padding-left: 22px; margin: 0 0 16px; }
+    ol.articles > li { margin-bottom: 14px; text-align: justify; }
+
+    .rights-note { text-align: justify; margin: 0 0 14px; }
+    .rights-note strong { text-transform: uppercase; }
+
+    .services-columns { display: flex; gap: 40px; margin: 6px 0 16px; }
+    .services-col { flex: 1; }
+    .services-col h4 { text-decoration: underline; font-style: italic; font-weight: normal; margin: 0 0 6px; font-size: 12pt; }
+    .services-col ul { margin: 0; padding-left: 18px; }
+    .services-col li { margin-bottom: 4px; font-size: 11pt; }
+
+    .mou-title { text-align: center; text-decoration: underline; font-weight: bold; margin: 26px 0 14px; font-size: 13pt; }
+    .fee-line { margin: 18px 0 24px; }
+
+    .signature-block { margin-top: 30px; page-break-inside: avoid; }
+    .sig-row { margin: 20px 0 2px; }
+    .sig-value {
+      display: block;
+      width: 100%;
+      min-height: 28px;
+      border-bottom: 1px solid #333;
+      padding: 4px;
+      font-weight: bold;
+      font-size: 13pt;
+    }
+    .sig-caption { font-size: 10pt; font-style: italic; margin-top: 2px; margin-bottom: 16px; }
+
+    .contact-section { margin-top: 20px; }
+    .contact-section h4 { font-weight: bold; margin: 0 0 8px; }
+    .address-line { border: none; border-bottom: 1px solid #333; width: 100%; font-family: inherit; font-size: 13pt; padding: 4px; text-decoration: underline; background: transparent; }
+    .address-caption { display: flex; justify-content: space-between; font-size: 10pt; font-style: italic; margin: 2px 0 16px; padding: 0 20px 0 60px; }
+    .contact-fields { display: flex; gap: 20px; margin-bottom: 20px; }
+    .contact-field { flex: 1; border-bottom: 1px solid #333; font-family: inherit; font-size: 13pt; padding: 4px; background: transparent; }
+    .contact-caption { display: flex; gap: 20px; font-size: 10pt; font-style: italic; margin-top: -14px; margin-bottom: 20px; }
+    .contact-caption span { flex: 1; text-align: center; }
+
+    .approval-block { margin-top: 40px; border-top: 2px solid #333; padding-top: 20px; }
+    .approval-header { text-align: center; margin-bottom: 6px; }
+    .approval-header .org-name { font-size: 16pt; font-weight: bold; }
+    .approval-header .org-sub { font-style: italic; font-size: 11.5pt; }
+    .approval-date-row { text-align: center; margin: 14px 0 22px; }
+    .approve-sig-row { display: flex; align-items: baseline; gap: 6px; margin: 24px 0 4px; }
+    .approve-sig-row .label { white-space: nowrap; }
+    .approve-fill { flex: 1; border: none; border-bottom: 1px solid #333; font-family: inherit; font-size: 13pt; padding: 4px; background: transparent; }
+    .approve-name { text-align: right; font-weight: bold; font-size: 13pt; margin: 2px 0 18px; }
+  }
+
+  // ============================================================
+  // Signature canvas styles (PWA mode)
+  // ============================================================
+  .sig-value--canvas {
+    border-bottom: none !important;
+    padding: 8px 4px !important;
+  }
+
+  .sig-canvas {
+    width: 100%;
+    height: 140px;
+    cursor: crosshair;
+    display: block;
+    touch-action: none;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    background: #fafafa;
+  }
+
+  .sig-label {
+    display: block;
+    text-align: right;
+    font-size: 12px;
+    color: #999;
+    font-style: italic;
+    margin-top: 4px;
+    pointer-events: none;
+  }
+}
+
+// ============================================================
+// Mobile responsive — fullscreen PWA
+// ============================================================
+@media (max-width: 768px) {
+  .html-doc-viewer--fullscreen {
+    background: #f0f0f0;
+  }
+
+  .html-doc-viewer__header {
+    padding: $space-2 $space-3;
+  }
+
+  .html-doc-viewer__title {
+    font-size: $fs-xs;
+  }
+
+  .html-doc-viewer__sheet {
+    min-width: 100%;
+    min-height: auto;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 28px 20px 60px;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  .html-doc-viewer__sig-bar {
+    padding: $space-3;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+
+  .html-doc-viewer__sig-bar-actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+
+  .html-doc-viewer__sig-bar-actions button {
+    flex: 1;
+    min-width: 120px;
+    min-height: 44px;
+    font-size: $fs-sm;
+    padding: $space-2 $space-3;
+  }
+
+  // Template classes — smaller on mobile
+  .html-doc-viewer__sheet,
+  .html-doc-viewer__content {
+    .header h1 { font-size: 16pt; }
+    .header h2 { font-size: 11pt; }
+    .header h3 { font-size: 13pt; }
+    .patient-name { min-width: 160px; font-size: 11pt; }
+    .services-columns { flex-direction: column; gap: 12px; }
+    .contact-fields { flex-direction: column; gap: 12px; }
+    .contact-caption { flex-direction: column; gap: 4px; }
+    .address-caption { flex-direction: column; gap: 4px; padding: 0; }
+    .sig-canvas { height: 120px; }
+  }
+
+  .html-doc-viewer__btn-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+// ============================================================
+// Keyframes
+// ============================================================
+@keyframes html-doc-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes html-doc-pulse {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../services/authService';
-import { Mail, Lock, ArrowRight, Stethoscope } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -36,7 +36,7 @@ export default function LoginForm() {
   return (
     <div className="auth-form__wrapper">
       <div className="auth-form__brand">
-        <Stethoscope size={48} className="auth-form__icon" />
+        <img src="/logo.ico" alt="Logo" className="auth-form__logo" />
         <h2 className="auth-form__title">ERP Médico</h2>
         <p className="auth-form__subtitle">Acceso seguro con OTP</p>
       </div>

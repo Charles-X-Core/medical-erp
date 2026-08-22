@@ -144,6 +144,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: $fs-sm;
+    table-layout: fixed;
 
     thead {
       background: $light-surface;
@@ -175,6 +176,15 @@
     }
   }
 
+  // Column widths
+  &__table thead th:nth-child(1) { width: 60px; }   // #
+  &__table thead th:nth-child(2) { width: 20%; }     // Nombre
+  &__table thead th:nth-child(3) { width: 130px; }   // ID Cliente
+  &__table thead th:nth-child(4) { width: 110px; }   // Telefono
+  &__table thead th:nth-child(5) { width: 180px; }   // Email
+  &__table thead th:nth-child(6) { width: 140px; }   // Estado
+  &__table thead th:nth-child(7) { width: 120px; }   // Acciones
+
   &__th-actions { text-align: right !important; }
 
   &__td-id {
@@ -187,15 +197,30 @@
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
+    min-width: 0;
+    overflow: hidden;
 
-    &-main { font-weight: $fw-medium; color: $light-text-primary; }
-    &-sub { font-size: $fs-sm; color: $light-text-muted; }
+    &-main {
+      font-weight: $fw-medium;
+      color: $light-text-primary;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    &-sub {
+      font-size: $fs-sm;
+      color: $light-text-muted;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   &__td-actions {
     display: flex;
     gap: $space-1;
     justify-content: flex-end;
+    white-space: nowrap;
   }
 
   // ============================================
@@ -204,7 +229,8 @@
 
   &__action {
     display: flex; align-items: center; justify-content: center;
-    width: 2rem; height: 2rem;
+    min-width: 2.25rem; height: 2.25rem;
+    padding: 0 $space-1;
     border: 1px solid $light-border;
     border-radius: $radius-sm;
     background: transparent; color: $light-text-primary;
@@ -227,16 +253,100 @@
   // ============================================
 
   &__estado {
-    display: inline-block;
-    padding: $space-1 $space-2;
-    border-radius: 9999px;
-    font-size: $fs-xs;
-    font-weight: $fw-medium;
-    text-transform: capitalize;
+    display: inline-flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    &-row {
+      display: inline-block;
+      padding: $space-1 $space-2;
+      border-radius: 9999px;
+      font-size: $fs-xs;
+      font-weight: $fw-medium;
+      text-transform: capitalize;
+      white-space: nowrap;
+    }
 
     &--activo { background: $light-success-light; color: $light-success; }
     &--inactivo { background: $light-error-light; color: $light-error; }
     &--default { background: $light-card-hover; color: $light-text-muted; }
+  }
+
+  // ============================================
+  // FILTER PILLS
+  // ============================================
+
+  &__filters {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    flex-wrap: wrap;
+    margin-bottom: $space-4;
+
+    &-label {
+      font-size: $fs-sm;
+      color: $light-text-muted;
+      font-weight: $fw-medium;
+      margin-right: $space-1;
+    }
+  }
+
+  &__filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    padding: $space-1 $space-3;
+    border: 1px solid $light-border;
+    border-radius: 9999px;
+    background: $light-card;
+    color: $light-text-primary;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: $light-accent;
+      background: $light-accent-light;
+    }
+
+    &--active {
+      background: $light-accent;
+      color: white;
+      border-color: $light-accent;
+
+      &:hover {
+        background: $light-accent-hover;
+      }
+    }
+
+    &--cita-hoy {
+      background: #ea580c;
+      border-color: #ea580c;
+      color: white;
+
+      &:hover {
+        background: #c2410c;
+      }
+    }
+  }
+
+  // ============================================
+  // CITA HOY BADGE
+  // ============================================
+
+  &__cita-hoy {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    padding: $space-1 $space-2;
+    border-radius: 9999px;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    background: #fff7ed;
+    color: #ea580c;
+    border: 1px solid #fed7aa;
+    white-space: nowrap;
   }
 
   // ============================================
@@ -823,11 +933,70 @@
     gap: $space-2;
     padding: $space-3 $space-4;
     background: $light-accent-light;
+    border: 1px solid $light-accent-border;
     border-radius: $radius-md;
-    margin-bottom: $space-5;
     font-size: $fs-sm;
     font-weight: $fw-semibold;
     color: $light-accent;
+  }
+
+  &__paciente-placeholder { opacity: 0.6; font-weight: $fw-regular; }
+
+  &__paciente-change {
+    margin-left: auto;
+    padding: 2px 8px;
+    border: 1px solid $light-accent-border;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $light-accent;
+    font-size: 10px;
+    font-weight: $fw-semibold;
+    cursor: pointer;
+    transition: all 0.12s;
+    font-family: inherit;
+    &:hover { background: $light-accent; color: white; }
+  }
+
+  &__search-hint {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__paciente-results {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    overflow: hidden;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+
+  &__paciente-option {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    border: none;
+    border-bottom: 1px solid $light-border;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: $fs-sm;
+    color: $light-text-primary;
+    transition: background 0.1s;
+    &:last-child { border-bottom: none; }
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__paciente-doc {
+    margin-left: auto;
+    font-size: $fs-xs;
+    color: $light-text-muted;
   }
 
   &__paciente-id {
@@ -1717,5 +1886,438 @@
     color: $light-text-muted;
     font-style: italic;
     margin: 0;
+  }
+}
+
+// ============================================
+// CITA SCHEDULER MODAL (Monthly Calendar)
+// ============================================
+
+.cita-scheduler {
+  max-width: 720px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-5;
+    border-bottom: 1px solid $light-border;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      margin: 0;
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $light-text-primary;
+    }
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border: none;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 0.15s;
+    &:hover { background: $light-card-hover; color: $light-text-primary; }
+  }
+
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: $space-5;
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+
+  &__paciente {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    background: $light-accent-light;
+    border: 1px solid $light-accent-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    label {
+      font-size: $fs-xs;
+      font-weight: $fw-medium;
+      color: $light-text-muted;
+      display: flex;
+      align-items: center;
+      gap: $space-1;
+    }
+
+    select, input, textarea {
+      padding: $space-2 $space-3;
+      background: $light-bg;
+      border: 1px solid $light-border;
+      border-radius: $radius-md;
+      font-size: $fs-sm;
+      color: $light-text-primary;
+      font-family: inherit;
+      transition: border-color 0.15s;
+      &:focus { outline: none; border-color: $light-accent; box-shadow: 0 0 0 2px $light-accent-light; }
+    }
+
+    &--full { grid-column: 1 / -1; }
+  }
+
+  &__tipo-info {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    background: $light-accent-light;
+    border: 1px solid $light-accent-border;
+    border-radius: $radius-md;
+    font-size: $fs-xs;
+    color: $light-accent;
+    font-weight: $fw-medium;
+  }
+
+  // --- Layout: Calendario + Horarios lado a lado ---
+  &__layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: $space-4;
+    min-height: 340px;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  // --- Mini calendario ---
+  &__calendario {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+  }
+
+  &__cal-title {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__cal-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $light-text-primary;
+    cursor: pointer;
+    transition: all 0.15s;
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__cal-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  &__cal-dia-nombre {
+    text-align: center;
+    font-size: 10px;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    text-transform: uppercase;
+    padding: $space-1 0;
+  }
+
+  &__cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  &__cal-dia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: $space-1 $space-1;
+    border: 2px solid transparent;
+    border-radius: $radius-sm;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.12s;
+    font-family: inherit;
+    min-height: 36px;
+
+    &:hover:not(:disabled):not(&--selected) {
+      background: $light-card-hover;
+    }
+
+    &:disabled { cursor: default; }
+
+    &--empty { cursor: default; }
+
+    &--pasado {
+      opacity: 0.3;
+      cursor: default;
+      pointer-events: none;
+      .cita-scheduler__cal-num { text-decoration: line-through; }
+    }
+
+    &--sin-agenda { opacity: 0.35; cursor: default; pointer-events: none; }
+
+    &--lleno {
+      border-color: $light-error-border;
+      background: $light-error-light;
+    }
+
+    &--disponible {
+      border-color: $light-success-border;
+      background: $light-success-light;
+      &:hover { background: darken($light-success-light, 3%); }
+    }
+
+    &--selected {
+      border-color: $light-accent !important;
+      background: $light-accent !important;
+      .cita-scheduler__cal-num { color: white !important; }
+      .cita-scheduler__cal-dot { background: white !important; }
+    }
+
+    &--hoy .cita-scheduler__cal-num {
+      color: $light-accent;
+      font-weight: $fw-bold;
+    }
+  }
+
+  &__cal-num {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-primary;
+    line-height: 1;
+  }
+
+  &__cal-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    &--ok { background: $light-success; }
+    &--full { background: $light-error; }
+  }
+
+  &__cal-legend {
+    display: flex;
+    gap: $space-3;
+    font-size: 10px;
+    color: $light-text-muted;
+    padding-top: $space-1;
+
+    span { display: flex; align-items: center; gap: 4px; }
+  }
+
+  &__legend-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    &--ok { background: $light-success; }
+    &--full { background: $light-error; }
+    &--empty { background: $light-border; }
+  }
+
+  // --- Columna de horarios ---
+  &__horarios {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid $light-border;
+    padding-left: $space-4;
+
+    @media (max-width: 640px) {
+      border-left: none;
+      padding-left: 0;
+      border-top: 1px solid $light-border;
+      padding-top: $space-3;
+    }
+  }
+
+  &__horarios-titulo {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    margin: 0 0 $space-3;
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-8;
+    color: $light-text-muted;
+    font-size: $fs-sm;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-6;
+    color: $light-text-muted;
+    text-align: center;
+    font-size: $fs-sm;
+    p { margin: 0; }
+  }
+
+  &__hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-6;
+    color: $light-text-muted;
+    text-align: center;
+    font-size: $fs-sm;
+    p { margin: 0; }
+  }
+
+  &__slots {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    max-height: 260px;
+    overflow-y: auto;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    padding: $space-2;
+  }
+
+  &__slot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-2 $space-3;
+    border: 1px solid transparent;
+    border-radius: $radius-sm;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.12s;
+    text-align: left;
+    font-family: inherit;
+
+    &:hover:not(:disabled) { background: $light-accent-light; }
+
+    &--disponible {
+      background: $light-success-light;
+      border-color: $light-success-border;
+      &:hover { background: darken($light-success-light, 3%); }
+    }
+
+    &--ocupado { background: $light-error-light; opacity: 0.6; cursor: default; pointer-events: none; }
+    &--bloqueado { background: $light-card-hover; opacity: 0.5; cursor: default; pointer-events: none; }
+    &--en_buffer { background: $light-warning-light; opacity: 0.6; cursor: default; pointer-events: none; }
+
+    &--pasado { opacity: 0.3; cursor: default; pointer-events: none; text-decoration: line-through; }
+
+    &--selected {
+      background: $light-accent !important;
+      border-color: $light-accent !important;
+      color: white;
+      .cita-scheduler__slot-hora,
+      .cita-scheduler__slot-estado { color: white; }
+    }
+
+    &:disabled { cursor: default; }
+  }
+
+  &__slot-hora {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__slot-estado {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3;
+    background: $light-error-light;
+    border: 1px solid $light-error-border;
+    border-radius: $radius-md;
+    color: $light-error;
+    font-size: $fs-sm;
+  }
+
+  &__resumen {
+    padding: $space-3 $space-4;
+    background: $light-accent-light;
+    border: 2px solid $light-accent;
+    border-radius: $radius-md;
+    animation: agendar-slide-in 0.2s ease-out;
+  }
+
+  &__resumen-linea {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    color: $light-accent;
+    font-weight: $fw-semibold;
+
+    &--sub {
+      font-size: $fs-xs;
+      font-weight: $fw-regular;
+      color: $light-text-muted;
+      margin-top: $space-1;
+    }
+  }
+
+  &__exito {
+    text-align: center;
+    padding: $space-8;
+    color: $light-success;
+
+    h4 { margin: $space-3 0 $space-1; color: $light-text-primary; }
+    p { color: $light-text-secondary; font-size: $fs-sm; }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: $space-3;
+    padding: $space-4 $space-5;
+    border-top: 1px solid $light-border;
   }
 }

@@ -6,19 +6,20 @@ import {
   ClipboardCheck,
   CalendarDays,
   CalendarClock,
-  Stethoscope,
   Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
   X,
+  Database,
 } from 'lucide-react';
 
 const allMenuItems = [
-  { id: 'inicio', path: '/inicio', label: 'Centro de Atención', icon: Home, roles: ['admin', 'doctora', 'enfermera'] },
-  { id: 'admision', path: '/admision', label: 'Admisión', icon: ClipboardCheck, roles: ['admin', 'doctora', 'enfermera'] },
-  { id: 'agenda', path: '/agenda', label: 'Agenda', icon: CalendarDays, roles: ['admin', 'doctora', 'enfermera'] },
-  { id: 'atencion', path: '/atencion', label: 'Atención Clínica', icon: Stethoscope, roles: ['doctora'] },
+  { id: 'inicio', path: '/inicio', label: 'Centro de Atención', icon: Home, roles: ['admin', 'doctora'] },
+  { id: 'admision', path: '/admision', label: 'Clientes', icon: ClipboardCheck, roles: ['admin', 'doctora'] },
+  { id: 'agenda', path: '/agenda', label: 'Agenda', icon: CalendarDays, roles: ['admin', 'doctora'] },
+  { id: 'centro-datos', path: '/centro-datos', label: 'Centro de Datos', icon: Database, roles: ['doctora'] },
+
   { id: 'admin', path: '/admin', label: 'Administración', icon: Settings, roles: ['admin'] },
 ];
 
@@ -66,7 +67,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
                 title={collapsed ? item.label : undefined}
               >
                 <Icon size={20} />
-                {!collapsed && <span>{item.label}</span>}
+                {!collapsed && <span>{typeof item.label === 'function' ? item.label(primaryRole) : item.label}</span>}
               </button>
             );
           })}

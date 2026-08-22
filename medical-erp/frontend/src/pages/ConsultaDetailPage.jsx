@@ -109,7 +109,7 @@ export default function ConsultaDetailPage() {
             {consulta.firmado && <span className="consulta-detail__badge consulta-detail__badge--firmado"><ClipboardCheck size={12} /> Firmada</span>}
           </h1>
           <p className="consulta-detail__subtitle">
-            {consulta.pacienteNombre || 'Paciente'} — {formatDate(consulta.fecha)}
+            {consulta.pacienteNombre || 'Cliente'} — {formatDate(consulta.fecha)}
           </p>
         </div>
         <div className="consulta-detail__header-actions">

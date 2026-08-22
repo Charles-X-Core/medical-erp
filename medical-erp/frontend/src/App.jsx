@@ -11,6 +11,7 @@ import ConsultaDetailPage from './pages/ConsultaDetailPage';
 import AdmisionPage from './pages/AdmisionPage';
 import SesionClinicaPage from './pages/SesionClinicaPage';
 import AgendaPage from './pages/AgendaPage';
+import CentroDatosPage from './pages/CentroDatosPage';
 import FirmaPage from './pages/FirmaPage';
 import ContratoPWA from './pages/ContratoPWA';
 import ProtectedRoute from './components/layout/ProtectedRoute';
@@ -41,6 +42,9 @@ function App() {
 
       {/* Agenda */}
       <Route path="/agenda" element={<ProtectedRoute><AgendaPage /></ProtectedRoute>} />
+
+      {/* Centro de Datos */}
+      <Route path="/centro-datos" element={<ProtectedRoute><CentroDatosPage /></ProtectedRoute>} />
 
       {/* Firma publica */}
       <Route path="/firma" element={<FirmaPage />} />

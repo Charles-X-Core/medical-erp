@@ -21,7 +21,7 @@ public class PacienteDocumentoController {
     private final PacienteDocumentoService documentoService;
 
     @PostMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PacienteDocumentoResponse>> create(
             @PathVariable Long pacienteId,
             @Valid @RequestBody PacienteDocumentoRequest request) {
@@ -30,14 +30,14 @@ public class PacienteDocumentoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<PacienteDocumentoResponse>>> getByPaciente(
             @PathVariable Long pacienteId) {
         return ResponseEntity.ok(ApiResponse.success(documentoService.getByPacienteId(pacienteId)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PacienteDocumentoResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(documentoService.getById(id)));
     }

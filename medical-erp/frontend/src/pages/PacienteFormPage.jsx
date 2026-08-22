@@ -92,10 +92,10 @@ export default function PacienteFormPage() {
           // No historia yet
         }
       } else {
-        setError(res.message || 'Error al cargar paciente');
+        setError(res.message || 'Error al cargar cliente');
       }
     } catch (err) {
-      setError(err.message || 'Error al cargar paciente');
+      setError(err.message || 'Error al cargar cliente');
     } finally {
       setLoading(false);
     }
@@ -169,7 +169,7 @@ export default function PacienteFormPage() {
       <div className="paciente-form-page">
         <div className="paciente-form-page__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando paciente...</p>
+          <p>Cargando cliente...</p>
         </div>
       </div>
     );
@@ -182,7 +182,7 @@ export default function PacienteFormPage() {
           <ArrowLeft size={18} /> Volver
         </button>
         <h2 className="paciente-form-page__title">
-          {isEdit ? 'Editar Paciente' : 'Nuevo Paciente'}
+          {isEdit ? 'Editar Cliente' : 'Nuevo Cliente'}
         </h2>
       </div>
 
@@ -327,7 +327,7 @@ export default function PacienteFormPage() {
           </button>
           <button type="submit" className="btn btn--primary" disabled={saving}>
             {saving ? <Loader2 size={18} className="spinner" /> : <Save size={18} />}
-            {saving ? 'Guardando...' : 'Guardar Paciente'}
+            {saving ? 'Guardando...' : 'Guardar Cliente'}
           </button>
         </div>
       </form>

@@ -23,6 +23,7 @@ public class WebConfig {
                 "http://localhost:3000",              // React dev server
                 "http://localhost:5173",              // Vite dev server (landing page)
                 "http://localhost:5174",              // Vite dev server (ERP)
+                "http://192.168.0.12:5174",           // ERP from LAN
                 "http://192.168.0.158:5174",          // ERP from tablet/lan
                 "https://optimalhealthnowusa.com",    // Production landing page
                 "https://erp.optimalhealthnowusa.com" // Production ERP subdomain

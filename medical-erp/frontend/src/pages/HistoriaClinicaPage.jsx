@@ -115,7 +115,7 @@ export default function HistoriaClinicaPage() {
     <div className="historia-clinica-page">
       <div className="historia-clinica-page__header">
         <button className="btn btn--ghost" onClick={() => navigate(`/pacientes/${pacienteId}/workspace`)}>
-          <ArrowLeft size={18} /> Volver al paciente
+          <ArrowLeft size={18} /> Volver al cliente
         </button>
         <div>
           <h2 className="historia-clinica-page__title">Historia Clínica</h2>

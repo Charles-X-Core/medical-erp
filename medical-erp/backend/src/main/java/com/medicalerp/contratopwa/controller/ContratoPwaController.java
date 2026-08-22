@@ -29,7 +29,7 @@ public class ContratoPwaController {
     private final SecurityUtils securityUtils;
 
     @PostMapping("/enviar")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ContratoPwaResponse>> enviar(
             @Valid @RequestBody ContratoPwaRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
@@ -38,7 +38,7 @@ public class ContratoPwaController {
     }
 
     @GetMapping("/siguiente")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ContratoPwaResponse>> siguiente() {
         Long clinicaId = securityUtils.getCurrentClinicaId();
         return ResponseEntity.ok(ApiResponse.success(
@@ -46,7 +46,7 @@ public class ContratoPwaController {
     }
 
     @GetMapping("/preview")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ContratoPwaResponse>> preview(
             @RequestParam Long pacienteId,
             @RequestParam String templateCode) {
@@ -55,7 +55,7 @@ public class ContratoPwaController {
     }
 
     @GetMapping("/render")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ContratoPwaResponse>> render(
             @RequestParam String token) {
         return ResponseEntity.ok(ApiResponse.success(
@@ -63,7 +63,7 @@ public class ContratoPwaController {
     }
 
     @PostMapping("/firmar")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ContratoPwaResponse>> firmar(
             @Valid @RequestBody ContratoPwaRequest request) {
         return ResponseEntity.ok(ApiResponse.success(
@@ -72,7 +72,7 @@ public class ContratoPwaController {
     }
 
     @GetMapping("/status")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ContratoPwaResponse>> status(
             @RequestParam String token) {
         return ResponseEntity.ok(ApiResponse.success(
@@ -80,7 +80,7 @@ public class ContratoPwaController {
     }
 
     @GetMapping("/check")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ContratoPwaResponse>> checkFirmado(
             @RequestParam Long pacienteId) {
         return ResponseEntity.ok(ApiResponse.success(
@@ -88,7 +88,7 @@ public class ContratoPwaController {
     }
 
     @GetMapping("/{sessionId}/pdf")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ByteArrayResource> downloadContratoPdf(@PathVariable Long sessionId) {
         ContratoSigningSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Sesión de contrato", sessionId));

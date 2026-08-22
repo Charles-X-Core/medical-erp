@@ -26,11 +26,21 @@ public interface TratamientoRepository extends JpaRepository<Tratamiento, Long> 
 
     List<Tratamiento> findByClinicaIdAndEstado(Long clinicaId, EstadoTratamiento estado);
 
+    List<Tratamiento> findByClinicaIdAndEstadoIn(Long clinicaId, List<EstadoTratamiento> estados);
+
+    List<Tratamiento> findByPacienteIdInAndEstadoIn(List<Long> pacienteIds, List<EstadoTratamiento> estados);
+
     @Query("SELECT t FROM Tratamiento t WHERE t.clinicaId = :clinicaId AND t.estado = com.medicalerp.tratamiento.enums.EstadoTratamiento.EN_CURSO AND t.sesionesRealizadas >= t.sesionesPlaneadas")
     List<Tratamiento> findActivosConLimiteAlcanzado(@Param("clinicaId") Long clinicaId);
 
+    @Query("SELECT t FROM Tratamiento t WHERE t.pacienteId IN :pacienteIds AND t.estado = com.medicalerp.tratamiento.enums.EstadoTratamiento.EN_CURSO AND t.sesionesRealizadas >= t.sesionesPlaneadas")
+    List<Tratamiento> findActivosConLimiteAlcanzadoByPacienteIds(@Param("pacienteIds") List<Long> pacienteIds);
+
     @Query("SELECT t FROM Tratamiento t WHERE t.clinicaId = :clinicaId AND t.estado = com.medicalerp.tratamiento.enums.EstadoTratamiento.PENDIENTE")
     List<Tratamiento> findPendientesDeInicio(@Param("clinicaId") Long clinicaId);
+
+    @Query("SELECT t FROM Tratamiento t WHERE t.pacienteId IN :pacienteIds AND t.estado = com.medicalerp.tratamiento.enums.EstadoTratamiento.PENDIENTE")
+    List<Tratamiento> findPendientesDeInicioByPacienteIds(@Param("pacienteIds") List<Long> pacienteIds);
 
     @Query("SELECT t FROM Tratamiento t WHERE t.clinicaId = :clinicaId AND (" +
            "LOWER(t.tipoTratamiento) LIKE LOWER(CONCAT('%', :query, '%')) OR " +

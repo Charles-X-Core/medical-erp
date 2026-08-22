@@ -1,6 +1,6 @@
 import { ChevronDown } from 'lucide-react';
 
-export default function WorkspaceHeader({ paciente, onEdit, onMoreActions }) {
+export default function WorkspaceHeader({ paciente, onEdit, onMoreActions, extraActions }) {
   if (!paciente) return null;
 
   const fullName = `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`.trim();
@@ -44,8 +44,9 @@ export default function WorkspaceHeader({ paciente, onEdit, onMoreActions }) {
         </div>
       </div>
       <div className="workspace__header-actions">
+        {extraActions}
         <button className="btn btn--ghost btn--sm" onClick={onEdit}>
-          ← Pacientes
+          ← Clientes
         </button>
         <button className="btn btn--primary btn--sm" onClick={onMoreActions}>
           Editar

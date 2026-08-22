@@ -21,7 +21,7 @@ public class PacienteConsentimientoController {
     private final PacienteConsentimientoService consentimientoService;
 
     @PostMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PacienteConsentimientoResponse>> create(
             @PathVariable Long pacienteId,
             @Valid @RequestBody PacienteConsentimientoRequest request) {
@@ -30,14 +30,14 @@ public class PacienteConsentimientoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<PacienteConsentimientoResponse>>> getByPaciente(
             @PathVariable Long pacienteId) {
         return ResponseEntity.ok(ApiResponse.success(consentimientoService.getByPacienteId(pacienteId)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PacienteConsentimientoResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(consentimientoService.getById(id)));
     }

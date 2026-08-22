@@ -41,13 +41,14 @@ export default function CitasHoyList({ citas, loading }) {
                 <div className="citas-hoy__info">
                   <span className="citas-hoy__name">{formatNombre(cita.pacienteNombre)}</span>
                   <span className="citas-hoy__motivo">
+                    {cita.usuarioNombre && <span>{cita.usuarioNombre} · </span>}
                     {cita.tipoCitaNombre || cita.motivo || 'Consulta'}
                   </span>
                 </div>
                 <span className={`chip chip--${estado.tone}`}>{estado.label}</span>
                 <button
                   className="citas-hoy__open"
-                  title="Abrir paciente"
+                  title="Abrir cliente"
                   onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={18} />

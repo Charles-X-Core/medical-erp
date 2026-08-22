@@ -37,13 +37,14 @@ export default function ProximasCitas({ citas, loading }) {
                 <div className="proximas-list__info">
                   <span className="proximas-list__name">{formatNombre(cita.pacienteNombre)}</span>
                   <span className="proximas-list__motivo">
+                    {cita.usuarioNombre && <span>{cita.usuarioNombre} · </span>}
                     {cita.tipoCitaNombre || cita.motivo || 'Consulta'}
                   </span>
                 </div>
                 <span className={`chip chip--${estado.tone}`}>{estado.label}</span>
                 <button
                   className="proximas-list__open"
-                  title="Abrir paciente"
+                  title="Abrir cliente"
                   onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={16} />

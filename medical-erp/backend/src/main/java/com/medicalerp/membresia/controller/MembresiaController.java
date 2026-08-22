@@ -23,14 +23,14 @@ public class MembresiaController {
     private final SecurityUtils securityUtils;
 
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<MembresiaResponse>>> getByPaciente(@PathVariable Long pacienteId) {
         Long clinicaId = securityUtils.getCurrentClinicaId();
         return ResponseEntity.ok(ApiResponse.success(membresiaService.getByPacienteId(pacienteId, clinicaId)));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MembresiaResponse>> create(@Valid @RequestBody MembresiaRequest request) {
         Long clinicaId = securityUtils.getCurrentClinicaId();
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -38,14 +38,14 @@ public class MembresiaController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MembresiaResponse>> update(@PathVariable Long id, @Valid @RequestBody MembresiaRequest request) {
         Long clinicaId = securityUtils.getCurrentClinicaId();
         return ResponseEntity.ok(ApiResponse.success(membresiaService.update(id, request, clinicaId), "Membresía actualizada"));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         membresiaService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Membresía eliminada"));

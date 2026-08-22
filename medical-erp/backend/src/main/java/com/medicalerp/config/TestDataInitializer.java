@@ -69,12 +69,6 @@ public class TestDataInitializer implements CommandLineRunner {
         doctoraPerms.add(aRead); doctoraPerms.add(aWrite);
         Rol rolDoctora = createRolIfNotExists("doctora", doctoraPerms);
 
-        Set<Permiso> enfermeraPerms = new HashSet<>();
-        enfermeraPerms.add(pRead); enfermeraPerms.add(pWrite);
-        enfermeraPerms.add(cRead); enfermeraPerms.add(cWrite);
-        enfermeraPerms.add(aRead);
-        Rol rolEnfermera = createRolIfNotExists("enfermera", enfermeraPerms);
-
         // Create admin user
         if (usuarioRepository.findByEmail("admin@clinica.com").isEmpty()) {
             Usuario admin = Usuario.builder()
@@ -101,23 +95,9 @@ public class TestDataInitializer implements CommandLineRunner {
             usuarioRepository.save(doctora);
         }
 
-        // Create test enfermera
-        if (usuarioRepository.findByEmail("ana@clinica.com").isEmpty()) {
-            Usuario enfermera = Usuario.builder()
-                    .clinicaId(clinica.getId())
-                    .nombre("Enfermera Ana Lopez")
-                    .email("ana@clinica.com")
-                    .password(passwordEncoder.encode("Enfermera123"))
-                    .activo(true)
-                    .roles(new HashSet<>(Set.of(rolEnfermera)))
-                    .build();
-            usuarioRepository.save(enfermera);
-        }
-
         System.out.println("=== TEST DATA SEEDED ===");
         System.out.println("Admin: admin@clinica.com / Admin123");
         System.out.println("Doctora: maria@clinica.com / Doctora123");
-        System.out.println("Enfermera: ana@clinica.com / Enfermera123");
         System.out.println("========================");
     }
 

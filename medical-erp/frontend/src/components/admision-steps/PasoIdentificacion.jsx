@@ -5,7 +5,7 @@ export default function PasoIdentificacion({ formData, onChange }) {
     <div className="wizard-step">
       <div className="wizard-step__header">
         <User size={24} />
-        <h3>Identificacion del Paciente</h3>
+        <h3>Identificacion del Cliente</h3>
         <p>Datos basicos de identificacion</p>
       </div>
       <div className="wizard-step__form-grid">

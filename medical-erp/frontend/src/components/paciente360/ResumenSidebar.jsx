@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, ShieldCheck, ShieldAlert, AlertTriangle, Clock, CheckCircle, FileText } from 'lucide-react';
+import { FileText, CheckCircle, AlertTriangle, Clock, Shield } from 'lucide-react';
 import { pacienteConsentimientoService } from '../../services/pacienteSubServices';
 
 function formatFecha(fecha) {
@@ -8,17 +8,13 @@ function formatFecha(fecha) {
 }
 
 // ============================================
-// ResumenSidebar — Patient overview + membership status
-// Shows: actions taken, membership confirmation, doctor warning
+// ResumenSidebar — Patient overview + consent status
+// Shows: consent status, actions taken, stats
 // ============================================
 
-export default function ResumenSidebar({ pacienteId }) {
+export default function ResumenSidebar({ pacienteId, onFirmarContrato, contratoFirmado }) {
   const [consentimientos, setConsentimientos] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadData();
-  }, [pacienteId]);
 
   const loadData = async () => {
     try {
@@ -35,36 +31,53 @@ export default function ResumenSidebar({ pacienteId }) {
     }
   };
 
-  const membresiaFirmada = consentimientos.some(
-    (c) => c.tipo === 'MEMBRESIA' || c.tipoConsentimiento === 'MEMBRESIA'
+  useEffect(() => {
+    loadData();
+  }, [pacienteId]);
+
+  // Re-fetch when contratoFirmado changes (live update after signing)
+  useEffect(() => {
+    if (contratoFirmado === true) {
+      loadData();
+    }
+  }, [contratoFirmado]);
+
+  // Use contratoFirmado prop as primary source, fallback to local data
+  const consentimientoFirmado = contratoFirmado === true || consentimientos.some(
+    (c) => c.firmaFecha || c.aceptado === true
   );
-  const consentimientosFirmados = consentimientos.filter((c) => c.fechaFirma);
-  const consentimientosPendientes = consentimientos.filter((c) => !c.fechaFirma);
+  const consentimientosFirmados = consentimientos.filter((c) => c.firmaFecha);
+  const consentimientosPendientes = consentimientos.filter((c) => !c.firmaFecha);
 
   return (
     <div className="resumen-sidebar">
-      {/* Membresía Status */}
+      {/* Consentimiento Status */}
       <div className="resumen-sidebar__section">
         <h3 className="resumen-sidebar__title">
-          <Shield size={14} /> Membresía
+          <FileText size={14} /> Consentimiento de Admisión
         </h3>
-        {loading ? (
+        {loading && contratoFirmado !== true ? (
           <div className="resumen-sidebar__loading">Cargando...</div>
-        ) : membresiaFirmada ? (
+        ) : consentimientoFirmado ? (
           <div className="resumen-sidebar__status resumen-sidebar__status--ok">
-            <ShieldCheck size={16} />
-            <span>Membresía firmada</span>
+            <CheckCircle size={16} />
+            <span>Consentimiento firmado</span>
           </div>
         ) : (
           <div className="resumen-sidebar__status resumen-sidebar__status--warning">
-            <ShieldAlert size={16} />
-            <span>Sin membresía firmada</span>
+            <AlertTriangle size={16} />
+            <span>Sin consentimiento firmado</span>
           </div>
         )}
-        {!loading && !membresiaFirmada && (
+        {!consentimientoFirmado && (
           <div className="resumen-sidebar__alert">
             <AlertTriangle size={12} />
-            <span>Informar a la doctora que el paciente no tiene membresía activa</span>
+            <span>Sin consentimiento de admisión firmado</span>
+            {onFirmarContrato && (
+              <button className="resumen-sidebar__btn-firmar" onClick={onFirmarContrato}>
+                <Shield size={12} /> Firmar
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -80,13 +93,13 @@ export default function ResumenSidebar({ pacienteId }) {
           <div className="resumen-sidebar__list">
             {consentimientos.slice(0, 5).map((c) => (
               <div key={c.id} className="resumen-sidebar__item">
-                <div className={`resumen-sidebar__dot ${c.fechaFirma ? 'resumen-sidebar__dot--done' : 'resumen-sidebar__dot--pending'}`} />
+                <div className={`resumen-sidebar__dot ${c.firmaFecha ? 'resumen-sidebar__dot--done' : 'resumen-sidebar__dot--pending'}`} />
                 <div className="resumen-sidebar__item-info">
                   <span className="resumen-sidebar__item-label">
                     {c.tipo || c.templateNombre || 'Consentimiento'}
                   </span>
                   <span className="resumen-sidebar__item-date">
-                    {c.fechaFirma ? formatFecha(c.fechaFirma) : 'Pendiente'}
+                    {c.firmaFecha ? formatFecha(c.firmaFecha) : 'Pendiente'}
                   </span>
                 </div>
               </div>
@@ -107,11 +120,11 @@ export default function ResumenSidebar({ pacienteId }) {
         </h3>
         <div className="resumen-sidebar__stats">
           <div className="resumen-sidebar__stat">
-            <span className="resumen-sidebar__stat-value">{consentimientosFirmados.length}</span>
+            <span className="resumen-sidebar__stat-value">{consentimientoFirmado ? Math.max(consentimientosFirmados.length, 1) : consentimientosFirmados.length}</span>
             <span className="resumen-sidebar__stat-label">Firmados</span>
           </div>
           <div className="resumen-sidebar__stat">
-            <span className="resumen-sidebar__stat-value">{consentimientosPendientes.length}</span>
+            <span className="resumen-sidebar__stat-value">{consentimientoFirmado ? 0 : consentimientosPendientes.length}</span>
             <span className="resumen-sidebar__stat-label">Pendientes</span>
           </div>
         </div>

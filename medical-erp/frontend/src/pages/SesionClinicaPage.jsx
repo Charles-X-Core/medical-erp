@@ -12,7 +12,7 @@ import { pacienteService } from '../services/pacienteService';
 import { consultasService } from '../services/consultasService';
 
 const STEPS = [
-  { id: 1, label: 'Paciente', component: PasoPaciente },
+  { id: 1, label: 'Cliente', component: PasoPaciente },
   { id: 2, label: 'Enfermedad', component: PasoEnfermedad },
   { id: 3, label: 'Diagnóstico', component: PasoDiagnostico },
   { id: 4, label: 'Evidencias', component: PasoEvidencias },
@@ -97,7 +97,7 @@ export default function SesionClinicaPage() {
       }
     } catch (err) {
       console.error('Error loading paciente:', err);
-      setError('Error al cargar el paciente');
+      setError('Error al cargar el cliente');
     }
   };
 

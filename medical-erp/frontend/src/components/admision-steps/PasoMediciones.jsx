@@ -13,7 +13,7 @@ export default function PasoMediciones({ mediciones, onChange }) {
       <div className="wizard-step__header">
         <Ruler size={24} />
         <h3>Mediciones Fisicas</h3>
-        <p>Registro de medidas basicas del paciente</p>
+        <p>Registro de medidas basicas del cliente</p>
       </div>
       <div className="wizard-step__mediciones">
         <div className="wizard-step__med-card">

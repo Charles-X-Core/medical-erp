@@ -11,6 +11,10 @@ import CitasHoyList from '../components/dashboard/CitasHoyList';
 import TratamientosActivos from '../components/dashboard/TratamientosActivos';
 import AlertasPanel from '../components/dashboard/AlertasPanel';
 import ProximasCitas from '../components/dashboard/ProximasCitas';
+import ColaPacientes from '../components/dashboard/ColaPacientes';
+import NotificacionesDashboard from '../components/dashboard/NotificacionesDashboard';
+
+const POLL_INTERVAL = 30000;
 
 export default function InicioPage() {
   const { user } = useAuth();
@@ -19,13 +23,16 @@ export default function InicioPage() {
   const [resumen, setResumen] = useState(null);
 
   const primaryRole = getPrimaryRole(user);
-  const config = dashboardRoleConfig[primaryRole] || dashboardRoleConfig.enfermera;
+  const config = dashboardRoleConfig[primaryRole] || dashboardRoleConfig.doctora;
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
       const data = await dashboardService.getResumen();
+      if (!data) {
+        setError('No se pudo cargar el resumen. Verifique su conexión.');
+      }
       setResumen(data);
     } catch (err) {
       setError('Error al cargar el resumen del día');
@@ -38,6 +45,30 @@ export default function InicioPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Polling: refresh lightweight data every 30s
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const poll = await dashboardService.getPoll();
+        if (poll) {
+          setResumen((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              citasHoy: poll.citasHoyStats || prev.citasHoy,
+              citasHoyList: poll.citasHoy || prev.citasHoyList,
+              cola: poll.cola || prev.cola,
+              proximoPaciente: poll.proximoPaciente !== undefined ? poll.proximoPaciente : prev.proximoPaciente,
+            };
+          });
+        }
+      } catch {
+        // Silent fail for poll
+      }
+    }, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading && !resumen) {
     return (
@@ -90,11 +121,17 @@ export default function InicioPage() {
             <AlertasPanel alertas={resumen?.alertas || []} loading={loading} />
           )}
         </div>
-        {sections.proximas.show && (
-          <div className="dashboard-page__sidebar">
+        <div className="dashboard-page__sidebar">
+          {sections.cola.show && (
+            <ColaPacientes citas={resumen?.cola || []} loading={loading} />
+          )}
+          {sections.proximas.show && (
             <ProximasCitas citas={resumen?.citasProximas || []} loading={loading} />
-          </div>
-        )}
+          )}
+          {sections.notificaciones.show && (
+            <NotificacionesDashboard />
+          )}
+        </div>
       </div>
     </div>
   );

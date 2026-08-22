@@ -31,7 +31,7 @@ public class TratamientoDashboardController {
     private final SecurityUtils securityUtils;
 
     @GetMapping("/resumen")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<TratamientoDashboardResponse>> resumen() {
         Long clinicaId = securityUtils.getCurrentClinicaId();
 

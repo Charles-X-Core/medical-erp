@@ -20,38 +20,38 @@ public class NotificacionController {
     private final NotificacionService notificacionService;
 
     @GetMapping("/no-leidas")
-    @PreAuthorize("hasAnyRole('DOCTORA','ENFERMERA','ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTORA','ADMIN')")
     public ResponseEntity<ApiResponse<List<NotificacionResponse>>> getNoLeidas() {
         return ResponseEntity.ok(ApiResponse.success(notificacionService.getNoLeidas()));
     }
 
     @GetMapping("/conteo")
-    @PreAuthorize("hasAnyRole('DOCTORA','ENFERMERA','ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTORA','ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Long>>> getCount() {
         return ResponseEntity.ok(ApiResponse.success(Map.of("noLeidas", notificacionService.countNoLeidas())));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('DOCTORA','ENFERMERA','ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTORA','ADMIN')")
     public ResponseEntity<ApiResponse<List<NotificacionResponse>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success(notificacionService.getAll()));
     }
 
     @PatchMapping("/{id}/leer")
-    @PreAuthorize("hasAnyRole('DOCTORA','ENFERMERA','ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTORA','ADMIN')")
     public ResponseEntity<ApiResponse<NotificacionResponse>> marcarLeida(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(notificacionService.marcarLeida(id), "Marcada como leída"));
     }
 
     @PatchMapping("/leer-todas")
-    @PreAuthorize("hasAnyRole('DOCTORA','ENFERMERA','ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTORA','ADMIN')")
     public ResponseEntity<ApiResponse<Void>> marcarTodasLeidas() {
         notificacionService.marcarTodasLeidas();
         return ResponseEntity.ok(ApiResponse.success(null, "Todas marcadas como leídas"));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('DOCTORA','ENFERMERA','ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTORA','ADMIN')")
     public ResponseEntity<ApiResponse<NotificacionResponse>> crear(@Valid @RequestBody NotificacionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(notificacionService.crear(request), "Notificación creada"));

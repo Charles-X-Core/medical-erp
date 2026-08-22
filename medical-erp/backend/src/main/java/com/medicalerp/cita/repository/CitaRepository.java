@@ -56,6 +56,15 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     @Query("SELECT c FROM Cita c WHERE c.fechaHora >= :fechaInicio AND c.estado NOT IN ('cancelada', 'completada') ORDER BY c.fechaHora")
     List<Cita> findProximas(@Param("fechaInicio") LocalDateTime fechaInicio);
 
+    @Query("SELECT c FROM Cita c WHERE c.usuario.id = :usuarioId AND FUNCTION('DATE', c.fechaHora) = :fecha AND c.estado <> :estado")
+    List<Cita> findByFechaAndUsuarioIdAndEstadoNot(
+            @Param("usuarioId") Long usuarioId,
+            @Param("fecha") LocalDate fecha,
+            @Param("estado") String estado);
+
+    @Query("SELECT c FROM Cita c WHERE c.usuario.id = :usuarioId AND c.fechaHora >= :fechaInicio AND c.estado NOT IN ('cancelada', 'completada') ORDER BY c.fechaHora")
+    List<Cita> findProximasByUsuarioId(@Param("usuarioId") Long usuarioId, @Param("fechaInicio") LocalDateTime fechaInicio);
+
     @Query("SELECT c FROM Cita c WHERE c.usuario.id = :usuarioId AND FUNCTION('DATE', c.fechaHora) = :fecha")
     List<Cita> findByUsuarioIdAndFecha(@Param("usuarioId") Long usuarioId, @Param("fecha") LocalDate fecha);
 
@@ -72,5 +81,10 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     List<Cita> findActivasByFechaBetween(
             @Param("inicio") LocalDate inicio,
             @Param("fin") LocalDate fin);
+
+    @Query("SELECT c FROM Cita c WHERE FUNCTION('DATE', c.fechaHora) = :fecha " +
+           "AND c.estado IN ('solicitada','pendiente','programada','confirmada','asistio') " +
+           "AND c.fechaHora < :cutoff")
+    List<Cita> findPasadasSinAccion(@Param("fecha") LocalDate fecha, @Param("cutoff") LocalDateTime cutoff);
 
 }

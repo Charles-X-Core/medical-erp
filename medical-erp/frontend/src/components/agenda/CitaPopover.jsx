@@ -3,14 +3,15 @@ import { Clock, User, FileText, AlertTriangle, AlertCircle, Info } from 'lucide-
 
 const ESTADO_LABELS = {
   solicitada: 'Solicitada', pendiente: 'Pendiente', programada: 'Programada',
-  confirmada: 'Confirmada', asistio: 'Asistio', completada: 'Completada',
-  cancelada: 'Cancelada', reprogramada: 'Reprogramada', no_show: 'No Asistio',
+  confirmada: 'Confirmada', asistio: 'Asistio', en_atencion: 'En Atencion',
+  completada: 'Completada', cancelada: 'Cancelada', reprogramada: 'Reprogramada',
+  no_show: 'No Asistio',
 };
 
 const ESTADO_COLORS = {
   solicitada: '#F59E0B', pendiente: '#3B82F6', programada: '#06B6D4',
-  confirmada: '#22C55E', asistio: '#F59E0B', completada: '#6B7D95',
-  cancelada: '#EF4444', reprogramada: '#A78BFA', no_show: '#EF4444',
+  confirmada: '#22C55E', asistio: '#F59E0B', en_atencion: '#16A34A',
+  completada: '#6B7D95', cancelada: '#EF4444', reprogramada: '#A78BFA', no_show: '#EF4444',
 };
 
 const PRIORIDAD_CONFIG = {

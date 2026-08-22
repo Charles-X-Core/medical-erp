@@ -47,11 +47,14 @@ export default function AlertasPanel({ alertas, loading }) {
                     {TIPO_ALERTA_LABELS[alerta.tipoAlerta] || alerta.tipoAlerta}
                   </span>
                   <p className="alerta__mensaje">{alerta.mensaje}</p>
+                  {alerta.accionSugerida && (
+                    <p className="alerta__accion">{alerta.accionSugerida}</p>
+                  )}
                   <span className="alerta__paciente">{formatNombre(alerta.pacienteNombre)}</span>
                 </div>
                 <button
                   className="alerta__open"
-                  title="Abrir paciente"
+                  title="Abrir cliente"
                   onClick={() => navigate(`/pacientes/${alerta.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={18} />

@@ -20,7 +20,7 @@ public class TimelineController {
     private final TimelineService timelineService;
 
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<TimelineResponse>> getTimeline(@PathVariable Long pacienteId) {
         return ResponseEntity.ok(ApiResponse.success(timelineService.getTimeline(pacienteId)));
     }

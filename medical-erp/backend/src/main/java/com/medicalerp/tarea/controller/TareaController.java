@@ -24,14 +24,14 @@ public class TareaController {
     private final SecurityUtils securityUtils;
 
     @GetMapping("/pendientes")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<TareaResponse>>> getPendientes(@RequestParam String rol) {
         Long clinicaId = securityUtils.getCurrentClinicaId();
         return ResponseEntity.ok(ApiResponse.success(tareaService.getPendientes(rol, clinicaId)));
     }
 
     @GetMapping("/count")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Long>>> countPendientes(@RequestParam String rol) {
         Long clinicaId = securityUtils.getCurrentClinicaId();
         long count = tareaService.countPendientes(rol, clinicaId);
@@ -48,7 +48,7 @@ public class TareaController {
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<TareaResponse>> updateEstado(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {

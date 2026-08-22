@@ -5,7 +5,7 @@ import { Bell, User, Menu } from 'lucide-react';
 const ROUTE_TITLES = {
   '/dashboard': 'Dashboard',
   '/admision': 'Admisión',
-  '/admision/nuevo': 'Nuevo Paciente',
+  '/admision/nuevo': 'Nuevo Cliente',
   '/admision/sesion': 'Sesión Clínica',
   '/agenda': 'Agenda',
   '/agenda/config': 'Config. Agenda',
@@ -17,11 +17,11 @@ const ROUTE_TITLES = {
 function getTitle(pathname) {
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
   if (pathname.startsWith('/admision/sesion')) return 'Sesión Clínica';
-  if (pathname.startsWith('/admision/')) return 'Nuevo Paciente';
-  if (pathname.startsWith('/pacientes/') && pathname.includes('/editar')) return 'Editar Paciente';
-  if (pathname.startsWith('/pacientes/') && pathname.includes('/workspace')) return 'Centro del Paciente';
-  if (pathname.startsWith('/pacientes/') && pathname.includes('/detalle')) return 'Detalle del Paciente';
-  if (pathname.startsWith('/pacientes/')) return 'Paciente';
+  if (pathname.startsWith('/admision/')) return 'Nuevo Cliente';
+  if (pathname.startsWith('/pacientes/') && pathname.includes('/editar')) return 'Editar Cliente';
+  if (pathname.startsWith('/pacientes/') && pathname.includes('/workspace')) return 'Centro del Cliente';
+  if (pathname.startsWith('/pacientes/') && pathname.includes('/detalle')) return 'Detalle del Cliente';
+  if (pathname.startsWith('/pacientes/')) return 'Cliente';
   if (pathname.startsWith('/historia')) return 'Historia Clínica';
   if (pathname.startsWith('/consultas')) return 'Consulta';
   return 'Panel Médico';

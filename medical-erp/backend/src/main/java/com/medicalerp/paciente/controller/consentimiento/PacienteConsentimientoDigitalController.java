@@ -23,7 +23,7 @@ public class PacienteConsentimientoDigitalController {
     private final ConsentimientoSignService signService;
 
     @GetMapping("/templates/{templateId}/render")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ConsentimientoRenderResponse>> render(
             @PathVariable Long templateId,
             @RequestParam Long pacienteId) {
@@ -32,7 +32,7 @@ public class PacienteConsentimientoDigitalController {
     }
 
     @PostMapping("/templates/{templateId}/firmar")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ConsentimientoFirmaResponse>> firmar(
             @PathVariable Long templateId,
             @RequestParam Long pacienteId,
@@ -43,7 +43,7 @@ public class PacienteConsentimientoDigitalController {
     }
 
     @GetMapping("/{id}/pdf")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<Resource> downloadPdf(@PathVariable Long id) {
         byte[] pdfBytes = signService.loadPdf(id);
         String nombreArchivo = signService.getNombreArchivo(id);
@@ -59,7 +59,7 @@ public class PacienteConsentimientoDigitalController {
     }
 
     @GetMapping("/{id}/verificar")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ConsentimientoSignService.VerificacionResult>> verificar(
             @PathVariable Long id) {
         ConsentimientoSignService.VerificacionResult result = signService.verificar(id);

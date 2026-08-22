@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Stethoscope, CheckCircle, AlertCircle, Loader2, Plus, ArrowLeft, Clock } from 'lucide-react';
 import SessionForm from './SessionForm';
-import ScheduleModal from './ScheduleModal';
+import CitaSchedulerModal from '../agenda/CitaSchedulerModal';
 import { TREATMENT_CATEGORIES, getTreatmentLabel } from '../../config/attentionTypes';
 
 function formatDate(dateStr) {
@@ -225,7 +225,7 @@ export default function SesionTratamientoView({
                   )}
                   {isBlocked && (
                     <span className="sesion-tratamiento__item-blocked-hint">
-                      La enfermera está confirmando la fecha de la próxima sesión
+                      La cita está siendo coordinada
                     </span>
                   )}
                 </div>
@@ -359,7 +359,7 @@ export default function SesionTratamientoView({
               <div className="sesion-tratamiento__form-blocked">
                 <Clock size={32} />
                 <h3>Esperando confirmación de fecha</h3>
-                <p>La enfermera está coordinando la fecha de la próxima sesión con el paciente.</p>
+                <p>La fecha de la próxima sesión está siendo coordinada con el cliente.</p>
                 <span className="sesion-tratamiento__form-blocked-hint">
                   Una vez confirmada la fecha, podrá continuar con el tratamiento.
                 </span>
@@ -399,11 +399,12 @@ export default function SesionTratamientoView({
       </div>
 
       {/* Schedule modal */}
-      <ScheduleModal
-        open={showSchedule}
+      <CitaSchedulerModal
+        isOpen={showSchedule}
         onClose={() => setShowSchedule(false)}
-        onConfirm={handleSchedule}
-        tratamiento={workingTratamiento}
+        paciente={paciente}
+        tratamientoId={workingTratamiento?.id}
+        onCitaCreada={() => { setShowSchedule(false); onSchedule?.(workingTratamiento, {}); }}
       />
     </div>
   );

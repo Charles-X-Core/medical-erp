@@ -11,7 +11,7 @@ import agendaService from '../services/agendaService';
 import notificacionService from '../services/notificacionService';
 import { useAuth } from '../hooks/useAuth';
 import { getPrimaryRole } from '../utils/roleUtils';
-import SolicitudesPanel from '../components/agenda/SolicitudesPanel';
+import CitaSchedulerModal from '../components/agenda/CitaSchedulerModal';
 import RelojWidget from '../components/agenda/RelojWidget';
 import CitaDetalleModal from '../components/agenda/CitaDetalleModal';
 import MiniCalendar from '../components/agenda/MiniCalendar';
@@ -55,12 +55,12 @@ function parseTime(timeStr) {
 }
 
 function getCitaColor(estado) {
-  const map = { solicitada: '#F59E0B', pendiente: '#3B82F6', programada: '#06B6D4', confirmada: '#22C55E', asistio: '#F59E0B', completada: '#6B7D95', cancelada: '#EF4444', reprogramada: '#A78BFA', no_show: '#EF4444' };
+  const map = { solicitada: '#F59E0B', pendiente: '#3B82F6', programada: '#06B6D4', confirmada: '#22C55E', asistio: '#F59E0B', llegada: '#F59E0B', completada: '#6B7D95', cancelada: '#EF4444', reprogramada: '#A78BFA', no_show: '#EF4444' };
   return map[estado] || '#3B82F6';
 }
 
 function getCitaBg(estado) {
-  const map = { solicitada: 'rgba(245,158,11,0.12)', pendiente: 'rgba(59,130,246,0.12)', programada: 'rgba(6,182,212,0.12)', confirmada: 'rgba(34,197,94,0.12)', asistio: 'rgba(245,158,11,0.12)', completada: 'rgba(107,125,149,0.12)', cancelada: 'rgba(239,68,68,0.08)', reprogramada: 'rgba(167,139,250,0.12)', no_show: 'rgba(239,68,68,0.08)' };
+  const map = { solicitada: 'rgba(245,158,11,0.12)', pendiente: 'rgba(59,130,246,0.12)', programada: 'rgba(6,182,212,0.12)', confirmada: 'rgba(34,197,94,0.12)', asistio: 'rgba(245,158,11,0.12)', llegada: 'rgba(245,158,11,0.12)', completada: 'rgba(107,125,149,0.12)', cancelada: 'rgba(239,68,68,0.08)', reprogramada: 'rgba(167,139,250,0.12)', no_show: 'rgba(239,68,68,0.08)' };
   return map[estado] || 'rgba(59,130,246,0.12)';
 }
 
@@ -85,7 +85,7 @@ function getSlotLabelColor(estado) {
 }
 
 function getEstadoLabel(estado) {
-  const map = { solicitada: 'Solicitada', pendiente: 'Pendiente', programada: 'Programada', confirmada: 'Confirmada', asistio: 'Asistio', completada: 'Completada', cancelada: 'Cancelada', reprogramada: 'Reprogramada', no_show: 'No Asistio' };
+  const map = { solicitada: 'Solicitada', pendiente: 'Pendiente', programada: 'Programada', confirmada: 'Confirmada', asistio: 'Asistio', llegada: 'Llegó', completada: 'Completada', cancelada: 'Cancelada', reprogramada: 'Reprogramada', no_show: 'No Asistio' };
   return map[estado] || estado;
 }
 
@@ -160,10 +160,11 @@ function layoutOverlappingCitas(citas, slotDuracion = 30) {
 }
 
 // --- Draggable Cita (context provider, no wrapper div) ---
-function DraggableCita({ cita, children, index = 0 }) {
+function DraggableCita({ cita, children, index = 0, canDrag = true }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `cita-${cita.id}`,
     data: { cita },
+    disabled: !canDrag,
   });
   const dragStyle = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : {};
   const zIndex = isDragging ? 100 : 10 - index;
@@ -260,7 +261,7 @@ function ConfigTab({ agendaId, usuarioId }) {
   const [tiposCita, setTiposCita] = useState([]);
   const [newBloqueo, setNewBloqueo] = useState({ fechaInicio: '', horaInicio: '08:00', fechaFin: '', horaFin: '09:00', motivo: '' });
   const [expandedBloqueo, setExpandedBloqueo] = useState(null);
-  const [newTipo, setNewTipo] = useState({ nombre: '', duracionMinutos: 30, bufferMinutos: 0, prioridadDefault: 'NORMAL', descripcion: '' });
+  const [newTipo, setNewTipo] = useState({ nombre: '', duracionMinutos: 30, bufferMinutos: 0, prioridadDefault: 'NORMAL', requiereTratamiento: false, descripcion: '' });
 
   useEffect(() => {
     const load = async () => {
@@ -285,7 +286,36 @@ function ConfigTab({ agendaId, usuarioId }) {
   const handleSaveDisponibilidades = async () => {
     setSaving(true); setMsg({ type: '', text: '' });
     try {
-      const res = await agendaService.updateDisponibilidades(agendaId, disponibilidades);
+      // Normalize time format: ensure "HH:mm" (no seconds)
+      const normalized = disponibilidades.map((d) => ({
+        diaSemana: d.diaSemana,
+        horaInicio: String(d.horaInicio).substring(0, 5),
+        horaFin: String(d.horaFin).substring(0, 5),
+      }));
+
+      // Frontend validation: check for invalid times and overlaps
+      for (const d of normalized) {
+        if (d.horaInicio >= d.horaFin) {
+          const diaLabel = ['Dom','Lun','Mar','Mie','Jue','Vie','Sat'][d.diaSemana];
+          setMsg({ type: 'error', text: `En ${diaLabel}: la hora fin (${d.horaFin}) debe ser posterior a la hora inicio (${d.horaInicio})` });
+          setSaving(false);
+          return;
+        }
+      }
+      for (let i = 0; i < normalized.length; i++) {
+        for (let j = i + 1; j < normalized.length; j++) {
+          if (normalized[i].diaSemana === normalized[j].diaSemana) {
+            if (normalized[i].horaInicio < normalized[j].horaFin && normalized[j].horaInicio < normalized[i].horaFin) {
+              const diaLabel = ['Dom','Lun','Mar','Mie','Jue','Vie','Sat'][normalized[i].diaSemana];
+              setMsg({ type: 'error', text: `En ${diaLabel}: los horarios se superponen` });
+              setSaving(false);
+              return;
+            }
+          }
+        }
+      }
+
+      const res = await agendaService.updateDisponibilidades(agendaId, normalized);
       if (res.success) setMsg({ type: 'success', text: 'Disponibilidades guardadas' });
       else setMsg({ type: 'error', text: res.message || 'Error al guardar' });
     } catch { setMsg({ type: 'error', text: 'Error de conexion' }); }
@@ -330,7 +360,7 @@ function ConfigTab({ agendaId, usuarioId }) {
       const res = await agendaService.crearTipoCita(newTipo);
       if (res.success) {
         setTiposCita([...tiposCita, res.data]);
-        setNewTipo({ nombre: '', duracionMinutos: 30, bufferMinutos: 0, prioridadDefault: 'NORMAL', descripcion: '' });
+        setNewTipo({ nombre: '', duracionMinutos: 30, bufferMinutos: 0, prioridadDefault: 'NORMAL', requiereTratamiento: false, descripcion: '' });
       }
     } catch { /* */ }
   };
@@ -582,6 +612,8 @@ export default function AgendaPage() {
   const [activeCita, setActiveCita] = useState(null);
   const [resizeCita, setResizeCita] = useState(null);
   const [reajusteData, setReajusteData] = useState(null);
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [schedulerPaciente, setSchedulerPaciente] = useState(null);
   const timelineRef = useRef(null);
 
   const primaryRole = getPrimaryRole(user);
@@ -661,7 +693,7 @@ export default function AgendaPage() {
 
   const getCitasForDay = useCallback((date) => {
     const dateKey = formatDateKey(date);
-    return citas.filter((c) => c.fecha === dateKey && c.estado !== 'cancelada');
+    return citas.filter((c) => c.fecha === dateKey && c.estado !== 'cancelada' && c.estado !== 'solicitada');
   }, [citas]);
 
   const getSlotForCell = useCallback((dateKey, hour) => {
@@ -800,6 +832,15 @@ export default function AgendaPage() {
               </div>
             )}
             <NotificationsPanel />
+            {primaryRole === 'doctora' && (
+              <button
+                className="agenda-view-toggle__btn"
+                onClick={() => setShowScheduler(true)}
+                title="Agendar Cita"
+              >
+                <Plus size={16} />
+              </button>
+            )}
             <div className="agenda-view-toggle">
               <button className={`agenda-view-toggle__btn ${view === 'semanal' ? 'agenda-view-toggle__btn--active' : ''}`} onClick={() => setView('semanal')} title="Vista semanal"><LayoutGrid size={16} /></button>
               <button className={`agenda-view-toggle__btn ${view === 'diaria' ? 'agenda-view-toggle__btn--active' : ''}`} onClick={() => setView('diaria')} title="Vista diaria"><List size={16} /></button>
@@ -844,7 +885,8 @@ export default function AgendaPage() {
       )}
 
       {/* Main content - full width */}
-      <div className="agenda-page__content">
+      <div className="agenda-page__main">
+        <div className="agenda-page__content">
         {/* Config Tab */}
         {view === 'config' && <ConfigTab agendaId={agendaData?.id} usuarioId={user?.id} />}
 
@@ -888,7 +930,7 @@ export default function AgendaPage() {
                             </div>
                           )}
                           {layouted.map((cita, idx) => (
-                            <DraggableCita key={cita.id} cita={cita} index={idx}>
+                            <DraggableCita key={cita.id} cita={cita} index={idx} canDrag={primaryRole === 'doctora'}>
                               <CitaPopover cita={cita} col={cita._col || 0} numCols={cita._numCols || 1}>
                                 <CitaBlock
                                   cita={cita}
@@ -972,11 +1014,7 @@ export default function AgendaPage() {
         {!loading && citas.length === 0 && view === 'semanal' && (
           <div className="agenda-page__empty"><CalendarDays size={48} /><h3>Sin citas esta semana</h3><p>La agenda de la semana esta libre.</p></div>
         )}
-      </div>
-
-      {/* Floating Sidebar */}
-      <div className="agenda-page__sidebar agenda-page__sidebar--floating">
-        <SolicitudesPanel role={primaryRole} />
+        </div>
       </div>
 
       {/* Cita Detail Modal */}
@@ -998,6 +1036,16 @@ export default function AgendaPage() {
           todasLasCitas={citas}
           onConfirm={handleReajusteConfirm}
           onCancel={() => setReajusteData(null)}
+        />
+      )}
+
+      {/* Agendar Cita Modal - Doctora only */}
+      {showScheduler && (
+        <CitaSchedulerModal
+          isOpen={showScheduler}
+          onClose={() => { setShowScheduler(false); setSchedulerPaciente(null); }}
+          paciente={schedulerPaciente}
+          onCitaCreada={loadWeek}
         />
       )}
     </div>

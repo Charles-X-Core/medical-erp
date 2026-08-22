@@ -55,13 +55,13 @@ public class DocumentoController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<DocumentoResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(documentoService.getById(id)));
     }
 
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<DocumentoResponse>>> getByPaciente(
             @PathVariable Long pacienteId,
             @RequestParam(required = false) String tipo,
@@ -71,7 +71,7 @@ public class DocumentoController {
     }
 
     @GetMapping("/{id}/pdf")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<Resource> downloadPdf(@PathVariable Long id) {
         try {
             Path pdfPath = documentoService.getPdfPath(id);

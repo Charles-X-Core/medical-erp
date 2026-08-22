@@ -7,7 +7,7 @@ export const ATTENTION_TYPES = [
   {
     id: 'primera_consulta',
     label: 'Primera Consulta',
-    description: 'Paciente nuevo — historia, diagnóstico y plan',
+    description: 'Cliente nuevo — historia, diagnóstico y plan',
     fields: {
       vitalSigns: ['peso', 'estatura', 'presionArterial', 'temperatura', 'pulso'],
       sections: ['motivoConsulta', 'tiempoEnfermedad', 'signosSintomas', 'examenClinico', 'diagnostico', 'planTratamiento'],
@@ -16,7 +16,7 @@ export const ATTENTION_TYPES = [
   {
     id: 'continuar_tratamiento',
     label: 'Continuar Tratamiento',
-    description: 'Paciente con tratamiento activo — sesión',
+    description: 'Cliente con tratamiento activo — sesión',
     fields: {
       vitalSigns: ['peso', 'estatura', 'presionArterial', 'temperatura'],
       sections: ['sesionTratamiento', 'procedimiento', 'evolucion'],
@@ -34,7 +34,7 @@ export const ATTENTION_TYPES = [
   {
     id: 'seguimiento',
     label: 'Seguimiento',
-    description: 'Paciente sin tratamiento activo — nueva consulta',
+    description: 'Cliente sin tratamiento activo — nueva consulta',
     fields: {
       vitalSigns: ['peso', 'estatura', 'presionArterial', 'temperatura', 'pulso'],
       sections: ['motivoConsulta', 'evolucion', 'observaciones'],

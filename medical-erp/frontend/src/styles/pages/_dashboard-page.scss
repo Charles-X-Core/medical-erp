@@ -375,6 +375,10 @@
     }
   }
 
+  &__estado {
+    margin-top: $space-2;
+  }
+
   &__empty-icon {
     @include flex-center;
     width: 60px;
@@ -738,6 +742,14 @@
     line-height: 1.4;
   }
 
+  &__accion {
+    margin: 2px 0 0;
+    font-size: $fs-xs;
+    font-weight: $fw-medium;
+    color: $light-accent;
+    line-height: 1.3;
+  }
+
   &__paciente {
     font-size: $fs-xs;
     color: $light-text-muted;
@@ -860,5 +872,265 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+// ============================================
+// ColaPacientes — Queue view
+// ============================================
+
+.dashboard-cola {
+  @include glass-card;
+  padding: $space-4;
+  animation: fadeIn 0.3s ease-out;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-3;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    margin: 0;
+  }
+
+  &__badge {
+    background: $light-accent;
+    color: white;
+    font-size: 11px;
+    font-weight: $fw-bold;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    border-radius: $radius-lg;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: left;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: $light-accent-border;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+    }
+  }
+
+  &__item-time {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: $light-text-muted;
+    font-size: $fs-xs;
+    min-width: 44px;
+
+    svg {
+      color: $light-accent;
+    }
+  }
+
+  &__item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__item-name {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__item-detail {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__item-estado {
+    font-size: 11px;
+    font-weight: $fw-semibold;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    white-space: nowrap;
+
+    &--neutral { background: rgba(107, 125, 149, 0.1); color: $light-text-muted; }
+    &--info { background: rgba(59, 130, 246, 0.1); color: $light-accent; }
+    &--success { background: rgba(34, 197, 94, 0.1); color: $light-success; }
+    &--active { background: rgba(22, 163, 74, 0.15); color: #16A34A; }
+  }
+
+  &__item-arrow {
+    color: $light-text-muted;
+    flex-shrink: 0;
+  }
+
+  &__empty {
+    text-align: center;
+    padding: $space-6;
+    color: $light-text-muted;
+
+    p {
+      margin: $space-2 0 0;
+      font-size: $fs-sm;
+    }
+
+    svg {
+      opacity: 0.4;
+    }
+  }
+
+  &__loading {
+    text-align: center;
+    padding: $space-4;
+    color: $light-text-muted;
+    font-size: $fs-sm;
+  }
+}
+
+// ============================================
+// NotificacionesDashboard — Badge + list
+// ============================================
+
+.dashboard-notif {
+  @include glass-card;
+  padding: $space-4;
+  animation: fadeIn 0.3s ease-out;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-3;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+    margin: 0;
+  }
+
+  &__badge {
+    background: $light-error;
+    color: white;
+    font-size: 11px;
+    font-weight: $fw-bold;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+  }
+
+  &__mark-all {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: $light-accent;
+    font-size: $fs-xs;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: $radius-md;
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.08);
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  &__item {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: $radius-md;
+    border: 1px solid rgba(226, 232, 240, 0.4);
+  }
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $light-accent;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  &__item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__item-title {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-primary;
+  }
+
+  &__item-msg {
+    font-size: $fs-xs;
+    color: $light-text-secondary;
+    line-height: 1.4;
+  }
+
+  &__item-time {
+    font-size: 11px;
+    color: $light-text-muted;
+  }
+
+  &__empty {
+    text-align: center;
+    padding: $space-4;
+    color: $light-text-muted;
+    font-size: $fs-sm;
   }
 }

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -98,6 +99,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.error("ACCESS_DENIED", "No tiene permisos para realizar esta acción"));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        log.error("Data integrity violation: {}", ex.getMessage(), ex);
+        String message = "Violación de integridad de datos";
+        if (ex.getMessage() != null && ex.getMessage().contains("Duplicate")) {
+            message = "Ya existe un registro con estos datos";
+        } else if (ex.getMessage() != null && ex.getMessage().contains("NOT NULL")) {
+            message = "Faltan campos obligatorios";
+        }
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("DATA_INTEGRITY_VIOLATION", message));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

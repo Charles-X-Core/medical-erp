@@ -8,6 +8,11 @@ const dashboardService = {
     return data.success ? data.data : null;
   },
 
+  async getPoll() {
+    const data = await apiClient('/api/v1/dashboard/poll');
+    return data.success ? data.data : null;
+  },
+
   async getCitasHoy() {
     const data = await apiClient('/api/v1/citas/hoy');
     return data.success ? data.data : [];

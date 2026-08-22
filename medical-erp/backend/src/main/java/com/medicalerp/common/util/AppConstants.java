@@ -22,7 +22,6 @@ public final class AppConstants {
     // Roles (SEC-003)
     public static final String ROLE_ADMIN = "admin";
     public static final String ROLE_DOCTORA = "doctora";
-    public static final String ROLE_ENFERMERA = "enfermera";
 
     // Patient Status (DOM-PAC-001)
     public static final String PACIENTE_ESTADO_ACTIVO = "activo";

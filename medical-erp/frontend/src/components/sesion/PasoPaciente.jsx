@@ -32,7 +32,7 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
     return (
       <div className="wizard-step wizard-step--empty">
         <AlertTriangle size={48} />
-        <h3>Paciente no seleccionado</h3>
+        <h3>Cliente no seleccionado</h3>
         <p>Vuelva a Recepcion y seleccione un paciente.</p>
       </div>
     );

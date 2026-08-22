@@ -1,0 +1,757 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+@use '../themes/light' as *;
+
+$cd-accent: $accent-primary;
+$cd-accent-hover: darken($accent-primary, 8%);
+$cd-accent-light: $light-accent-light;
+$cd-accent-border: $light-accent-border;
+$cd-surface: $bg-surface;
+$cd-card: $bg-card;
+$cd-card-hover: $bg-card-hover;
+$cd-text-primary: $text-primary;
+$cd-text-inverse: $light-text-inverse;
+$cd-text-secondary: $text-secondary;
+$cd-text-muted: $text-muted;
+$cd-border: $border-color;
+$cd-success: $success;
+$cd-success-light: $light-success-light;
+$cd-error: $error;
+$cd-error-light: $light-error-light;
+$cd-warning: $warning;
+$cd-warning-light: $light-warning-light;
+$cd-shadow-lg: $shadow-lg;
+
+// ===================== Centro de Datos Page =====================
+
+.centro-datos-page {
+  padding: $space-6;
+  max-width: 960px;
+  margin: 0 auto;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+    margin-bottom: $space-6;
+  }
+
+  &__back {
+    @include flex-center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: $radius-md;
+    background: $cd-surface;
+    color: $cd-text-secondary;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+
+    &:hover {
+      background: $cd-card-hover;
+      color: $cd-text-primary;
+    }
+  }
+
+  &__title {
+    font-size: $fs-xl;
+    font-weight: $fw-semibold;
+    color: $cd-text-primary;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    font-size: $fs-sm;
+    color: $cd-text-muted;
+    margin: $space-1 0 0;
+  }
+
+  // ---- Tabs ----
+  &__tabs {
+    display: flex;
+    gap: $space-2;
+    border-bottom: 1px solid $cd-border;
+    margin-bottom: $space-6;
+  }
+
+  &__tab {
+    @include flex-center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: $cd-text-secondary;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+
+    &:hover {
+      color: $cd-text-primary;
+      background: $cd-surface;
+    }
+
+    &--active {
+      color: $cd-accent;
+      border-bottom-color: $cd-accent;
+      font-weight: $fw-semibold;
+
+      &:hover {
+        color: $cd-accent;
+      }
+    }
+  }
+
+  // ---- Content ----
+  &__content {
+    min-height: 300px;
+  }
+
+  // ---- Modal overlay ----
+  &__modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    @include flex-center;
+    z-index: 1000;
+    padding: $space-4;
+  }
+
+  &__modal {
+    background: $cd-surface;
+    border-radius: $radius-lg;
+    width: 100%;
+    max-width: 560px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: $cd-shadow-lg;
+    overflow: hidden;
+  }
+
+  &__modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-5;
+    border-bottom: 1px solid $cd-border;
+
+    h3 {
+      margin: 0;
+      font-size: $fs-base;
+      font-weight: $fw-semibold;
+      color: $cd-text-primary;
+    }
+  }
+
+  &__modal-close {
+    @include flex-center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $cd-text-secondary;
+    font-size: 20px;
+    cursor: pointer;
+
+    &:hover { background: $cd-surface; }
+  }
+
+  &__modal-body {
+    padding: $space-5;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  &__modal-footer {
+    padding: $space-3 $space-5;
+    border-top: 1px solid $cd-border;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  // ---- Stats ----
+  &__stats {
+    display: flex;
+    gap: $space-4;
+    margin-bottom: $space-5;
+  }
+
+  &__stat {
+    flex: 1;
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-1;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $cd-surface;
+
+    &--success { color: $cd-success; }
+    &--warning { color: $cd-warning; }
+    &--error   { color: $cd-error; }
+  }
+
+  &__stat-value {
+    font-size: $fs-xl;
+    font-weight: $fw-bold;
+  }
+
+  &__stat-label {
+    font-size: $fs-xs;
+    color: $cd-text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  // ---- Detail sections ----
+  &__detail-section {
+    margin-bottom: $space-4;
+
+    h4 {
+      margin: 0 0 $space-2;
+      font-size: $fs-sm;
+      font-weight: $fw-semibold;
+      color: $cd-text-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  }
+
+  &__detail-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      padding: $space-2 $space-3;
+      font-size: $fs-sm;
+      border-radius: $radius-sm;
+      margin-bottom: $space-1;
+    }
+
+    &--success li { background: $cd-success-light; color: #166534; }
+    &--warning li { background: $cd-warning-light; color: #92400e; }
+    &--error li   { background: $cd-error-light;   color: #991b1b; }
+  }
+
+  // ---- Shared button ----
+  &__btn {
+    @include flex-center;
+    gap: $space-2;
+    padding: $space-2 $space-4;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &--primary {
+      background: $cd-accent;
+      color: $cd-text-inverse;
+      &:hover { background: $cd-accent-hover; }
+    }
+
+    &--secondary {
+      background: $cd-surface;
+      color: $cd-text-primary;
+      &:hover { background: $cd-card-hover; }
+    }
+  }
+}
+
+// ===================== Manual Form =====================
+
+.manual-form {
+  &__stepper {
+    display: flex;
+    gap: $space-2;
+    margin-bottom: $space-6;
+    overflow-x: auto;
+    padding-bottom: $space-2;
+  }
+
+  &__step {
+    @include flex-center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    border-radius: $radius-md;
+    background: $cd-surface;
+    cursor: default;
+    min-width: 180px;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+
+    &--active {
+      background: $cd-accent-light;
+      border: 1px solid $cd-accent-border;
+    }
+
+    &--completed {
+      cursor: pointer;
+      &:hover { background: $cd-card-hover; }
+    }
+  }
+
+  &__step-number {
+    @include flex-center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: $cd-card-hover;
+    color: $cd-text-secondary;
+    font-size: $fs-xs;
+    font-weight: $fw-bold;
+    flex-shrink: 0;
+
+    .manual-form__step--active & {
+      background: $cd-accent;
+      color: $cd-text-inverse;
+    }
+
+    .manual-form__step--completed & {
+      background: $cd-success;
+      color: $cd-text-inverse;
+    }
+  }
+
+  &__step-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__step-label {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $cd-text-primary;
+  }
+
+  &__step-desc {
+    font-size: $fs-xs;
+    color: $cd-text-muted;
+  }
+
+  // ---- Body ----
+  &__body {
+    margin-bottom: $space-6;
+  }
+
+  &__grid {
+    display: grid;
+    gap: $space-4;
+
+    &--2 {
+      grid-template-columns: 1fr 1fr;
+
+      @media (max-width: $bp-mobile) {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    &--full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: $fs-sm;
+      font-weight: $fw-medium;
+      color: $cd-text-secondary;
+    }
+
+    input, select, textarea {
+      padding: $space-2 $space-3;
+      border: 1px solid $cd-border;
+      border-radius: $radius-md;
+      font-size: $fs-sm;
+      color: $cd-text-primary;
+      background: $cd-surface;
+      transition: border-color 0.15s ease;
+      width: 100%;
+      box-sizing: border-box;
+
+      &:focus {
+        outline: none;
+        border-color: $cd-accent;
+        box-shadow: 0 0 0 3px rgba($cd-accent, 0.1);
+      }
+
+      &::placeholder {
+        color: $cd-text-muted;
+      }
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+    }
+  }
+
+  // ---- Consent info ----
+  &__consentimiento-info {
+    padding: $space-4;
+  }
+
+  &__consentimiento-card {
+    background: $cd-surface;
+    border-radius: $radius-md;
+    padding: $space-5;
+
+    h4 {
+      margin: 0 0 $space-3;
+      font-size: $fs-base;
+      font-weight: $fw-semibold;
+      color: $cd-text-primary;
+    }
+
+    p {
+      margin: 0 0 $space-3;
+      font-size: $fs-sm;
+      color: $cd-text-secondary;
+      line-height: 1.6;
+    }
+
+    ul {
+      margin: 0 0 $space-3;
+      padding-left: $space-5;
+
+      li {
+        font-size: $fs-sm;
+        color: $cd-text-primary;
+        margin-bottom: $space-2;
+        line-height: 1.5;
+      }
+    }
+  }
+
+  &__consentimiento-note {
+    font-style: italic;
+    font-size: $fs-xs;
+    color: $cd-text-muted;
+  }
+
+  // ---- Footer ----
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: $space-4;
+    border-top: 1px solid $cd-border;
+  }
+
+  &__footer-right {
+    display: flex;
+    gap: $space-3;
+  }
+
+  &__error {
+    background: $cd-error-light;
+    color: $cd-error;
+    padding: $space-3 $space-4;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    margin-top: $space-4;
+  }
+
+  // ---- Buttons ----
+  &__btn {
+    @include flex-center;
+    gap: $space-2;
+    padding: $space-2 $space-4;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &--primary {
+      background: $cd-accent;
+      color: $cd-text-inverse;
+      &:hover { background: $cd-accent-hover; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    &--secondary {
+      background: $cd-surface;
+      color: $cd-text-primary;
+      &:hover { background: $cd-card-hover; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+  }
+
+  &__spinner {
+    animation: cd-spin 1s linear infinite;
+  }
+
+  // ---- Success screen ----
+  &__success {
+    text-align: center;
+    padding: $space-10 $space-4;
+
+    h3 {
+      margin: $space-4 0 $space-2;
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $cd-text-primary;
+    }
+
+    p {
+      font-size: $fs-sm;
+      color: $cd-text-secondary;
+      margin: 0 0 $space-6;
+    }
+  }
+
+  &__success-icon {
+    @include flex-center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: $cd-success-light;
+    color: $cd-success;
+    margin: 0 auto;
+  }
+
+  &__success-actions {
+    display: flex;
+    gap: $space-3;
+    justify-content: center;
+  }
+}
+
+// ===================== Import Panel =====================
+
+.import-panel {
+  &__file-input {
+    display: none;
+  }
+
+  &__upload-zone {
+    border: 2px dashed $cd-border;
+    border-radius: $radius-lg;
+    padding: $space-8 $space-4;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: $space-4;
+
+    &:hover {
+      border-color: $cd-accent;
+      background: $cd-accent-light;
+    }
+  }
+
+  &__upload-placeholder {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-2;
+    color: $cd-text-secondary;
+
+    span { font-size: $fs-sm; }
+  }
+
+  &__upload-hint {
+    font-size: $fs-xs;
+    color: $cd-text-muted;
+  }
+
+  &__file-info {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-2;
+    color: $cd-text-primary;
+  }
+
+  &__file-name {
+    font-size: $fs-base;
+    font-weight: $fw-semibold;
+  }
+
+  &__file-size {
+    font-size: $fs-xs;
+    color: $cd-text-secondary;
+  }
+
+  &__file-detail {
+    @include flex-center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    background: $cd-surface;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    color: $cd-text-primary;
+    margin-bottom: $space-4;
+  }
+
+  // ---- Preview table ----
+  &__preview {
+    margin-bottom: $space-4;
+
+    h4 {
+      margin: 0 0 $space-2;
+      font-size: $fs-sm;
+      font-weight: $fw-semibold;
+      color: $cd-text-muted;
+    }
+  }
+
+  &__table-wrapper {
+    overflow-x: auto;
+    border: 1px solid $cd-border;
+    border-radius: $radius-md;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $fs-xs;
+
+    th, td {
+      padding: $space-2 $space-3;
+      text-align: left;
+      border-bottom: 1px solid $cd-border;
+      white-space: nowrap;
+    }
+
+    th {
+      background: $cd-surface;
+      font-weight: $fw-semibold;
+      color: $cd-text-secondary;
+      position: sticky;
+      top: 0;
+    }
+
+    td {
+      color: $cd-text-primary;
+    }
+
+    tbody tr:hover {
+      background: $cd-surface;
+    }
+  }
+
+  // ---- Result ----
+  &__result {
+    @include flex-center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    margin-bottom: $space-4;
+
+    &--success {
+      background: $cd-success-light;
+      color: #166534;
+    }
+
+    &--error {
+      background: $cd-error-light;
+      color: #991b1b;
+    }
+  }
+
+  // ---- Actions ----
+  &__actions {
+    display: flex;
+    gap: $space-3;
+    justify-content: flex-end;
+    margin-bottom: $space-6;
+  }
+
+  &__btn {
+    @include flex-center;
+    gap: $space-2;
+    padding: $space-2 $space-4;
+    border: none;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &--primary {
+      background: $cd-accent;
+      color: $cd-text-inverse;
+      &:hover { background: $cd-accent-hover; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    &--secondary {
+      background: $cd-surface;
+      color: $cd-text-primary;
+      &:hover { background: $cd-card-hover; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+  }
+
+  &__spinner {
+    animation: cd-spin 1s linear infinite;
+  }
+
+  // ---- Format help ----
+  &__format-help {
+    background: $cd-surface;
+    border-radius: $radius-md;
+    padding: $space-4;
+
+    h4 {
+      margin: 0 0 $space-2;
+      font-size: $fs-sm;
+      font-weight: $fw-semibold;
+      color: $cd-text-primary;
+    }
+
+    p {
+      margin: 0 0 $space-3;
+      font-size: $fs-xs;
+      color: $cd-text-secondary;
+      line-height: 1.5;
+    }
+  }
+
+  &__columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin-bottom: $space-3;
+  }
+
+  &__col {
+    padding: $space-1 $space-2;
+    background: $cd-surface;
+    border: 1px solid $cd-border;
+    border-radius: $radius-sm;
+    font-size: $fs-xs;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    color: $cd-text-primary;
+
+    &--required {
+      border-color: $cd-accent;
+      background: $cd-accent-light;
+      color: $cd-accent;
+      font-weight: $fw-semibold;
+    }
+  }
+
+  &__format-note {
+    font-style: italic;
+    color: $cd-text-muted;
+  }
+}
+
+@keyframes cd-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -142,7 +142,7 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
 
       {/* ── Ficha del Paciente ── */}
       <div className="workspace-card">
-        <h3 className="workspace-card__title"><User size={16} /> Ficha del Paciente</h3>
+        <h3 className="workspace-card__title"><User size={16} /> Ficha del Cliente</h3>
         <div className="rsum__grid">
           {fichaFields.map((f) => (
             <div key={f.label} className="rsum__field">

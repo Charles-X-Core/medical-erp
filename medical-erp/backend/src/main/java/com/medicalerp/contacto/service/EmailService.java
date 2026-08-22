@@ -226,7 +226,7 @@ public class EmailService {
      * Notificación de cita al doctora
      */
     @Async
-    public void sendCitaNotificacionDoctora(String toEmail, String doctoraNombre, String pacienteNombre, String fecha, String hora, String tipoCita, String motivo, String enfermeraNombre) {
+    public void sendCitaNotificacionDoctora(String toEmail, String doctoraNombre, String pacienteNombre, String fecha, String hora, String tipoCita, String motivo, String nombreUsuario) {
         try {
             if (mailSender == null) {
                 log.warn("JavaMailSender not configured, skipping email to {}", toEmail);
@@ -245,7 +245,7 @@ public class EmailService {
                         <h1 style="color: white; margin: 0;">Nueva Cita Agendada</h1>
                     </div>
                     <div style="background: #f8fafc; padding: 24px;">
-                        <p>La enfermera <strong>%s</strong> ha agendado una cita:</p>
+                        <p>Se ha agendado una cita:</p>
                         <div style="background: white; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #8B5CF6;">
                             <p><strong>Paciente:</strong> %s</p>
                             <p><strong>Fecha:</strong> %s</p>
@@ -256,7 +256,7 @@ public class EmailService {
                         <p style="color: #64748B; font-size: 12px;">Optimal Health NOW - Medical ERP</p>
                     </div>
                 </div>
-                """.formatted(enfermeraNombre, pacienteNombre, fecha, hora, tipoCita, motivo);
+                """.formatted(pacienteNombre, fecha, hora, tipoCita, motivo);
             helper.setText(html, true);
             mailSender.send(message);
             log.info("Email de notificación enviado a doctora {}", toEmail);

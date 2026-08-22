@@ -24,32 +24,32 @@ public class HistoriaClinicaController {
     private final HistoriaClinicaService historiaService;
 
     @PostMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<HistoriaClinicaResponse>> create(@Valid @RequestBody HistoriaClinicaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(historiaService.create(request), "Historia clínica creada exitosamente"));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<HistoriaClinicaResponse>>> listar(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(historiaService.listar(pageable)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<HistoriaClinicaResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(historiaService.getById(id)));
     }
 
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<HistoriaClinicaResponse>> getByPaciente(@PathVariable Long pacienteId) {
         return ResponseEntity.ok(ApiResponse.success(historiaService.getByPacienteId(pacienteId)));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<HistoriaClinicaResponse>> update(
             @PathVariable Long id,
             @Valid @RequestBody HistoriaClinicaRequest request) {
@@ -57,7 +57,7 @@ public class HistoriaClinicaController {
     }
 
     @PatchMapping("/{id}/antecedentes")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<HistoriaClinicaResponse>> updateAntecedentes(
             @PathVariable Long id,
             @RequestBody java.util.Map<String, String> antecedentes) {

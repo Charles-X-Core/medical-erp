@@ -37,13 +37,13 @@ public class SesionTratamientoController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<SesionTratamientoResponse>> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(sesionService.findById(id)));
     }
 
     @GetMapping("/tratamiento/{tratamientoId}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<SesionTratamientoResponse>>> porTratamiento(
             @PathVariable Long tratamientoId) {
         return ResponseEntity.ok(ApiResponse.success(sesionService.findByTratamientoId(tratamientoId)));

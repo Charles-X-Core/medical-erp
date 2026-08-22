@@ -175,7 +175,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
                       checked={quiereOtroTratamiento}
                       onChange={(e) => setQuiereOtroTratamiento(e.target.checked)}
                     />
-                    <span>El paciente desea iniciar otro tratamiento</span>
+                    <span>El cliente desea iniciar otro tratamiento</span>
                   </label>
                 </div>
               </div>
@@ -297,7 +297,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
               <label className="session-form__label">Evolución *</label>
               <textarea
                 className="session-form__textarea"
-                placeholder="Describa la evolución del paciente..."
+                placeholder="Describa la evolución del cliente..."
                 value={evolucion}
                 onChange={(e) => setEvolucion(e.target.value)}
               />

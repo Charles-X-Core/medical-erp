@@ -32,14 +32,14 @@ public class PacienteController {
     private final SecurityUtils securityUtils;
 
     @PostMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PacienteResponse>> create(@Valid @RequestBody PacienteRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(pacienteService.create(request), "Paciente creado exitosamente"));
     }
 
     @PostMapping("/full")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PacienteResponse>> createCompleto(
             @Valid @RequestBody PacienteCompletoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -47,13 +47,13 @@ public class PacienteController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<PacienteResponse>>> getAll(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(pacienteService.getAll(pageable)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PacienteResponse>> getById(
             @PathVariable Long id,
             HttpServletRequest httpRequest) {
@@ -71,7 +71,7 @@ public class PacienteController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PacienteResponse>> update(
             @PathVariable Long id,
             @Valid @RequestBody PacienteRequest request) {
@@ -79,7 +79,7 @@ public class PacienteController {
     }
 
     @PutMapping("/full/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PacienteResponse>> updateCompleto(
             @PathVariable Long id,
             @Valid @RequestBody PacienteCompletoRequest request) {
@@ -94,7 +94,7 @@ public class PacienteController {
     }
 
     @GetMapping("/buscar")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<PacienteResponse>>> search(
             @RequestParam String q,
             Pageable pageable) {
@@ -102,7 +102,7 @@ public class PacienteController {
     }
 
     @GetMapping("/estado/{estado}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<PacienteResponse>>> getByEstado(
             @PathVariable String estado,
             Pageable pageable) {
@@ -110,7 +110,7 @@ public class PacienteController {
     }
 
     @PostMapping("/intake")
-    @PreAuthorize("hasRole('ENFERMERA') or hasRole('DOCTORA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<IntakeResponse>> intake(
             @Valid @RequestBody IntakeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)

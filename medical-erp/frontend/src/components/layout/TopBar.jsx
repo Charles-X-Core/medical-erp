@@ -70,7 +70,7 @@ export default function TopBar() {
         <input
           type="text"
           className="topbar__search-input"
-          placeholder="Buscar paciente por nombre, ID o teléfono..."
+          placeholder="Buscar cliente por nombre, ID o teléfono..."
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -134,7 +134,7 @@ export default function TopBar() {
             </div>
           ) : (
             <div className="topbar__empty">
-              <p>No se encontraron pacientes con "{query}"</p>
+              <p>No se encontraron clientes con "{query}"</p>
             </div>
           )}
         </div>

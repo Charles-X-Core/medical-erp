@@ -104,7 +104,7 @@ export default function FirmaPage() {
         <div className="firma-page__card">
           <AlertTriangle size={48} />
           <h2>Enlace invalido</h2>
-          <p>No se encontro el paciente asociado a este enlace.</p>
+          <p>No se encontro el cliente asociado a este enlace.</p>
         </div>
       </div>
     );

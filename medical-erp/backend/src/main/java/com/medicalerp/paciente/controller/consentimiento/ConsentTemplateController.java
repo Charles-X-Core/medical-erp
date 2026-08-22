@@ -25,13 +25,13 @@ public class ConsentTemplateController {
     private final ConsentTemplateService templateService;
 
     @GetMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<ConsentTemplateResponse>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success(templateService.getByClinica()));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ConsentTemplateResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(templateService.getById(id)));
     }
@@ -62,7 +62,7 @@ public class ConsentTemplateController {
     }
 
     @GetMapping("/{id}/archivo")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<Resource> downloadTemplate(@PathVariable Long id) {
         try {
             Path filePath = templateService.getTemplateFilePath(id);

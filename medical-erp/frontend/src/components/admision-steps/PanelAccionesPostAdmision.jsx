@@ -28,15 +28,15 @@ export default function PanelAccionesPostAdmision({ paciente, onAgendarCita, onE
             <Send size={28} />
           </div>
           <span className="post-admision__card-label">Enviar Contrato</span>
-          <span className="post-admision__card-desc">Enviar enlace de firma al paciente</span>
+          <span className="post-admision__card-desc">Enviar enlace de firma al cliente</span>
         </button>
 
         <button className="post-admision__card" onClick={onVerPaciente}>
           <div className="post-admision__card-icon post-admision__card-icon--orange">
             <Eye size={28} />
           </div>
-          <span className="post-admision__card-label">Ver Paciente</span>
-          <span className="post-admision__card-desc">Abrir centro del paciente</span>
+          <span className="post-admision__card-label">Ver Cliente</span>
+          <span className="post-admision__card-desc">Abrir centro del cliente</span>
         </button>
       </div>
 

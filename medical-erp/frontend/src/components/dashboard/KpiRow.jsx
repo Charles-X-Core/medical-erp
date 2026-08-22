@@ -45,7 +45,7 @@ export default function KpiRow({ stats, citasHoy, tratamientos, alertas, pacient
     },
     {
       icon: Users,
-      label: 'Pacientes nuevos (7d)',
+      label: 'Clientes nuevos (7d)',
       value: pacientesNuevos7d ?? 0,
       hint: 'última semana',
       tone: 'purple',

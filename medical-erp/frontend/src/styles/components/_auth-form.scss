@@ -26,6 +26,13 @@
     gap: $space-3;
   }
 
+  &__logo {
+    width: 64px;
+    height: 64px;
+    border-radius: $radius-lg;
+    object-fit: contain;
+  }
+
   &__icon {
     color: $accent-primary;
   }

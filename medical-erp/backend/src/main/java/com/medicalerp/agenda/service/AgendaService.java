@@ -172,13 +172,22 @@ public class AgendaService {
     @Transactional
     @Auditable
     public TipoCitaResponse createTipoCita(TipoCitaRequest request) {
-        Long currentUserId = securityUtils.getCurrentUserId();
-        boolean exists = tipoCitaRepository.existsByNombreForUser(request.getNombre(), currentUserId);
-        if (exists) {
+        // Check global uniqueness (DB constraint is global on nombre)
+        boolean existsGlobal = tipoCitaRepository.existsByNombre(request.getNombre());
+        if (existsGlobal) {
             throw new DuplicateResourceException("nombre", request.getNombre());
         }
 
         TipoCita tipoCita = tipoCitaMapper.toEntity(request);
+        // Ensure NOT NULL fields have defaults (DB columns are NOT NULL with defaults)
+        if (tipoCita.getBufferMinutos() == null) tipoCita.setBufferMinutos(0);
+        if (tipoCita.getRequiereTratamiento() == null) tipoCita.setRequiereTratamiento(false);
+        if (tipoCita.getPrioridadDefault() == null) tipoCita.setPrioridadDefault("NORMAL");
+        if (tipoCita.getNombre() != null && tipoCita.getNombre().length() > 100) {
+            tipoCita.setNombre(tipoCita.getNombre().substring(0, 100));
+        }
+
+        Long currentUserId = securityUtils.getCurrentUserId();
         // Asignar usuario actual si es doctora
         if (currentUserId != null && securityUtils.hasRole("DOCTORA")) {
             Usuario usuario = usuarioRepository.findById(currentUserId).orElse(null);
@@ -235,7 +244,9 @@ public class AgendaService {
 
     private void validateDisponibilidad(DisponibilidadRequest dr) {
         if (!dr.getHoraFin().isAfter(dr.getHoraInicio())) {
-            throw new BusinessRuleException("VR-AGE-001", "La hora de fin debe ser posterior a la hora de inicio");
+            throw new BusinessRuleException("VR-AGE-001",
+                    String.format("Día %d: la hora fin (%s) debe ser posterior a la hora de inicio (%s)",
+                            dr.getDiaSemana(), dr.getHoraFin(), dr.getHoraInicio()));
         }
     }
 
@@ -246,7 +257,10 @@ public class AgendaService {
                 DisponibilidadRequest d2 = disponibilidades.get(j);
                 if (d1.getDiaSemana().equals(d2.getDiaSemana())) {
                     if (d1.getHoraInicio().isBefore(d2.getHoraFin()) && d2.getHoraInicio().isBefore(d1.getHoraFin())) {
-                        throw new BusinessRuleException("VR-AGE-002", "Las disponibilidades no pueden superponerse en el mismo día");
+                        throw new BusinessRuleException("VR-AGE-002",
+                                String.format("Día %d: los horarios %s-%s y %s-%s se superponen",
+                                        d1.getDiaSemana(), d1.getHoraInicio(), d1.getHoraFin(),
+                                        d2.getHoraInicio(), d2.getHoraFin()));
                     }
                 }
             }

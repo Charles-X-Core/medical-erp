@@ -45,20 +45,20 @@ public class TratamientoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<TratamientoResponse>>> listar(Pageable pageable) {
         Long clinicaId = securityUtils.getCurrentClinicaId();
         return ResponseEntity.ok(ApiResponse.success(tratamientoService.getAll(clinicaId, pageable)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<TratamientoResponse>> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(tratamientoService.getById(id)));
     }
 
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<TratamientoResponse>>> porPaciente(
             @PathVariable Long pacienteId, Pageable pageable) {
         Long clinicaId = securityUtils.getCurrentClinicaId();
@@ -67,7 +67,7 @@ public class TratamientoController {
     }
 
     @GetMapping("/estado/{estado}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<TratamientoResponse>>> porEstado(
             @PathVariable EstadoTratamiento estado, Pageable pageable) {
         Long clinicaId = securityUtils.getCurrentClinicaId();
@@ -76,14 +76,14 @@ public class TratamientoController {
     }
 
     @GetMapping("/activos")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<TratamientoResponse>>> activos() {
         Long clinicaId = securityUtils.getCurrentClinicaId();
         return ResponseEntity.ok(ApiResponse.success(tratamientoService.getActivos(clinicaId)));
     }
 
     @GetMapping("/buscar")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<TratamientoResponse>>> buscar(
             @RequestParam String q, Pageable pageable) {
         Long clinicaId = securityUtils.getCurrentClinicaId();
@@ -173,7 +173,7 @@ public class TratamientoController {
     }
 
     @GetMapping("/{id}/protocolo")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProtocoloClinicoResponse>> obtenerProtocolo(@PathVariable Long id) {
         var protocolo = protocoloService.findByTratamientoId(id);
         return ResponseEntity.ok(ApiResponse.success(protocoloService.toResponse(protocolo)));
@@ -190,20 +190,20 @@ public class TratamientoController {
     }
 
     @PostMapping("/{id}/sugerir-proxima-cita")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<SugerenciaCitaResponse>> sugerirProximaCita(@PathVariable Long id) {
         SugerenciaCitaResponse sugerencia = sugerenciaCitaService.sugerir(id);
         return ResponseEntity.ok(ApiResponse.success(sugerencia));
     }
 
     @GetMapping("/{id}/historial/clinico")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<HistorialClinicoResponse>>> historialClinico(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(historialClinicoService.findByTratamientoId(id)));
     }
 
     @GetMapping("/{id}/historial/administrativo")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<HistorialAdministrativoResponse>>> historialAdministrativo(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(historialAdminService.findByTratamientoId(id)));
     }

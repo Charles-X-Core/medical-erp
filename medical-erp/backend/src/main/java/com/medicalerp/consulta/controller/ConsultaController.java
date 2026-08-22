@@ -33,13 +33,13 @@ public class ConsultaController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ConsultaResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(consultaService.getById(id)));
     }
 
     @GetMapping("/historia/{historiaId}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<ConsultaResponse>>> getByHistoria(
             @PathVariable Long historiaId,
             Pageable pageable) {
@@ -47,7 +47,7 @@ public class ConsultaController {
     }
 
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasRole('DOCTORA') or hasRole('ENFERMERA') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<ConsultaResponse>>> getByPacienteId(@PathVariable Long pacienteId) {
         return ResponseEntity.ok(ApiResponse.success(consultaService.getByPacienteId(pacienteId)));
     }

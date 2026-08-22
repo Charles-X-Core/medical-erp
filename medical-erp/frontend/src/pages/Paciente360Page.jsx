@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Loader2, User, FileText, Activity, Shield, Image, Clock } from 'lucide-react';
+import { Loader2, User, FileText, Activity, Shield, Image, Clock, Calendar } from 'lucide-react';
 import { pacienteService } from '../services/pacienteService';
 import { historiaClinicaService } from '../services/historiaClinicaService';
 import PacienteFormModal from '../components/paciente360/PacienteFormModal';
@@ -13,6 +13,7 @@ import TabTratamientos from '../components/paciente360/TabTratamientos';
 import TabConsentimientos from '../components/paciente360/TabConsentimientos';
 import TabArchivos from '../components/paciente360/TabArchivos';
 import TabTimeline from '../components/paciente360/TabTimeline';
+import CitaSchedulerModal from '../components/agenda/CitaSchedulerModal';
 
 const TABS = [
   { id: 'general', label: 'Resumen', icon: User },
@@ -33,6 +34,7 @@ export default function Paciente360Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showScheduler, setShowScheduler] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -62,7 +64,7 @@ export default function Paciente360Page() {
       <div className="workspace">
         <div className="workspace__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando workspace del paciente...</p>
+          <p>Cargando workspace del cliente...</p>
         </div>
       </div>
     );
@@ -71,7 +73,7 @@ export default function Paciente360Page() {
   if (!paciente) {
     return (
       <div className="workspace">
-        <div className="workspace__error">{error || 'Paciente no encontrado'}</div>
+        <div className="workspace__error">{error || 'Cliente no encontrado'}</div>
       </div>
     );
   }
@@ -83,6 +85,11 @@ export default function Paciente360Page() {
         paciente={paciente}
         onEdit={() => navigate('/pacientes')}
         onMoreActions={() => setShowEditModal(true)}
+        extraActions={
+          <button className="btn btn--primary btn--sm" onClick={() => setShowScheduler(true)}>
+            <Calendar size={16} /> Agendar Cita
+          </button>
+        }
       />
 
       {/* 3-Column Body */}
@@ -122,6 +129,13 @@ export default function Paciente360Page() {
         onClose={() => setShowEditModal(false)}
         onSave={handleSaveEdit}
         pacienteId={id}
+      />
+
+      {/* Scheduler Modal */}
+      <CitaSchedulerModal
+        isOpen={showScheduler}
+        onClose={() => setShowScheduler(false)}
+        paciente={paciente}
       />
     </div>
   );

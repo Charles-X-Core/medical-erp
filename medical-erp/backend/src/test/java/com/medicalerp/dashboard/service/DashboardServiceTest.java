@@ -124,7 +124,7 @@ class DashboardServiceTest {
                 org.mockito.ArgumentMatchers.eq(CLINICA_ID), org.mockito.ArgumentMatchers.any()))
                 .thenReturn(3L);
 
-        DashboardResumenResponse resumen = dashboardService.obtenerResumen(CLINICA_ID);
+        DashboardResumenResponse resumen = dashboardService.obtenerResumen(CLINICA_ID, 1L, "ADMIN");
 
         assertNotNull(resumen);
         assertEquals(CLINICA_ID, resumen.getClinicaId());
@@ -187,7 +187,7 @@ class DashboardServiceTest {
                 .build();
         when(protocoloClinicoRepository.findByTratamientoId(10L)).thenReturn(Optional.of(protocolo));
 
-        DashboardResumenResponse resumen = dashboardService.obtenerResumen(CLINICA_ID);
+        DashboardResumenResponse resumen = dashboardService.obtenerResumen(CLINICA_ID, 1L, "ADMIN");
 
         assertFalse(resumen.getAlertas().isEmpty());
         assertTrue(resumen.getAlertas().stream()
@@ -216,7 +216,7 @@ class DashboardServiceTest {
         when(tratamientoRepository.findActivosConLimiteAlcanzado(CLINICA_ID)).thenReturn(List.of());
         when(tratamientoRepository.findPendientesDeInicio(CLINICA_ID)).thenReturn(List.of());
 
-        DashboardResumenResponse resumen = dashboardService.obtenerResumen(CLINICA_ID);
+        DashboardResumenResponse resumen = dashboardService.obtenerResumen(CLINICA_ID, 1L, "ADMIN");
 
         assertNotNull(resumen);
         assertNull(resumen.getProximoPaciente());

@@ -96,7 +96,7 @@ export default function AgendaHoy() {
             const paciente = cita.paciente;
             const fullName = paciente
               ? `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`
-              : 'Paciente';
+              : 'Cliente';
 
             return (
               <button

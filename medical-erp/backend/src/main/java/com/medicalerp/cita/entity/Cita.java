@@ -73,6 +73,12 @@ public class Cita {
     @Column(name = "asistio_confirmed_at")
     private LocalDateTime asistioConfirmedAt;
 
+    @Column(name = "inicio_atencion")
+    private LocalDateTime inicioAtencion;
+
+    @Column(name = "fin_atencion")
+    private LocalDateTime finAtencion;
+
     @Column(name = "cancelado_at")
     private LocalDateTime canceladoAt;
 

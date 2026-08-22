@@ -4,13 +4,15 @@ import {
   Search, ArrowLeft, ArrowRight, CheckCircle, Save,
   User, Heart, Phone, Ruler, FileText, Send,
   ClipboardCheck, ClipboardList, Plus, ChevronLeft, ChevronRight,
-  Pencil, Trash2, AlertCircle, Loader2, Eye, Stethoscope
+  Pencil, Trash2, AlertCircle, Loader2, Eye, Stethoscope,
+  CalendarClock, ArrowUpDown
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { getPrimaryRole } from '../utils/roleUtils';
 import { pacienteService } from '../services/pacienteService';
 import { membresiaService } from '../services/membresiaService';
 import { tareaService } from '../services/tareaService';
+import agendaService from '../services/agendaService';
 import PacienteFormModal from '../components/paciente360/PacienteFormModal';
 import PasoIdentificacion from '../components/admision-steps/PasoIdentificacion';
 import PasoDatos from '../components/admision-steps/PasoDatos';
@@ -46,12 +48,16 @@ export default function AdmisionPage() {
 
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('');
+  const [sort, setSort] = useState('id,desc');
   const [pacientes, setPacientes] = useState([]);
+  const [allPacientes, setAllPacientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [citasHoyIds, setCitasHoyIds] = useState(new Set());
+  const [showCitasHoy, setShowCitasHoy] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [editingPacienteId, setEditingPacienteId] = useState(null);
@@ -77,24 +83,45 @@ export default function AdmisionPage() {
       if (query.trim()) {
         res = await pacienteService.search(query.trim());
       } else {
-        res = await pacienteService.list({ page, size: 10, sort: 'id,desc' });
+        res = await pacienteService.list({ page, size: 100, sort });
       }
       if (res.success) {
         const content = res.data?.content || res.data || [];
+        setAllPacientes(content);
         setPacientes(content);
         setTotalPages(res.data?.totalPages || 1);
         setTotalElements(res.data?.totalElements || content.length);
       } else {
-        setError(res.message || 'Error al cargar pacientes');
+        setError(res.message || 'Error al cargar clientes');
       }
     } catch (err) {
-      setError(err.message || 'Error al cargar pacientes');
+      setError(err.message || 'Error al cargar clientes');
     } finally {
       setLoading(false);
     }
-  }, [page, query]);
+  }, [page, query, sort]);
 
-  useEffect(() => { if (view === 'list') loadPacientes(); }, [loadPacientes, view]);
+  useEffect(() => { if (view === 'list' && !showCitasHoy) loadPacientes(); }, [loadPacientes, view, showCitasHoy]);
+
+  useEffect(() => {
+    if (!showCitasHoy || view !== 'list') return;
+    const filtered = allPacientes.filter(p => citasHoyIds.has(p.id));
+    setPacientes(filtered);
+    setTotalElements(filtered.length);
+    setTotalPages(1);
+  }, [showCitasHoy, citasHoyIds, allPacientes, view]);
+
+  useEffect(() => {
+    const loadCitasHoy = async () => {
+      try {
+        const res = await agendaService.getCitasHoy();
+        const citas = res?.data || res?.content || (Array.isArray(res) ? res : []);
+        const ids = new Set(citas.map(c => c.pacienteId).filter(Boolean));
+        setCitasHoyIds(ids);
+      } catch { setCitasHoyIds(new Set()); }
+    };
+    loadCitasHoy();
+  }, []);
 
   useEffect(() => {
     const pid = searchParams.get('pacienteId');
@@ -180,7 +207,7 @@ export default function AdmisionPage() {
           pacienteId: selectedPatient.id,
           tipo: 'FIRMAR_DOCUMENTO',
           titulo: `Firma pendiente: ${formData.nombres} ${formData.apellidoPaterno}`,
-          descripcion: `El paciente ${formData.nombres} ${formData.apellidoPaterno} necesita firmar el contrato de membresia.`,
+          descripcion: `El cliente ${formData.nombres} ${formData.apellidoPaterno} necesita firmar el contrato de membresia.`,
         }).catch(() => {});
       }
       setSaved(true);
@@ -203,12 +230,12 @@ export default function AdmisionPage() {
   };
 
   const handleDelete = async (id, nombre) => {
-    if (!confirm(`¿Eliminar paciente ${nombre}?`)) return;
+    if (!confirm(`¿Eliminar cliente ${nombre}?`)) return;
     try {
       await pacienteService.delete(id);
       loadPacientes();
     } catch (err) {
-      setError(err.message || 'Error al eliminar paciente');
+      setError(err.message || 'Error al eliminar cliente');
     }
   };
 
@@ -347,12 +374,12 @@ export default function AdmisionPage() {
           <div>
             <h2 className="admision-page__title">Admision</h2>
             <p className="admision-page__subtitle">
-              {totalElements} {totalElements === 1 ? 'paciente registrado' : 'pacientes registrados'}
+              {totalElements} {totalElements === 1 ? 'cliente registrado' : 'clientes registrados'}
             </p>
           </div>
         </div>
         <button className="admision-page__btn-create" onClick={() => handleOpenModal()}>
-          <Plus size={18} /> Nuevo Paciente
+          <Plus size={18} /> Nuevo Cliente
         </button>
       </div>
 
@@ -375,6 +402,30 @@ export default function AdmisionPage() {
         )}
       </form>
 
+      <div className="admision-page__filters">
+        <ArrowUpDown size={14} className="admision-page__filters-label" />
+        {[
+          { value: 'id,desc', label: 'Recientes' },
+          { value: 'nombres,asc', label: 'A → Z' },
+          { value: 'nombres,desc', label: 'Z → A' },
+          { value: 'id,asc', label: 'Mas antiguos' },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            className={`admision-page__filter-pill ${!showCitasHoy && sort === opt.value ? 'admision-page__filter-pill--active' : ''}`}
+            onClick={() => { setSort(opt.value); setPage(0); setShowCitasHoy(false); }}
+          >
+            {opt.label}
+          </button>
+        ))}
+        <button
+          className={`admision-page__filter-pill ${showCitasHoy ? 'admision-page__filter-pill--active admision-page__filter-pill--cita-hoy' : ''}`}
+          onClick={() => { setShowCitasHoy(prev => !prev); setPage(0); }}
+        >
+          <CalendarClock size={14} /> Citas Hoy
+        </button>
+      </div>
+
       {error && (
         <div className="admision-page__error"><AlertCircle size={18} /> {error}</div>
       )}
@@ -383,14 +434,14 @@ export default function AdmisionPage() {
         {loading ? (
           <div className="admision-page__loading">
             <Loader2 size={32} className="spinner" />
-            <p>Cargando pacientes...</p>
+            <p>Cargando clientes...</p>
           </div>
         ) : pacientes.length === 0 ? (
           <div className="admision-page__empty">
             <ClipboardCheck size={48} />
-            <p>No hay pacientes registrados</p>
+            <p>No hay clientes registrados</p>
             <button className="admision-page__btn-create" onClick={() => handleOpenModal()}>
-              <Plus size={18} /> Registrar primer paciente
+              <Plus size={18} /> Registrar primer cliente
             </button>
           </div>
         ) : (
@@ -400,7 +451,7 @@ export default function AdmisionPage() {
                 <tr>
                   <th>ID</th>
                   <th>Nombre</th>
-                  <th>ID Paciente</th>
+                  <th>ID Cliente</th>
                   <th>Telefono</th>
                   <th>Email</th>
                   <th>Estado</th>
@@ -421,9 +472,16 @@ export default function AdmisionPage() {
                     <td>{p.telefono || '-'}</td>
                     <td>{p.email || '-'}</td>
                     <td>
-                      <span className={`admision-page__estado ${getEstadoClass(p.estado)}`}>
-                        {p.estado || 'activo'}
-                      </span>
+                      <div className="admision-page__estado">
+                        {citasHoyIds.has(p.id) && (
+                          <span className="admision-page__cita-hoy">
+                            <CalendarClock size={12} /> Cita hoy
+                          </span>
+                        )}
+                        <span className={`admision-page__estado-row ${getEstadoClass(p.estado)}`}>
+                          {p.estado || 'activo'}
+                        </span>
+                      </div>
                     </td>
                     <td className="admision-page__td-actions">
                       {isEnfermera ? (
@@ -432,23 +490,23 @@ export default function AdmisionPage() {
                           title="Iniciar admision"
                           onClick={() => startWizard(p)}
                         >
-                          <Stethoscope size={16} />
+                          <Stethoscope size={18} />
                         </button>
                       ) : (
                         <>
                           <button
                             className="admision-page__action"
-                            title="Centro del paciente"
+                            title="Centro del cliente"
                             onClick={() => navigate(`/pacientes/${p.id}/workspace`)}
                           >
-                            <Eye size={16} />
+                            <Eye size={18} />
                           </button>
                           <button
                             className="admision-page__action"
                             title="Detalle"
                             onClick={() => navigate(`/pacientes/${p.id}/detalle`)}
                           >
-                            <ClipboardList size={16} />
+                            <ClipboardList size={18} />
                           </button>
                         </>
                       )}
@@ -457,7 +515,7 @@ export default function AdmisionPage() {
                         title="Editar"
                         onClick={() => handleOpenModal(p.id)}
                       >
-                        <Pencil size={16} />
+                        <Pencil size={18} />
                       </button>
                       {!isEnfermera && (
                         <button
@@ -465,7 +523,7 @@ export default function AdmisionPage() {
                           title="Eliminar"
                           onClick={() => handleDelete(p.id, `${p.nombres} ${p.apellidoPaterno}`)}
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={18} />
                         </button>
                       )}
                     </td>

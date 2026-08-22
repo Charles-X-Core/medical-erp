@@ -273,7 +273,7 @@ export default function ContratoPWA() {
           <div className="contrato-pwa__kiosco-header">
             <FileText size={40} className="contrato-pwa__icon" />
             <h2>Esperando contrato...</h2>
-            <p>El contrato aparecera automaticamente cuando la enfermera lo envie</p>
+            <p>El contrato aparecera automaticamente cuando se genere</p>
           </div>
           <div className="contrato-pwa__kiosco-spinner">
             <div className="contrato-pwa__spinner" />
@@ -344,7 +344,7 @@ export default function ContratoPWA() {
         <div className="contrato-pwa__exito">
           <CheckCircle size={80} className="contrato-pwa__exito-icon" />
           <h2>Este contrato ya fue firmado</h2>
-          <p>El paciente ya ha completado la firma de este contrato.</p>
+          <p>El cliente ya ha completado la firma de este contrato.</p>
           <button className="contrato-pwa__btn-primary" onClick={() => setStep('kiosco')}>
             Volver al kiosco
           </button>

@@ -58,9 +58,9 @@ public class CitaService {
     private final NotificacionService notificacionService;
     private final SecurityUtils securityUtils;
 
-    private static final List<String> ESTADOS_FINALES = Arrays.asList("cancelada", "completada");
-    private static final List<String> ESTADOS_MODIFICABLES = Arrays.asList("pendiente", "confirmada", "asistio", "solicitada");
-    private static final List<String> ESTADOS_ACTIVOS = Arrays.asList("solicitada", "pendiente", "confirmada", "asistio");
+    private static final List<String> ESTADOS_FINALES = Arrays.asList("cancelada", "completada", "no_show");
+    private static final List<String> ESTADOS_MODIFICABLES = Arrays.asList("pendiente", "programada", "confirmada", "asistio", "llegada", "en_atencion", "solicitada", "reprogramada");
+    private static final List<String> ESTADOS_ACTIVOS = Arrays.asList("solicitada", "pendiente", "programada", "confirmada", "asistio", "llegada", "en_atencion");
 
     @Transactional
     @Auditable
@@ -135,78 +135,6 @@ public class CitaService {
             notifyCitaCreated(saved, paciente, usuario);
         } catch (Exception e) {
             log.error("Error sending cita notifications: {}", e.getMessage());
-        }
-
-        return citaMapper.toResponse(saved);
-    }
-
-    @Transactional
-    @Auditable
-    public CitaResponse createSolicitada(CitaRequest request) {
-        if (request.getHora() != null) {
-            validateFechaNoPasada(request.getFecha(), request.getHora());
-        }
-
-        Paciente paciente = pacienteRepository.findById(request.getPacienteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", request.getPacienteId()));
-
-        Usuario usuario = null;
-        if (request.getUsuarioId() != null) {
-            usuario = usuarioRepository.findById(request.getUsuarioId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuario", request.getUsuarioId()));
-        }
-
-        Integer duracion = request.getDuracionMinutos() != null ? request.getDuracionMinutos() : 30;
-
-        // Only validate availability if hora is provided (nurse will assign hora later)
-        if (usuario != null && request.getHora() != null) {
-            validarDisponibilidad(usuario.getId(), request.getFecha(), request.getHora(), duracion);
-        }
-
-        Cita cita = citaMapper.toEntity(request);
-        cita.setPaciente(paciente);
-        cita.setUsuario(usuario);
-        cita.setDuracionMinutos(duracion);
-        cita.setEstado("solicitada");
-
-        // Ensure motivo has a value
-        if (cita.getMotivo() == null || cita.getMotivo().isBlank()) {
-            TipoCita tipoCitaDefault = request.getTipoCitaId() != null
-                    ? tipoCitaRepository.findById(request.getTipoCitaId()).orElse(null)
-                    : null;
-            cita.setMotivo(tipoCitaDefault != null ? tipoCitaDefault.getNombre() : "Consulta");
-        }
-
-        // Set solicitadaPor from current user (the doctora)
-        Long currentUserId = securityUtils.getCurrentUserId();
-        if (currentUserId != null) {
-            Usuario solicitante = usuarioRepository.findById(currentUserId).orElse(null);
-            cita.setSolicitadaPor(solicitante);
-        }
-
-        if (request.getFecha() != null && request.getHora() != null) {
-            cita.setFechaHora(request.getFecha().atTime(request.getHora()));
-        } else if (request.getFecha() != null) {
-            cita.setFechaHora(request.getFecha().atStartOfDay());
-        }
-
-        if (cita.getPrioridad() == null && request.getTipoCitaId() != null) {
-            TipoCita tipoCita = tipoCitaRepository.findById(request.getTipoCitaId()).orElse(null);
-            if (tipoCita != null) {
-                cita.setPrioridad(tipoCita.getPrioridadDefault());
-            }
-        }
-
-        if (cita.getPrioridad() == null) {
-            cita.setPrioridad("NORMAL");
-        }
-
-        Cita saved = citaRepository.save(cita);
-
-        try {
-            notifySolicitadaCreated(saved, paciente, usuario);
-        } catch (Exception e) {
-            log.error("Error sending solicitud notifications: {}", e.getMessage());
         }
 
         return citaMapper.toResponse(saved);
@@ -350,6 +278,18 @@ public class CitaService {
                 .toList();
     }
 
+    public List<CitaResponse> getSolicitadasByDoctora() {
+        Long currentUserId = securityUtils.getCurrentUserId();
+        if (currentUserId == null) return java.util.List.of();
+
+        return citaRepository.findByEstado("solicitada", Pageable.unpaged())
+                .getContent()
+                .stream()
+                .filter(c -> c.getSolicitadaPor() != null && c.getSolicitadaPor().getId().equals(currentUserId))
+                .map(citaMapper::toResponse)
+                .toList();
+    }
+
     /**
      * Verifica si extender una cita afecta a la siguiente cita del mismo doctor.
      */
@@ -415,6 +355,163 @@ public class CitaService {
 
     @Transactional
     @Auditable
+    public CitaResponse iniciarAtencion(Long id) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita", id));
+
+        String estado = cita.getEstado();
+        if (!"confirmada".equals(estado) && !"asistio".equals(estado) && !"llegada".equals(estado) && !"pendiente".equals(estado)) {
+            throw new BusinessRuleException("BR-CIT-EN-001",
+                    "Solo se puede iniciar atención en citas confirmadas, pendientes o con asistencia registrada");
+        }
+
+        cita.setEstado("en_atencion");
+        cita.setInicioAtencion(LocalDateTime.now());
+        Cita saved = citaRepository.save(cita);
+        return citaMapper.toResponse(saved);
+    }
+
+    @Transactional
+    @Auditable
+    public CitaResponse completarCita(Long id) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita", id));
+
+        if (!"en_atencion".equals(cita.getEstado())) {
+            throw new BusinessRuleException("BR-CIT-EN-002",
+                    "Solo se puede completar una cita que esté en atención");
+        }
+
+        cita.setEstado("completada");
+        cita.setFinAtencion(LocalDateTime.now());
+        Cita saved = citaRepository.save(cita);
+        return citaMapper.toResponse(saved);
+    }
+
+    @Transactional
+    @Auditable
+    public java.util.Map<String, Object> extenderSesion(Long id, Integer minutosExtra) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita", id));
+
+        if (!"en_atencion".equals(cita.getEstado()) && !"confirmada".equals(cita.getEstado())) {
+            throw new BusinessRuleException("BR-CIT-EN-003",
+                    "Solo se pueden extender citas en atención o confirmadas");
+        }
+
+        int duracionAnterior = cita.getDuracionMinutos();
+        int nuevaDuracion = duracionAnterior + (minutosExtra != null ? minutosExtra : 0);
+        cita.setDuracionMinutos(nuevaDuracion);
+        citaRepository.save(cita);
+
+        // Find affected subsequent citations for same doctor on same date
+        java.util.List<java.util.Map<String, Object>> citasAfectadas = new java.util.ArrayList<>();
+        if (cita.getUsuario() != null && cita.getFecha() != null) {
+            LocalDateTime finNueva = cita.getFechaHora().plusMinutes(nuevaDuracion);
+
+            List<Cita> siguientes = citaRepository.findActivasByUsuarioAndFecha(
+                    cita.getUsuario().getId(), cita.getFecha())
+                    .stream()
+                    .filter(c -> !c.getId().equals(id))
+                    .filter(c -> c.getHora().isAfter(cita.getHora()))
+                    .sorted(java.util.Comparator.comparing(Cita::getHora))
+                    .toList();
+
+            for (Cita siguiente : siguientes) {
+                LocalDateTime inicioSiguiente = siguiente.getFechaHora();
+                if (finNueva.isAfter(inicioSiguiente)) {
+                    java.util.Map<String, Object> info = new java.util.HashMap<>();
+                    info.put("citaId", siguiente.getId());
+                    info.put("pacienteNombre", siguiente.getPaciente().getNombreCompleto());
+                    info.put("horaInicio", siguiente.getHora().toString().substring(0, 5));
+                    info.put("horaFin", siguiente.getHora().plusMinutes(siguiente.getDuracionMinutos()).toString().substring(0, 5));
+                    info.put("duracionMinutos", siguiente.getDuracionMinutos());
+                    info.put("nuevaHoraSugerida", finNueva.toLocalTime().toString().substring(0, 5));
+                    finNueva = finNueva.plusMinutes(siguiente.getDuracionMinutos());
+                    citasAfectadas.add(info);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        // Notify the assigned doctor if the citation was extended
+        try {
+            if (cita.getUsuario() != null) {
+                String doctoraNombre = cita.getUsuario() != null ? cita.getUsuario().getNombre() : "Doctora";
+                String pacienteNombre = cita.getPaciente().getNombreCompleto();
+
+                NotificacionRequest notif = NotificacionRequest.builder()
+                        .usuarioDestinoId(cita.getUsuario().getId())
+                        .tipo("SESION_EXTENDIDA")
+                        .titulo("Sesión extendida - " + doctoraNombre)
+                        .mensaje("La sesión con " + pacienteNombre + " se extendió "
+                                + minutosExtra + " min (" + duracionAnterior + "→" + nuevaDuracion + " min). "
+                                + (citasAfectadas.isEmpty() ? "" : citasAfectadas.size() + " cita(s) afectada(s)"))
+                        .referenciaTipo("CITA")
+                        .referenciaId(cita.getId())
+                        .build();
+                notificacionService.crear(notif);
+            }
+        } catch (Exception e) {
+            log.error("Error sending extension notification: {}", e.getMessage());
+        }
+
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("citaExtendida", citaMapper.toResponse(cita));
+        result.put("citasAfectadas", citasAfectadas);
+        return result;
+    }
+
+    @Transactional
+    @Auditable
+    public CitaResponse moverCita(Long id, LocalTime nuevaHora) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita", id));
+
+        if (ESTADOS_FINALES.contains(cita.getEstado())) {
+            throw new BusinessRuleException("INVALID_STATE",
+                    "No se puede mover una cita en estado " + cita.getEstado());
+        }
+
+        // Update fecha_hora with new time
+        LocalDateTime nuevaFechaHora = cita.getFecha().atTime(nuevaHora);
+
+        // Validate availability for new slot (exclude this citation)
+        if (cita.getUsuario() != null) {
+            LocalTime horaFin = nuevaHora.plusMinutes(cita.getDuracionMinutos());
+            boolean conflicto = citaRepository.countConflictingCita(
+                    cita.getUsuario().getId(), cita.getFecha(),
+                    nuevaHora, horaFin, cita.getId()) > 0;
+            if (conflicto) {
+                throw new BusinessRuleException("APPOINTMENT_CONFLICT",
+                        "Horario no disponible para el profesional");
+            }
+        }
+
+        cita.setFechaHora(nuevaFechaHora);
+        Cita saved = citaRepository.save(cita);
+        return citaMapper.toResponse(saved);
+    }
+
+    @Transactional
+    @Auditable
+    public CitaResponse marcarNoShow(Long id) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita", id));
+
+        if (ESTADOS_FINALES.contains(cita.getEstado())) {
+            throw new BusinessRuleException("INVALID_STATE",
+                    "No se puede marcar como no asistido una cita en estado " + cita.getEstado());
+        }
+
+        cita.setEstado("no_show");
+        Cita saved = citaRepository.save(cita);
+        return citaMapper.toResponse(saved);
+    }
+
+    @Transactional
+    @Auditable
     public CitaResponse completar(Long id, Long consultaId) {
         if (consultaId == null) {
             throw new BusinessRuleException("INV-CIT-005", "Una cita completada requiere una consulta vinculada");
@@ -423,7 +520,7 @@ public class CitaService {
         Cita cita = citaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cita", id));
 
-        if (!"asistio".equals(cita.getEstado())) {
+        if (!"asistio".equals(cita.getEstado()) && !"llegada".equals(cita.getEstado()) && !"en_atencion".equals(cita.getEstado())) {
             throw new BusinessRuleException("BR-CIT-003", "No se puede completar una cita que no esté asistida");
         }
 
@@ -443,9 +540,9 @@ public class CitaService {
             throw new BusinessRuleException("INVALID_STATE", "No se puede cancelar una cita completada");
         }
 
-        if (cita.getFecha().isBefore(LocalDate.now()) ||
-                (cita.getFecha().isEqual(LocalDate.now()) && cita.getHora().isBefore(LocalTime.now()))) {
-            throw new BusinessRuleException("PAST_APPOINTMENT", "No se puede cancelar una cita pasada");
+        // Block cancellation of citations from past days (allow today's past citations)
+        if (cita.getFecha().isBefore(LocalDate.now())) {
+            throw new BusinessRuleException("PAST_APPOINTMENT", "No se puede cancelar una cita de días anteriores");
         }
 
         cita.setEstado("cancelada");
@@ -533,49 +630,14 @@ public class CitaService {
     }
 
     /**
-     * Notifica a la doctora y al paciente cuando se crea una cita.
-     * Si la enfermera crea la cita → notifica a la doctora por email + notificación interna.
-     * Siempre envía email de confirmación al paciente.
+     * Notifica al paciente cuando se crea una cita.
+     * Envía email de confirmación al paciente.
      */
     private void notifyCitaCreated(Cita cita, Paciente paciente, Usuario doctora) {
         String fecha = cita.getFecha() != null ? cita.getFecha().toString() : "";
         String hora = cita.getHora() != null ? cita.getHora().toString().substring(0, 5) : "";
         String pacienteNombre = paciente.getNombreCompleto();
         String tipoCitaNombre = cita.getTipoCita() != null ? cita.getTipoCita().getNombre() : "Consulta";
-        String motivo = cita.getMotivo() != null ? cita.getMotivo() : "";
-
-        // Current user (could be nurse or doctora)
-        Long currentUserId = securityUtils.getCurrentUserId();
-        String currentUserName = "Sistema";
-        if (currentUserId != null) {
-            Usuario current = usuarioRepository.findById(currentUserId).orElse(null);
-            if (current != null) {
-            currentUserName = current.getNombre();
-        }
-        }
-
-        // Notify doctora if nurse created the citation
-        boolean isNurse = securityUtils.hasRole("ENFERMERA");
-        if (isNurse && doctora != null) {
-            String doctoraEmail = doctora.getEmail();
-            if (doctoraEmail != null) {
-                emailService.sendCitaNotificacionDoctora(
-                        doctoraEmail, doctora.getNombre(),
-                        pacienteNombre, fecha, hora, tipoCitaNombre, motivo, currentUserName);
-            }
-
-            // In-app notification
-            NotificacionRequest notif = NotificacionRequest.builder()
-                    .usuarioDestinoId(doctora.getId())
-                    .tipo("CITA_AGENDADA")
-                    .titulo("Nueva cita agendada")
-                    .mensaje("La enfermera " + currentUserName + " agendó una cita con " + pacienteNombre
-                            + " para el " + fecha + " a las " + hora + " (" + tipoCitaNombre + ")")
-                    .referenciaTipo("CITA")
-                    .referenciaId(cita.getId())
-                    .build();
-            notificacionService.crear(notif);
-        }
 
         // Email confirmation to patient
         String pacienteEmail = paciente.getEmail();
@@ -583,54 +645,6 @@ public class CitaService {
             emailService.sendCitaConfirmacionPaciente(
                     pacienteEmail, pacienteNombre, fecha, hora,
                     doctora.getNombre(), tipoCitaNombre);
-        }
-    }
-
-    /**
-     * Notifica a la enfermera cuando una doctora solicita una cita.
-     * Envía email + notificación in-app a todas las enfermeras activas.
-     */
-    private void notifySolicitadaCreated(Cita cita, Paciente paciente, Usuario doctora) {
-        String fecha = cita.getFecha() != null ? cita.getFecha().toString() : "";
-        String hora = cita.getHora() != null ? cita.getHora().toString().substring(0, 5) : "";
-        String pacienteNombre = paciente.getNombreCompleto();
-        String tipoCitaNombre = cita.getTipoCita() != null ? cita.getTipoCita().getNombre() : "Consulta";
-        String doctoraNombre = doctora != null ? doctora.getNombre() : "Doctora";
-
-        // Get all active nurses
-        List<Usuario> enfermeras = usuarioRepository.findAll().stream()
-                .filter(u -> u.hasRole("ENFERMERA"))
-                .toList();
-
-        for (Usuario enfermera : enfermeras) {
-            // Email notification
-            String email = enfermera.getEmail();
-            if (email != null) {
-                try {
-                    emailService.sendCitaNotificacionDoctora(
-                            email, enfermera.getNombre(),
-                            pacienteNombre, fecha, hora, tipoCitaNombre,
-                            "Solicitud de cita de la " + doctoraNombre, doctoraNombre);
-                } catch (Exception e) {
-                    log.error("Error sending email to nurse {}: {}", enfermera.getId(), e.getMessage());
-                }
-            }
-
-            // In-app notification
-            try {
-                NotificacionRequest notif = NotificacionRequest.builder()
-                        .usuarioDestinoId(enfermera.getId())
-                        .tipo("SOLICITUD_CITA")
-                        .titulo("Nueva solicitud de cita")
-                        .mensaje("La " + doctoraNombre + " solicita una cita con " + pacienteNombre
-                                + " para el " + fecha + " a las " + hora + " (" + tipoCitaNombre + ")")
-                        .referenciaTipo("CITA")
-                        .referenciaId(cita.getId())
-                        .build();
-                notificacionService.crear(notif);
-            } catch (Exception e) {
-                log.error("Error sending in-app notification to nurse {}: {}", enfermera.getId(), e.getMessage());
-            }
         }
     }
 
@@ -697,7 +711,8 @@ public class CitaService {
     private void validateFechaNoPasada(LocalDate fecha, LocalTime hora) {
         if (fecha == null || hora == null) return;
         LocalDateTime fechaHora = fecha.atTime(hora);
-        if (fechaHora.isBefore(LocalDateTime.now())) {
+        LocalDateTime ahora = LocalDateTime.now().withSecond(0).withNano(0);
+        if (fechaHora.isBefore(ahora)) {
             throw new BusinessRuleException("PAST_DATE", "No se pueden agendar citas en el pasado");
         }
     }
