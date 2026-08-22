@@ -233,14 +233,22 @@
   &__sheet {
     * { box-sizing: border-box; }
 
-    .header { text-align: center; margin-bottom: 20px; }
-    .header h1 { font-size: 20pt; margin: 0 0 4px; letter-spacing: 0.5px; }
-    .header h2 { font-size: 13pt; font-weight: normal; margin: 0 0 12px; font-style: italic; }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+    .header h1 { font-size: 20pt; margin: 0 0 4px; letter-spacing: 0.5px; background: transparent !important; }
+    .header h2 { font-size: 13pt; font-weight: normal; margin: 0 0 12px; font-style: italic; background: transparent !important; }
     .header h3 {
       font-size: 15pt;
       margin: 10px 0 20px;
       letter-spacing: 2px;
       padding: 6px 0;
+      border: none !important;
+      background: transparent !important;
+      background-color: transparent !important;
     }
 
     .intro { margin-bottom: 14px; text-align: justify; }

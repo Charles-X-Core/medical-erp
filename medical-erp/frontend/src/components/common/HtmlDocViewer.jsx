@@ -4,7 +4,10 @@ import { FileText, Maximize2, Minimize2, CheckCircle } from 'lucide-react';
 function extractBodyHtml(fullHtml) {
   if (!fullHtml) return '';
   const bodyMatch = fullHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  return bodyMatch ? bodyMatch[1] : fullHtml;
+  let html = bodyMatch ? bodyMatch[1] : fullHtml;
+  html = html.replace(/<style[\s\S]*?<\/style>/gi, '');
+  html = html.replace(/<head[\s\S]*?<\/head>/gi, '');
+  return html;
 }
 
 const HtmlDocViewer = forwardRef(function HtmlDocViewer({
