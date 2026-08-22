@@ -21,6 +21,7 @@ public class CitasHoyStatsDto {
     private long completadas;
     private long canceladas;
     private long reprogramadas;
+    private long noShow;
     private long esperando;
 
 }

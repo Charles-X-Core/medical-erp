@@ -83,8 +83,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
             @Param("fin") LocalDate fin);
 
     @Query("SELECT c FROM Cita c WHERE FUNCTION('DATE', c.fechaHora) = :fecha " +
-           "AND c.estado IN ('solicitada','pendiente','programada','confirmada','asistio') " +
-           "AND c.fechaHora < :cutoff")
-    List<Cita> findPasadasSinAccion(@Param("fecha") LocalDate fecha, @Param("cutoff") LocalDateTime cutoff);
+           "AND c.estado IN :estados")
+    List<Cita> findActivasByFecha(@Param("fecha") LocalDate fecha, @Param("estados") List<String> estados);
 
 }

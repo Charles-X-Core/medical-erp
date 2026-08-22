@@ -1,4 +1,4 @@
-import { CalendarCheck, Loader, Activity, AlertTriangle, Users } from 'lucide-react';
+import { CalendarCheck, Loader, Activity, AlertTriangle, Users, UserX } from 'lucide-react';
 
 function KpiCard({ icon: Icon, label, value, hint, tone }) {
   return (
@@ -50,6 +50,13 @@ export default function KpiRow({ stats, citasHoy, tratamientos, alertas, pacient
       hint: 'última semana',
       tone: 'purple',
     },
+    ...(citasHoy?.noShow > 0 ? [{
+      icon: UserX,
+      label: 'No asistieron',
+      value: citasHoy.noShow,
+      hint: 'hoy',
+      tone: 'red',
+    }] : []),
     {
       icon: AlertTriangle,
       label: 'Alertas clínicas',

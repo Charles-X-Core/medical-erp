@@ -275,6 +275,7 @@ public class DashboardService {
         long completadas = contarEstado(citasHoy, "completada");
         long canceladas = contarEstado(citasHoy, "cancelada");
         long reprogramadas = contarEstado(citasHoy, "reprogramada");
+        long noShow = contarEstado(citasHoy, "no_show");
         return CitasHoyStatsDto.builder()
                 .total(total)
                 .pendientes(pendientes)
@@ -283,6 +284,7 @@ public class DashboardService {
                 .completadas(completadas)
                 .canceladas(canceladas)
                 .reprogramadas(reprogramadas)
+                .noShow(noShow)
                 .esperando(confirmadas + asistieron)
                 .build();
     }
