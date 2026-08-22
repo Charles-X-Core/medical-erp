@@ -21,7 +21,7 @@ import CitaBlock, { DragCitaCtx } from '../components/agenda/CitaBlock';
 import QuickFilters from '../components/agenda/QuickFilters';
 
 const HORA_INICIO = 8;
-const HORA_FIN = 20;
+const HORA_FIN = 23;
 const SLOT_DURACION = 30;
 const PX_PER_MIN_WEEKLY = 2;
 const PX_PER_MIN_DAILY = 2.67;
