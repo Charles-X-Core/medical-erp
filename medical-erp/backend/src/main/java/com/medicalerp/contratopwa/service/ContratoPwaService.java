@@ -3,6 +3,7 @@ package com.medicalerp.contratopwa.service;
 import com.medicalerp.common.exception.BusinessRuleException;
 import com.medicalerp.common.exception.ResourceNotFoundException;
 import com.medicalerp.common.util.SecurityUtils;
+import com.medicalerp.contacto.service.EmailService;
 import com.medicalerp.contratopwa.dto.ContratoPwaResponse;
 import com.medicalerp.contratopwa.entity.ContratoSigningSession;
 import com.medicalerp.contratopwa.repository.ContratoSigningSessionRepository;
@@ -42,6 +43,7 @@ public class ContratoPwaService {
     private final ConsentimientoSignService signService;
     private final MembresiaService membresiaService;
     private final ContratoStorageService contratoStorageService;
+    private final EmailService emailService;
     private final SecurityUtils securityUtils;
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -132,6 +134,37 @@ public class ContratoPwaService {
                 .consentimientoId(ultima.getConsentimientoId())
                 .mensaje("Contrato ya firmado")
                 .build();
+    }
+
+    public void enviarPorEmail(Long sessionId) {
+        Long clinicaId = securityUtils.getCurrentClinicaId();
+        ContratoSigningSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sesión de contrato", sessionId));
+
+        if (!session.getClinicaId().equals(clinicaId)) {
+            throw new BusinessRuleException("SESSION_FORBIDDEN", "No tienes acceso a esta sesión");
+        }
+
+        if (!"FIRMADO".equals(session.getStatus())) {
+            throw new BusinessRuleException("CONTRACT_NOT_SIGNED", "El contrato aún no ha sido firmado");
+        }
+
+        Paciente paciente = pacienteRepository.findById(session.getPacienteId())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente", session.getPacienteId()));
+
+        byte[] pdfBytes = contratoStorageService.loadContratoPdf(
+                clinicaId, paciente.getId(), sessionId);
+
+        if (pdfBytes == null || pdfBytes.length == 0) {
+            throw new BusinessRuleException("PDF_NOT_FOUND", "No se encontró el PDF del contrato");
+        }
+
+        String filename = "Contrato_Membresia_" + paciente.getNombres() + ".pdf";
+        emailService.sendContratoFirmado(
+                paciente.getEmail(),
+                paciente.getApellidoPaterno() + " " + paciente.getNombres(),
+                pdfBytes,
+                filename);
     }
 
     public ContratoPwaResponse getSiguiente(Long clinicaId) {
@@ -260,14 +293,8 @@ public class ContratoPwaService {
                 template.getId(), pacienteId, firmaReq);
 
         // 4. Guardar contrato en almacenamiento dedicado (PDF + firma.png + metadata.json)
-        String contratoPath;
-        try {
-            contratoPath = contratoStorageService.saveContrato(
-                    session, paciente, firmaBase64, renderedHtml);
-        } catch (Exception e) {
-            log.error("Error guardando contrato en almacenamiento: {}", e.getMessage());
-            contratoPath = null;
-        }
+        String contratoPath = contratoStorageService.saveContrato(
+                session, paciente, firmaBase64, renderedHtml);
 
         // 5. Actualizar sesión
         session.setStatus("FIRMADO");
@@ -275,6 +302,22 @@ public class ContratoPwaService {
         session.setSignedAt(LocalDateTime.now());
         session.setContratoStoragePath(contratoPath);
         sessionRepository.save(session);
+
+        // 6. Enviar contrato firmado por email al paciente
+        if (contratoPath != null && paciente.getEmail() != null && !paciente.getEmail().isBlank()) {
+            try {
+                byte[] pdfBytes = contratoStorageService.loadContratoPdf(
+                        clinicaId, pacienteId, session.getId());
+                String filename = "Contrato_Membresia_" + paciente.getNombres() + ".pdf";
+                emailService.sendContratoFirmado(
+                        paciente.getEmail(),
+                        paciente.getApellidoPaterno() + " " + paciente.getNombres(),
+                        pdfBytes,
+                        filename);
+            } catch (Exception e) {
+                log.warn("Error enviando contrato por email (no critico): {}", e.getMessage());
+            }
+        }
 
         log.info("Contrato firmado y almacenado: paciente={}, token={}, consentimiento={}, path={}",
                 pacienteId, token, firmaResp.getConsentimientoId(), contratoPath);

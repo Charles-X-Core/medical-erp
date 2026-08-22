@@ -7,11 +7,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Email Service (DOM-CON-002)
@@ -263,6 +266,76 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Error enviando email de notificación a doctora {}: {}", toEmail, e.getMessage());
         }
+    }
+
+    /**
+     * Envía el contrato firmado por email al paciente con el PDF adjunto
+     */
+    @Async
+    public void sendContratoFirmado(String toEmail, String pacienteNombre,
+                                     byte[] pdfBytes, String filename) {
+        if (mailSender == null) {
+            log.debug("JavaMailSender not configured, skipping contrato email to {}", toEmail);
+            return;
+        }
+        if (pdfBytes == null || pdfBytes.length == 0) {
+            log.warn("No PDF bytes to send for contrato email to {}", toEmail);
+            return;
+        }
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            try {
+                helper.setFrom(fromEmail, "Optimal Health NOW");
+            } catch (java.io.UnsupportedEncodingException e) {
+                helper.setFrom(fromEmail);
+            }
+            helper.setSubject("Contrato de Membresia Firmado - Optimal Health NOW");
+
+            String htmlContent = buildContratoFirmadoHtml(pacienteNombre);
+            helper.setText(htmlContent, true);
+            helper.addAttachment(filename, new ByteArrayResource(pdfBytes), "application/pdf");
+
+            mailSender.send(message);
+            log.info("Contrato firmado enviado por email a {} (paciente: {})", toEmail, pacienteNombre);
+
+        } catch (MessagingException e) {
+            log.error("Failed to send contrato email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    private String buildContratoFirmadoHtml(String pacienteNombre) {
+        String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family: Arial, sans-serif; color: #333; background: #f4f6f8; margin: 0; padding: 0;">
+                <div style="max-width: 500px; margin: 40px auto; padding: 0;">
+                    <div style="background: #0d2137; padding: 24px; border-radius: 8px 8px 0 0; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0; font-size: 20px;">Optimal Health NOW</h2>
+                        <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 14px;">Contrato de Membresia</p>
+                    </div>
+                    <div style="background: #ffffff; padding: 32px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
+                        <p style="font-size: 16px; margin: 0 0 16px 0;">Hola <strong>%s</strong>,</p>
+                        <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">
+                            Su contrato de membresia ha sido firmado exitosamente. Adjunto encontrara una copia del documento firmado.
+                        </p>
+                        <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
+                            <p style="margin: 0; font-size: 14px; color: #64748b;">Fecha de firma</p>
+                            <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: bold; color: #0d2137;">%s</p>
+                        </div>
+                        <p style="font-size: 13px; color: #94a3b8; text-align: center; margin: 24px 0 0 0;">
+                            Este es un mensaje automatico de Optimal Health NOW.<br>
+                            &copy; 2026 Optimal Health NOW - Todos los derechos reservados.
+                        </p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(pacienteNombre, fecha);
     }
 
 }

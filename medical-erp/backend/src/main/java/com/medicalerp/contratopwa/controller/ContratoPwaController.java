@@ -111,4 +111,11 @@ public class ContratoPwaController {
                 .contentLength(pdfBytes.length)
                 .body(resource);
     }
+
+    @PostMapping("/{sessionId}/enviar-email")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> enviarPorEmail(@PathVariable Long sessionId) {
+        contratoPwaService.enviarPorEmail(sessionId);
+        return ResponseEntity.ok(ApiResponse.success("Email enviado", "Contrato enviado por email al paciente"));
+    }
 }

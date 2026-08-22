@@ -1,4 +1,4 @@
-import { Send, CheckCircle, Shield, Tablet, Eye, Loader, AlertCircle, X } from 'lucide-react';
+import { Send, CheckCircle, Shield, Tablet, Eye, Loader, AlertCircle, X, Mail } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { contratoPwaService } from '../../services/contratoPwaService';
 import HtmlDocViewer from '../common/HtmlDocViewer';
@@ -8,6 +8,8 @@ const POLL_INTERVAL = 3000;
 export default function FirmaContratoModal({ open, onClose, pacienteId, pacienteNombre, onSigned }) {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [token, setToken] = useState('');
   const [sessionId, setSessionId] = useState(null);
   const [polling, setPolling] = useState(false);
@@ -101,6 +103,19 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
     }
   };
 
+  const handleEnviarEmail = async () => {
+    if (!sessionId) return;
+    setEmailSending(true);
+    try {
+      await contratoPwaService.enviarEmail(sessionId);
+      setEmailSent(true);
+    } catch {
+      // silent
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   const handleClose = () => {
     if (polling) return;
     onClose?.();
@@ -131,9 +146,19 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
       <CheckCircle size={20} className="wizard-step__firma-check" />
       <span>Contrato firmado exitosamente</span>
       {sessionId && (
-        <button className="wizard-step__btn-pdf" onClick={handleVerPDF}>
-          <Eye size={16} /> Ver PDF firmado
-        </button>
+        <>
+          <button className="wizard-step__btn-pdf" onClick={handleVerPDF}>
+            <Eye size={16} /> Ver PDF firmado
+          </button>
+          <button
+            className="wizard-step__btn-pdf"
+            onClick={handleEnviarEmail}
+            disabled={emailSending || emailSent}
+            style={{ marginLeft: '8px' }}
+          >
+            <Mail size={16} /> {emailSent ? 'Email enviado' : emailSending ? 'Enviando...' : 'Enviar por email'}
+          </button>
+        </>
       )}
     </div>
   ) : pollingError && !polling ? (

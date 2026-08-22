@@ -36,4 +36,10 @@ export const contratoPwaService = {
   async getStatus(token) {
     return apiClient(BASE + '/status?token=' + encodeURIComponent(token));
   },
+
+  async enviarEmail(sessionId) {
+    return apiClient(BASE + '/' + sessionId + '/enviar-email', {
+      method: 'POST',
+    });
+  },
 };
