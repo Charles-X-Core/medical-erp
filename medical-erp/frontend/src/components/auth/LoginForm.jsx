@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../services/authService';
 import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
@@ -11,6 +12,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const { storeAuth } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,15 +25,15 @@ export default function LoginForm() {
         storeAuth(res.data);
         navigate('/dashboard');
       } else {
-        setError(res.message || 'Error al iniciar sesión');
+        setError(res.message || t('login_error'));
       }
     } catch (err) {
       if (err.status === 423) {
-        setError('Cuenta bloqueada temporalmente por múltiples intentos fallidos. Espere unos minutos.');
+        setError(t('login_locked'));
       } else if (err.status === 401) {
-        setError('Credenciales inválidas. Verifique su email y contraseña.');
+        setError(t('login_invalid'));
       } else {
-        setError(err.message || 'Error de conexión');
+        setError(err.message || t('login_connection_error'));
       }
     } finally {
       setLoading(false);
@@ -42,8 +44,8 @@ export default function LoginForm() {
     <div className="auth-form__wrapper">
       <div className="auth-form__brand">
         <img src="/logo.ico" alt="Logo" className="auth-form__logo" />
-        <h2 className="auth-form__title">ERP Médico</h2>
-        <p className="auth-form__subtitle">Optimal Health NOW</p>
+        <h2 className="auth-form__title">{t('login_title')}</h2>
+        <p className="auth-form__subtitle">{t('login_subtitle')}</p>
       </div>
 
       <form className="auth-form" onSubmit={handleSubmit}>
@@ -55,7 +57,7 @@ export default function LoginForm() {
         )}
 
         <div className="auth-form__field">
-          <label className="auth-form__label">Email</label>
+          <label className="auth-form__label">{t('email_label')}</label>
           <div className="auth-form__input-wrapper">
             <Mail size={18} className="auth-form__input-icon" />
             <input
@@ -72,7 +74,7 @@ export default function LoginForm() {
         </div>
 
         <div className="auth-form__field">
-          <label className="auth-form__label">Contraseña</label>
+          <label className="auth-form__label">{t('password_label')}</label>
           <div className="auth-form__input-wrapper">
             <Lock size={18} className="auth-form__input-icon" />
             <input
@@ -98,7 +100,7 @@ export default function LoginForm() {
             <span className="spinner spinner--sm" />
           ) : (
             <>
-              Iniciar Sesión <ArrowRight size={18} />
+              {t('login_button')} <ArrowRight size={18} />
             </>
           )}
         </button>

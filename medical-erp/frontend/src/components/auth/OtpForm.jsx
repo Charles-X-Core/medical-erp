@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../services/authService';
 import { Shield, RotateCcw, ArrowLeft } from 'lucide-react';
@@ -14,25 +15,23 @@ export default function OtpForm() {
   const { pendingEmail, storeAuth, clearAuth } = useAuth();
   const navigate = useNavigate();
   const inputsRef = useRef([]);
+  const { t } = useTranslation('auth');
 
-  // Countdown for resend
   useEffect(() => {
     if (resendTimer > 0) {
-      const t = setTimeout(() => setResendTimer((prev) => prev - 1), 1000);
-      return () => clearTimeout(t);
+      const t2 = setTimeout(() => setResendTimer((prev) => prev - 1), 1000);
+      return () => clearTimeout(t2);
     } else {
       setCanResend(true);
     }
   }, [resendTimer]);
 
-  // Redirect if no pending email
   useEffect(() => {
     if (!pendingEmail) {
       navigate('/login');
     }
   }, [pendingEmail, navigate]);
 
-  // Dev: fetch OTP code from backend
   useEffect(() => {
     if (pendingEmail) {
       fetch(`/api/v1/auth/dev/otp-code?email=${encodeURIComponent(pendingEmail)}`)
@@ -48,12 +47,10 @@ export default function OtpForm() {
 
   const handleChange = (index, value) => {
     if (!/^\d?$/.test(value)) return;
-
     const newCode = [...code];
     newCode[index] = value;
     setCode(newCode);
     setError('');
-
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
     }
@@ -78,25 +75,23 @@ export default function OtpForm() {
     e.preventDefault();
     const fullCode = code.join('');
     if (fullCode.length !== 6) {
-      setError('Ingresa los 6 dígitos');
+      setError(t('otp_enter_code'));
       return;
     }
-
     setLoading(true);
     setError('');
-
     try {
       const res = await authService.loginStep2(pendingEmail, fullCode);
       if (res.success) {
         storeAuth(res.data);
         navigate('/dashboard');
       } else {
-        setError(res.message || 'Código incorrecto');
+        setError(res.message || t('otp_incorrect'));
         setCode(['', '', '', '', '', '']);
         inputsRef.current[0]?.focus();
       }
     } catch (err) {
-      setError(err.message || 'Error al verificar código');
+      setError(err.message || t('otp_verify_error'));
       setCode(['', '', '', '', '', '']);
       inputsRef.current[0]?.focus();
     } finally {
@@ -139,9 +134,9 @@ export default function OtpForm() {
     <div className="auth-form__wrapper">
       <div className="auth-form__brand">
         <Shield size={48} className="auth-form__icon" />
-        <h2 className="auth-form__title">Verificación OTP</h2>
+        <h2 className="auth-form__title">{t('otp_title')}</h2>
         <p className="auth-form__subtitle">
-          Ingresa el código de 6 dígitos enviado a <strong>{pendingEmail}</strong>
+          {t('otp_subtitle')} <strong>{pendingEmail}</strong>
         </p>
       </div>
 
@@ -162,7 +157,7 @@ export default function OtpForm() {
             textAlign: 'center'
           }}>
             <p style={{ fontSize: '11px', fontWeight: '600', color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
-              Modo Desarrollo — Código OTP
+              {t('otp_dev_mode')}
             </p>
             <p style={{ fontSize: '32px', fontWeight: '700', color: '#1e40af', letterSpacing: '8px', fontFamily: 'monospace' }}>
               {devOtp}
@@ -197,7 +192,7 @@ export default function OtpForm() {
           {loading ? (
             <span className="spinner spinner--sm" />
           ) : (
-            'Verificar y entrar'
+            t('otp_verify')
           )}
         </button>
 
@@ -210,8 +205,8 @@ export default function OtpForm() {
           >
             <RotateCcw size={14} />
             {canResend
-              ? 'Reenviar código'
-              : `Reenviar en ${resendTimer}s`
+              ? t('otp_resend')
+              : t('otp_resend_in', { seconds: resendTimer })
             }
           </button>
 
@@ -221,7 +216,7 @@ export default function OtpForm() {
             onClick={handleBack}
           >
             <ArrowLeft size={14} />
-            Volver al login
+            {t('otp_back')}
           </button>
         </div>
       </form>

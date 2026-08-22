@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ChevronRight, ShieldCheck } from 'lucide-react';
 import { formatNombre } from '../../utils/citaEstados';
@@ -8,14 +9,15 @@ const SEVERIDAD_TONE = {
   INFO: 'info',
 };
 
-const TIPO_ALERTA_LABELS = {
-  LIMITE_ALCANZADO: 'Límite de sesiones alcanzado',
-  PENDIENTE_INICIO: 'Pendiente de inicio',
-  SESION_VENCIDA: 'Sesión vencida',
-};
-
 export default function AlertasPanel({ alertas, loading }) {
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
+
+  const TIPO_ALERTA_LABELS = {
+    LIMITE_ALCANZADO: t('alert_limit_reached'),
+    PENDIENTE_INICIO: t('alert_pending_start'),
+    SESION_VENCIDA: t('alert_session_expired'),
+  };
 
   if (loading) {
     return <div className="panel panel--skeleton"><div className="panel__loader" /></div>;
@@ -26,7 +28,7 @@ export default function AlertasPanel({ alertas, loading }) {
       <div className="panel__header">
         <h3 className="panel__title">
           <AlertTriangle size={18} />
-          Alertas clínicas
+          {t('panel_alerts_title')}
         </h3>
         <span className="panel__count">{alertas.length}</span>
       </div>
@@ -34,7 +36,7 @@ export default function AlertasPanel({ alertas, loading }) {
       {alertas.length === 0 ? (
         <div className="panel__empty">
           <ShieldCheck size={32} />
-          <p>Sin alertas pendientes</p>
+          <p>{t('panel_no_alerts')}</p>
         </div>
       ) : (
         <ul className="alertas-list">
@@ -54,7 +56,7 @@ export default function AlertasPanel({ alertas, loading }) {
                 </div>
                 <button
                   className="alerta__open"
-                  title="Abrir cliente"
+                  title={t('open_client')}
                   onClick={() => navigate(`/pacientes/${alerta.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={18} />

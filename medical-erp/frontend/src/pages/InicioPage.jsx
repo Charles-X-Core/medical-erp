@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { getPrimaryRole } from '../utils/roleUtils';
@@ -21,6 +22,7 @@ export default function InicioPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [resumen, setResumen] = useState(null);
+  const { t } = useTranslation('dashboard');
 
   const primaryRole = getPrimaryRole(user);
   const config = dashboardRoleConfig[primaryRole] || dashboardRoleConfig.doctora;
@@ -31,22 +33,21 @@ export default function InicioPage() {
       setError('');
       const data = await dashboardService.getResumen();
       if (!data) {
-        setError('No se pudo cargar el resumen. Verifique su conexión.');
+        setError(t('error_no_connection'));
       }
       setResumen(data);
     } catch (err) {
-      setError('Error al cargar el resumen del día');
+      setError(t('error_loading_summary'));
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // Polling: refresh lightweight data every 30s
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -76,7 +77,7 @@ export default function InicioPage() {
         <DashboardHeader config={config} fecha={null} />
         <div className="dashboard-page__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando panel...</p>
+          <p>{t('loading_panel')}</p>
         </div>
       </div>
     );
@@ -91,7 +92,7 @@ export default function InicioPage() {
       {error && (
         <div className="dashboard-page__error">
           {error}
-          <button onClick={loadData}>Reintentar</button>
+          <button onClick={loadData}>{t('retry')}</button>
         </div>
       )}
 

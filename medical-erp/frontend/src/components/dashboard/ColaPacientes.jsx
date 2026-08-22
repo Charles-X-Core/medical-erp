@@ -1,9 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Users, ChevronRight, Clock, AlertTriangle } from 'lucide-react';
 import { getAppointmentStatus } from '../../utils/citaTimeUtils';
 
 function formatNombre(nombre) {
-  if (!nombre) return 'Cliente';
+  if (!nombre) return 'Client';
   return nombre;
 }
 
@@ -12,45 +13,41 @@ function formatHora(hora) {
   return hora.substring(0, 5);
 }
 
-function getEstadoLabel(estado) {
-  const labels = {
-    pendiente: 'Pendiente',
-    programada: 'Programada',
-    confirmada: 'Confirmada',
-    asistio: 'Llego',
-    llegada: 'Llego',
-    en_atencion: 'En atencion',
-  };
-  return labels[estado] || estado;
-}
-
-function getEstadoTone(estado) {
-  const tones = {
-    pendiente: 'neutral',
-    programada: 'info',
-    confirmada: 'info',
-    asistio: 'success',
-    llegada: 'success',
-    en_atencion: 'active',
-  };
-  return tones[estado] || 'neutral';
-}
-
-// ============================================
-// ColaPacientes — Queue view
-// Shows active patients waiting, sorted by priority/time
-// ============================================
-
 export default function ColaPacientes({ citas = [], loading = false }) {
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
+
+  const getEstadoLabel = (estado) => {
+    const labels = {
+      pendiente: t('estado_pendiente'),
+      programada: t('estado_programada'),
+      confirmada: t('estado_confirmada'),
+      asistio: t('estado_asistio'),
+      llegada: t('estado_llegada'),
+      en_atencion: t('estado_en_atencion'),
+    };
+    return labels[estado] || estado;
+  };
+
+  function getEstadoTone(estado) {
+    const tones = {
+      pendiente: 'neutral',
+      programada: 'info',
+      confirmada: 'info',
+      asistio: 'success',
+      llegada: 'success',
+      en_atencion: 'active',
+    };
+    return tones[estado] || 'neutral';
+  }
 
   if (loading) {
     return (
       <div className="dashboard-cola">
         <div className="dashboard-cola__header">
-          <h3 className="dashboard-cola__title"><Users size={14} /> Clientes en Cola</h3>
+          <h3 className="dashboard-cola__title"><Users size={14} /> {t('panel_queue_title')}</h3>
         </div>
-        <div className="dashboard-cola__loading">Cargando...</div>
+        <div className="dashboard-cola__loading">{t('panel_queue_loading')}</div>
       </div>
     );
   }
@@ -59,7 +56,7 @@ export default function ColaPacientes({ citas = [], loading = false }) {
     <div className="dashboard-cola">
       <div className="dashboard-cola__header">
         <h3 className="dashboard-cola__title">
-          <Users size={14} /> Clientes en Cola
+          <Users size={14} /> {t('panel_queue_title')}
           {citas.length > 0 && <span className="dashboard-cola__badge">{citas.length}</span>}
         </h3>
       </div>
@@ -68,7 +65,7 @@ export default function ColaPacientes({ citas = [], loading = false }) {
         {citas.length === 0 ? (
           <div className="dashboard-cola__empty">
             <Users size={24} />
-            <p>Sin clientes en espera</p>
+            <p>{t('panel_queue_no_clients')}</p>
           </div>
         ) : (
           citas.map((cita) => {
@@ -89,12 +86,12 @@ export default function ColaPacientes({ citas = [], loading = false }) {
                   <span className="dashboard-cola__item-name">{formatNombre(cita.pacienteNombre)}</span>
                   <span className="dashboard-cola__item-detail">
                     {cita.usuarioNombre && <span>{cita.usuarioNombre} · </span>}
-                    {cita.tipoCitaNombre || cita.motivo || 'Consulta'}
+                    {cita.tipoCitaNombre || cita.motivo || t('consulta')}
                   </span>
                 </div>
                 {isTooEarly ? (
                   <span className="dashboard-cola__item-early">
-                    <AlertTriangle size={12} /> Aun no es hora
+                    <AlertTriangle size={12} /> {t('time_not_yet')}
                   </span>
                 ) : (
                   <>

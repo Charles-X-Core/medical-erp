@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { UserRound, Clock, ArrowRight, ListChecks, Stethoscope, AlertTriangle } from 'lucide-react';
 import { formatNombre, formatHora, getCitaEstado } from '../../utils/citaEstados';
@@ -5,6 +6,7 @@ import { getAppointmentStatus, getTimeBadgeLabel } from '../../utils/citaTimeUti
 
 export default function ProximoPaciente({ cita, hero, loading }) {
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
 
   if (loading) {
     return <div className="proximo-paciente proximo-paciente--skeleton" />;
@@ -38,7 +40,7 @@ export default function ProximoPaciente({ cita, hero, loading }) {
   return (
     <div className={`proximo-paciente proximo-paciente--${cita.prioridad === 'URGENTE' ? 'urgente' : 'normal'}`}>
       <div className="proximo-paciente__badge">
-        {cita.prioridad === 'URGENTE' ? 'Prioridad urgente' : 'Siguiente en cola'}
+        {cita.prioridad === 'URGENTE' ? t('proximo_prioridad_urgente') : t('proximo_siguiente_cola')}
       </div>
 
       <div className="proximo-paciente__avatar">
@@ -58,7 +60,7 @@ export default function ProximoPaciente({ cita, hero, loading }) {
               <Stethoscope size={12} /> {cita.usuarioNombre}
             </span>
           )}
-          <span>{cita.tipoCitaNombre || cita.motivo || 'Consulta'}</span>
+          <span>{cita.tipoCitaNombre || cita.motivo || t('consulta')}</span>
         </div>
         <div className="proximo-paciente__estado">
           <span className={`chip chip--${estado.tone}`}>{estado.label}</span>
@@ -73,9 +75,9 @@ export default function ProximoPaciente({ cita, hero, loading }) {
       {!isCompletada && !isEnAtencion && isTooEarly && (
         <div className="proximo-paciente__action-blocked">
           <AlertTriangle size={16} />
-          <span>Aun no es hora</span>
+          <span>{t('time_not_yet')}</span>
           <button className="btn btn--ghost btn--sm" onClick={() => navigate('/agenda')}>
-            Cambiar horario
+            {t('proximo_cambiar_horario')}
           </button>
         </div>
       )}
@@ -85,7 +87,7 @@ export default function ProximoPaciente({ cita, hero, loading }) {
           className="btn btn--primary"
           onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}
         >
-          {isEnAtencion ? 'Ver atencion' : 'Iniciar atencion'}
+          {isEnAtencion ? t('proximo_ver_atencion') : t('proximo_iniciar_atencion')}
           <ArrowRight size={16} />
         </button>
       )}

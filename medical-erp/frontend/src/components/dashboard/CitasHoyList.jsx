@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { CalendarCheck, Clock, ChevronRight, Inbox, AlertTriangle } from 'lucide-react';
 import { getCitaEstado, formatNombre, formatHora } from '../../utils/citaEstados';
@@ -5,6 +6,7 @@ import { getAppointmentStatus, getTimeBadgeLabel } from '../../utils/citaTimeUti
 
 export default function CitasHoyList({ citas, loading }) {
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
 
   if (loading) {
     return (
@@ -19,7 +21,7 @@ export default function CitasHoyList({ citas, loading }) {
       <div className="panel__header">
         <h3 className="panel__title">
           <CalendarCheck size={18} />
-          Citas de hoy
+          {t('section_appointments_today')}
         </h3>
         <span className="panel__count">{citas.length}</span>
       </div>
@@ -27,7 +29,7 @@ export default function CitasHoyList({ citas, loading }) {
       {citas.length === 0 ? (
         <div className="panel__empty">
           <Inbox size={32} />
-          <p>No hay citas para hoy</p>
+          <p>{t('panel_no_appointments_today')}</p>
         </div>
       ) : (
         <ul className="citas-hoy">
@@ -50,7 +52,7 @@ export default function CitasHoyList({ citas, loading }) {
                   <span className="citas-hoy__name">{formatNombre(cita.pacienteNombre)}</span>
                   <span className="citas-hoy__motivo">
                     {cita.usuarioNombre && <span>{cita.usuarioNombre} · </span>}
-                    {cita.tipoCitaNombre || cita.motivo || 'Consulta'}
+                    {cita.tipoCitaNombre || cita.motivo || t('consulta')}
                   </span>
                 </div>
                 {isTooEarly ? (
@@ -62,7 +64,7 @@ export default function CitasHoyList({ citas, loading }) {
                 )}
                 <button
                   className="citas-hoy__open"
-                  title={isTooEarly ? `Cita a las ${formatHora(cita.hora)}` : 'Abrir cliente'}
+                  title={isTooEarly ? t('time_at', { time: formatHora(cita.hora) }) : t('open_client')}
                   onClick={() => navigate(isTooEarly ? '/agenda' : `/pacientes/${cita.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={18} />
