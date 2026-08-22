@@ -8,6 +8,8 @@ import com.medicalerp.historia.entity.HistoriaClinica;
 import com.medicalerp.historia.repository.HistoriaClinicaRepository;
 import com.medicalerp.paciente.entity.Paciente;
 import com.medicalerp.paciente.repository.PacienteRepository;
+import com.medicalerp.seguridad.entity.Usuario;
+import com.medicalerp.seguridad.repository.UsuarioRepository;
 import com.medicalerp.tratamiento.entity.SesionTratamiento;
 import com.medicalerp.tratamiento.entity.Tratamiento;
 import com.medicalerp.tratamiento.enums.EstadoTratamiento;
@@ -35,6 +37,7 @@ public class PacienteTestDataInitializer implements CommandLineRunner {
     private final SesionTratamientoRepository sesionRepository;
     private final ConsultaRepository consultaRepository;
     private final CitaRepository citaRepository;
+    private final UsuarioRepository usuarioRepository;
 
     @Override
     @Transactional
@@ -45,6 +48,10 @@ public class PacienteTestDataInitializer implements CommandLineRunner {
         }
 
         Long clinicaId = 1L;
+
+        // Find the doctora user to assign to citas
+        Usuario doctora = usuarioRepository.findByEmail("doctora@test.com")
+                .orElseGet(() -> usuarioRepository.findByEmail("maria@clinica.com").orElse(null));
 
         // ==================== PACIENTE 1: María Elena García ====================
         Paciente p1 = createPaciente(clinicaId, "A1000001", "María Elena", "García",
@@ -89,9 +96,9 @@ public class PacienteTestDataInitializer implements CommandLineRunner {
         createConsulta(h1, "2026-06-19", "Control combo PRP+NAD", "Revisión integral", "Paciente muy satisfecha");
 
         // Cita pendiente
-        createCita(p1, "2026-08-15", "10:00", "Quinta sesión PRP rodilla", "pendiente");
+        createCita(p1, doctora, "2026-08-15", "10:00", "Quinta sesión PRP rodilla", "pendiente");
         // Cita completada
-        createCita(p1, "2026-06-19", "09:00", "Tercera infusión NAD", "completada");
+        createCita(p1, doctora, "2026-06-19", "09:00", "Tercera infusión NAD", "completada");
 
         // ==================== PACIENTE 2: Juan Carlos López ====================
         Paciente p2 = createPaciente(clinicaId, "B1000002", "Juan Carlos", "López",
@@ -127,7 +134,7 @@ public class PacienteTestDataInitializer implements CommandLineRunner {
         createConsulta(h2, "2026-04-16", "Cierre tratamiento hormonal", "Evaluación final", "Resultado excelente");
         createConsulta(h2, "2026-06-15", "Inicio Myers Cocktail", "Terapia nutricional", "Primera infusión");
 
-        createCita(p2, "2026-07-16", "11:00", "Tercera infusión Myers", "completada");
+        createCita(p2, doctora, "2026-07-16", "11:00", "Tercera infusión Myers", "completada");
 
         // ==================== PACIENTE 3: Ana Sofía Martínez ====================
         Paciente p3 = createPaciente(clinicaId, "C1000003", "Ana Sofía", "Martínez",
@@ -206,7 +213,7 @@ public class PacienteTestDataInitializer implements CommandLineRunner {
         createConsulta(h5, "2026-06-20", "Nueva consulta", "Interés en exosomas", "Evaluación para nuevo tratamiento");
         createConsulta(h5, "2026-07-01", "Inicio exosomas", "Primera sesión", "Paciente informada y consentida");
 
-        createCita(p5, "2026-08-01", "14:00", "Segunda sesión exosomas", "pendiente");
+        createCita(p5, doctora, "2026-08-01", "14:00", "Segunda sesión exosomas", "pendiente");
 
         // ==================== PACIENTE 6: Luis Fernando Torres ====================
         Paciente p6 = createPaciente(clinicaId, "F1000006", "Luis Fernando", "Torres",
@@ -289,7 +296,7 @@ public class PacienteTestDataInitializer implements CommandLineRunner {
         createConsulta(h8, "2026-06-25", "Evaluación GLUT", "Interés en glutatión", "Decide cancelar por costo");
         createConsulta(h8, "2026-07-01", "Control general", "Revisión de tratamientos", "Estable, continuar DETOX");
 
-        createCita(p8, "2026-07-25", "10:30", "Cuarta infusión DETOX", "pendiente");
+        createCita(p8, doctora, "2026-07-25", "10:30", "Cuarta infusión DETOX", "pendiente");
 
         // ==================== PACIENTE 9: Gabriela Ruiz ====================
         Paciente p9 = createPaciente(clinicaId, "I1000009", "Gabriela", "Ruiz",
@@ -318,8 +325,8 @@ public class PacienteTestDataInitializer implements CommandLineRunner {
         createConsulta(h9, "2026-06-20", "Tercera infusión", "Control", "Energía mejorada");
         createConsulta(h9, "2026-07-04", "Cuarta infusión", "Control", "En progreso, buena evolución");
 
-        createCita(p9, "2026-07-18", "09:30", "Quinta infusión OXYVIT", "completada");
-        createCita(p9, "2026-08-01", "09:30", "Sexta infusión OXYVIT", "pendiente");
+        createCita(p9, doctora, "2026-07-18", "09:30", "Quinta infusión OXYVIT", "completada");
+        createCita(p9, doctora, "2026-08-01", "09:30", "Sexta infusión OXYVIT", "pendiente");
 
         // ==================== PACIENTE 10: Miguel Ángel Herrera ====================
         Paciente p10 = createPaciente(clinicaId, "J1000010", "Miguel Ángel", "Herrera",
@@ -455,10 +462,13 @@ public class PacienteTestDataInitializer implements CommandLineRunner {
                 .build());
     }
 
-    private void createCita(Paciente paciente, String fecha, String hora, String motivo, String estado) {
+    private void createCita(Paciente paciente, Usuario doctora, String fecha, String hora, String motivo, String estado) {
         LocalDateTime fechaHora = LocalDateTime.parse(fecha + "T" + hora + ":00");
         Cita cita = new Cita();
         cita.setPaciente(paciente);
+        if (doctora != null) {
+            cita.setUsuario(doctora);
+        }
         cita.setFechaHora(fechaHora);
         cita.setMotivo(motivo);
         cita.setEstado(estado);

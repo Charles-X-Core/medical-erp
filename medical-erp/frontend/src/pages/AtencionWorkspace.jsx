@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader2, User, FileText, Activity, ArrowLeft, Stethoscope, AlertCircle, Calendar, Edit2, Save, X, Play, Shield, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { getPrimaryRole } from '../utils/roleUtils';
 import CitaSchedulerModal from '../components/agenda/CitaSchedulerModal';
 import FirmaContratoModal from '../components/paciente360/FirmaContratoModal';
 import { pacienteService } from '../services/pacienteService';
@@ -38,6 +39,8 @@ export default function AtencionWorkspace() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const primaryRole = getPrimaryRole(user);
+  const isDoctora = primaryRole === 'doctora';
   const [activeTab, setActiveTab] = useState('resumen');
   const [atencionView, setAtencionView] = useState('entry'); // entry | motivo | sesion
   const [paciente, setPaciente] = useState(null);
@@ -429,11 +432,23 @@ export default function AtencionWorkspace() {
     setStartingAttention(true);
     setStartError('');
     try {
+      // 1. Check if there's already an existing cita for today that can be started
+      const existingCita = citasHoy.find(c =>
+        c.estado === 'pendiente' || c.estado === 'confirmada' || c.estado === 'asistio' || c.estado === 'llegada' || c.estado === 'programada'
+      );
+
+      if (existingCita) {
+        await agendaService.iniciarAtencion(existingCita.id);
+        await load();
+        setAtencionView('motivo');
+        return;
+      }
+
+      // 2. No existing cita — create new walk-in (check availability first)
       const now = new Date();
       const fecha = now.toISOString().split('T')[0];
       const hora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-      // Check professional availability for current time
       const dispRes = await agendaService.getDisponibilidad(fecha, user?.id, 30);
       if (!dispRes.success || !Array.isArray(dispRes.data) || !dispRes.data.length) {
         setStartError('El profesional no tiene agenda configurada para este día.');
@@ -480,7 +495,6 @@ export default function AtencionWorkspace() {
         return;
       }
 
-      // Create cita and start attention
       const citaRes = await agendaService.crearCita({
         pacienteId: parseInt(id),
         usuarioId: user?.id,
@@ -686,7 +700,8 @@ export default function AtencionWorkspace() {
                               <button
                                 className="btn btn--secondary"
                                 onClick={handleStartWithoutCita}
-                                disabled={startingAttention}
+                                disabled={startingAttention || !isDoctora}
+                                title={!isDoctora ? 'Solo el profesional puede iniciar atención' : ''}
                               >
                                 {startingAttention ? <Loader2 size={16} className="spinner" /> : <Play size={16} />}
                                 {startingAttention ? 'Iniciando...' : 'Iniciar Atención'}
@@ -738,7 +753,8 @@ export default function AtencionWorkspace() {
                         <button
                           className="btn btn--primary"
                           onClick={handleStartWithoutCita}
-                          disabled={startingAttention}
+                          disabled={startingAttention || !isDoctora}
+                          title={!isDoctora ? 'Solo el profesional puede iniciar atención' : ''}
                         >
                           {startingAttention ? <Loader2 size={16} className="spinner" /> : <Play size={16} />}
                           {startingAttention ? 'Iniciando...' : 'Iniciar Atención'}
