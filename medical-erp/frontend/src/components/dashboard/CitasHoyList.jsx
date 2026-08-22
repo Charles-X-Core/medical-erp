@@ -63,7 +63,7 @@ export default function CitasHoyList({ citas, loading }) {
                 <button
                   className="citas-hoy__open"
                   title={isTooEarly ? `Cita a las ${formatHora(cita.hora)}` : 'Abrir cliente'}
-                  onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}
+                  onClick={() => navigate(isTooEarly ? '/agenda' : `/pacientes/${cita.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={18} />
                 </button>

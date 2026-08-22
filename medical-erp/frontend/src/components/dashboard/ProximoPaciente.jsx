@@ -74,7 +74,7 @@ export default function ProximoPaciente({ cita, hero, loading }) {
         <div className="proximo-paciente__action-blocked">
           <AlertTriangle size={16} />
           <span>Aun no es hora</span>
-          <button className="btn btn--ghost btn--sm" onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}>
+          <button className="btn btn--ghost btn--sm" onClick={() => navigate('/agenda')}>
             Cambiar horario
           </button>
         </div>

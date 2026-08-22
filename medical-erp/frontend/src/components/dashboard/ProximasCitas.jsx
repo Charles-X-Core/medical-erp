@@ -59,7 +59,7 @@ export default function ProximasCitas({ citas, loading }) {
                 <button
                   className="proximas-list__open"
                   title={isTooEarly ? `Cita a las ${formatHora(cita.hora)}` : 'Abrir cliente'}
-                  onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}
+                  onClick={() => navigate(isTooEarly ? '/agenda' : `/pacientes/${cita.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={16} />
                 </button>
