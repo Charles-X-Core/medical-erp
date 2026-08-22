@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, Clock, ChevronRight, Inbox } from 'lucide-react';
+import { CalendarCheck, Clock, ChevronRight, Inbox, AlertTriangle } from 'lucide-react';
 import { getCitaEstado, formatNombre, formatHora } from '../../utils/citaEstados';
+import { getAppointmentStatus, getTimeBadgeLabel } from '../../utils/citaTimeUtils';
 
 export default function CitasHoyList({ citas, loading }) {
   const navigate = useNavigate();
@@ -32,8 +33,15 @@ export default function CitasHoyList({ citas, loading }) {
         <ul className="citas-hoy">
           {citas.map((cita) => {
             const estado = getCitaEstado(cita.estado);
+            const timeStatus = getAppointmentStatus(cita);
+            const isTooEarly = timeStatus === 'too_early';
+            const timeBadge = getTimeBadgeLabel(cita);
+
             return (
-              <li key={cita.id} className="citas-hoy__item">
+              <li
+                key={cita.id}
+                className={`citas-hoy__item ${isTooEarly ? 'citas-hoy__item--too-early' : ''}`}
+              >
                 <div className="citas-hoy__time">
                   <Clock size={14} />
                   {formatHora(cita.hora)}
@@ -45,10 +53,16 @@ export default function CitasHoyList({ citas, loading }) {
                     {cita.tipoCitaNombre || cita.motivo || 'Consulta'}
                   </span>
                 </div>
-                <span className={`chip chip--${estado.tone}`}>{estado.label}</span>
+                {isTooEarly ? (
+                  <span className="citas-hoy__early-badge">
+                    <AlertTriangle size={12} /> {timeBadge}
+                  </span>
+                ) : (
+                  <span className={`chip chip--${estado.tone}`}>{estado.label}</span>
+                )}
                 <button
                   className="citas-hoy__open"
-                  title="Abrir cliente"
+                  title={isTooEarly ? `Cita a las ${formatHora(cita.hora)}` : 'Abrir cliente'}
                   onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={18} />

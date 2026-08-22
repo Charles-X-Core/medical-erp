@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { Users, ChevronRight, Clock } from 'lucide-react';
+import { Users, ChevronRight, Clock, AlertTriangle } from 'lucide-react';
+import { getAppointmentStatus } from '../../utils/citaTimeUtils';
 
 function formatNombre(nombre) {
   if (!nombre) return 'Cliente';
@@ -16,9 +17,9 @@ function getEstadoLabel(estado) {
     pendiente: 'Pendiente',
     programada: 'Programada',
     confirmada: 'Confirmada',
-    asistio: 'Llegó',
-    llegada: 'Llegó',
-    en_atencion: 'En atención',
+    asistio: 'Llego',
+    llegada: 'Llego',
+    en_atencion: 'En atencion',
   };
   return labels[estado] || estado;
 }
@@ -70,29 +71,42 @@ export default function ColaPacientes({ citas = [], loading = false }) {
             <p>Sin clientes en espera</p>
           </div>
         ) : (
-          citas.map((cita) => (
-            <button
-              key={cita.id}
-              className="dashboard-cola__item"
-              onClick={() => cita.pacienteId && navigate(`/pacientes/${cita.pacienteId}/workspace`)}
-            >
-              <div className="dashboard-cola__item-time">
-                <Clock size={14} />
-                <span>{formatHora(cita.hora)}</span>
-              </div>
-              <div className="dashboard-cola__item-info">
-                <span className="dashboard-cola__item-name">{formatNombre(cita.pacienteNombre)}</span>
-                <span className="dashboard-cola__item-detail">
-                  {cita.usuarioNombre && <span>{cita.usuarioNombre} · </span>}
-                  {cita.tipoCitaNombre || cita.motivo || 'Consulta'}
-                </span>
-              </div>
-              <span className={`dashboard-cola__item-estado dashboard-cola__item-estado--${getEstadoTone(cita.estado)}`}>
-                {getEstadoLabel(cita.estado)}
-              </span>
-              <ChevronRight size={14} className="dashboard-cola__item-arrow" />
-            </button>
-          ))
+          citas.map((cita) => {
+            const timeStatus = getAppointmentStatus(cita);
+            const isTooEarly = timeStatus === 'too_early';
+
+            return (
+              <button
+                key={cita.id}
+                className={`dashboard-cola__item ${isTooEarly ? 'dashboard-cola__item--too-early' : ''}`}
+                onClick={() => !isTooEarly && cita.pacienteId && navigate(`/pacientes/${cita.pacienteId}/workspace`)}
+              >
+                <div className="dashboard-cola__item-time">
+                  <Clock size={14} />
+                  <span>{formatHora(cita.hora)}</span>
+                </div>
+                <div className="dashboard-cola__item-info">
+                  <span className="dashboard-cola__item-name">{formatNombre(cita.pacienteNombre)}</span>
+                  <span className="dashboard-cola__item-detail">
+                    {cita.usuarioNombre && <span>{cita.usuarioNombre} · </span>}
+                    {cita.tipoCitaNombre || cita.motivo || 'Consulta'}
+                  </span>
+                </div>
+                {isTooEarly ? (
+                  <span className="dashboard-cola__item-early">
+                    <AlertTriangle size={12} /> Aun no es hora
+                  </span>
+                ) : (
+                  <>
+                    <span className={`dashboard-cola__item-estado dashboard-cola__item-estado--${getEstadoTone(cita.estado)}`}>
+                      {getEstadoLabel(cita.estado)}
+                    </span>
+                    <ChevronRight size={14} className="dashboard-cola__item-arrow" />
+                  </>
+                )}
+              </button>
+            );
+          })
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { UserRound, Clock, ArrowRight, ListChecks, Stethoscope } from 'lucide-react';
+import { UserRound, Clock, ArrowRight, ListChecks, Stethoscope, AlertTriangle } from 'lucide-react';
 import { formatNombre, formatHora, getCitaEstado } from '../../utils/citaEstados';
+import { getAppointmentStatus, getTimeBadgeLabel } from '../../utils/citaTimeUtils';
 
 export default function ProximoPaciente({ cita, hero, loading }) {
   const navigate = useNavigate();
@@ -30,6 +31,9 @@ export default function ProximoPaciente({ cita, hero, loading }) {
   const estado = getCitaEstado(cita.estado);
   const isEnAtencion = cita.estado === 'en_atencion';
   const isCompletada = cita.estado === 'completada';
+  const timeStatus = getAppointmentStatus(cita);
+  const isTooEarly = timeStatus === 'too_early';
+  const timeBadge = getTimeBadgeLabel(cita);
 
   return (
     <div className={`proximo-paciente proximo-paciente--${cita.prioridad === 'URGENTE' ? 'urgente' : 'normal'}`}>
@@ -58,15 +62,30 @@ export default function ProximoPaciente({ cita, hero, loading }) {
         </div>
         <div className="proximo-paciente__estado">
           <span className={`chip chip--${estado.tone}`}>{estado.label}</span>
+          {timeBadge && !isCompletada && (
+            <span className={`proximo-paciente__time-badge proximo-paciente__time-badge--${timeStatus}`}>
+              {timeBadge}
+            </span>
+          )}
         </div>
       </div>
 
-      {!isCompletada && (
+      {!isCompletada && !isEnAtencion && isTooEarly && (
+        <div className="proximo-paciente__action-blocked">
+          <AlertTriangle size={16} />
+          <span>Aun no es hora</span>
+          <button className="btn btn--ghost btn--sm" onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}>
+            Cambiar horario
+          </button>
+        </div>
+      )}
+
+      {!isCompletada && (isEnAtencion || !isTooEarly) && (
         <button
           className="btn btn--primary"
           onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}
         >
-          {isEnAtencion ? 'Ver atención' : 'Iniciar atención'}
+          {isEnAtencion ? 'Ver atencion' : 'Iniciar atencion'}
           <ArrowRight size={16} />
         </button>
       )}
