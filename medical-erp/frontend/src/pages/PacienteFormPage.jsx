@@ -1,37 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { pacienteService } from '../services/pacienteService';
 import { historiaClinicaService } from '../services/historiaClinicaService';
 import AntecedentesEditor from '../components/ui/AntecedentesEditor';
 
 const emptyPaciente = {
-  apellidoPaterno: '',
-  apellidoMaterno: '',
-  nombres: '',
-  licenciaConducir: '',
-  telefono: '',
-  email: '',
-  fechaNacimiento: '',
-  sexo: '',
-  estadoCivil: '',
-  direccion: '',
-  lugarNacimiento: '',
-  lugarProcedencia: '',
-  gradoInstruccion: '',
-  ocupacion: '',
-  nombreAcompanante: '',
-  contactoEmergencia: '',
-  telefonoEmergencia: '',
-  parentescoEmergencia: '',
-  estatura: '',
-  ciudadEstado: '',
+  apellidoPaterno: '', apellidoMaterno: '', nombres: '', licenciaConducir: '',
+  telefono: '', email: '', fechaNacimiento: '', sexo: '', estadoCivil: '',
+  direccion: '', lugarNacimiento: '', lugarProcedencia: '', gradoInstruccion: '',
+  ocupacion: '', nombreAcompanante: '', contactoEmergencia: '', telefonoEmergencia: '',
+  parentescoEmergencia: '', estatura: '', ciudadEstado: '',
 };
 
 export default function PacienteFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const { t } = useTranslation('patients');
 
   const [paciente, setPaciente] = useState({ ...emptyPaciente });
   const [antecedentesData, setAntecedentesData] = useState({});
@@ -48,28 +35,16 @@ export default function PacienteFormPage() {
       if (res.success) {
         const p = res.data;
         setPaciente({
-          apellidoPaterno: p.apellidoPaterno || '',
-          apellidoMaterno: p.apellidoMaterno || '',
-          nombres: p.nombres || '',
-          licenciaConducir: p.licenciaConducir || '',
-          telefono: p.telefono || '',
-          email: p.email || '',
-          fechaNacimiento: p.fechaNacimiento || '',
-          sexo: p.sexo || '',
-          estadoCivil: p.estadoCivil || '',
-          direccion: p.direccion || '',
-          lugarNacimiento: p.lugarNacimiento || '',
-          lugarProcedencia: p.lugarProcedencia || '',
-          gradoInstruccion: p.gradoInstruccion || '',
-          ocupacion: p.ocupacion || '',
-          nombreAcompanante: p.nombreAcompanante || '',
-          contactoEmergencia: p.contactoEmergencia || '',
-          telefonoEmergencia: p.telefonoEmergencia || '',
-          parentescoEmergencia: p.parentescoEmergencia || '',
-          estatura: p.estatura || '',
-          ciudadEstado: p.ciudadEstado || '',
+          apellidoPaterno: p.apellidoPaterno || '', apellidoMaterno: p.apellidoMaterno || '',
+          nombres: p.nombres || '', licenciaConducir: p.licenciaConducir || '',
+          telefono: p.telefono || '', email: p.email || '', fechaNacimiento: p.fechaNacimiento || '',
+          sexo: p.sexo || '', estadoCivil: p.estadoCivil || '', direccion: p.direccion || '',
+          lugarNacimiento: p.lugarNacimiento || '', lugarProcedencia: p.lugarProcedencia || '',
+          gradoInstruccion: p.gradoInstruccion || '', ocupacion: p.ocupacion || '',
+          nombreAcompanante: p.nombreAcompanante || '', contactoEmergencia: p.contactoEmergencia || '',
+          telefonoEmergencia: p.telefonoEmergencia || '', parentescoEmergencia: p.parentescoEmergencia || '',
+          estatura: p.estatura || '', ciudadEstado: p.ciudadEstado || '',
         });
-
         try {
           const hRes = await historiaClinicaService.getByPaciente(id);
           if (hRes.success && hRes.data) {
@@ -88,80 +63,46 @@ export default function PacienteFormPage() {
               enfermedadActualMedicacion: hRes.data.enfermedadActualMedicacion || '',
             });
           }
-        } catch {
-          // No historia yet
-        }
+        } catch { /* No historia yet */ }
       } else {
-        setError(res.message || 'Error al cargar cliente');
+        setError(res.message || t('error_loading'));
       }
     } catch (err) {
-      setError(err.message || 'Error al cargar cliente');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+      setError(err.message || t('error_loading'));
+    } finally { setLoading(false); }
+  }, [id, t]);
 
-  useEffect(() => {
-    loadPaciente();
-  }, [loadPaciente]);
+  useEffect(() => { loadPaciente(); }, [loadPaciente]);
 
-  const handleChange = (field, value) => {
-    setPaciente((p) => ({ ...p, [field]: value }));
-  };
-
-  const handleAntecedentesChange = (key, value) => {
-    setAntecedentesData(prev => ({ ...prev, [key]: value }));
-  };
+  const handleChange = (field, value) => setPaciente((p) => ({ ...p, [field]: value }));
+  const handleAntecedentesChange = (key, value) => setAntecedentesData(prev => ({ ...prev, [key]: value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
-    setError('');
-
+    setSaving(true); setError('');
     if (!paciente.apellidoPaterno?.trim() || !paciente.nombres?.trim()) {
-      setError('Apellido paterno y nombres son obligatorios');
-      setSaving(false);
-      return;
+      setError(t('last_name_p') + ' y ' + t('first_names') + ' son obligatorios');
+      setSaving(false); return;
     }
-
     if (!paciente.licenciaConducir?.trim()) {
-      setError('El numero de ID es obligatorio');
-      setSaving(false);
-      return;
+      setError(t('doc_number') + ' es obligatorio');
+      setSaving(false); return;
     }
-
     try {
-      const payload = {
-        ...paciente,
-      };
-
-      const res = isEdit
-        ? await pacienteService.update(id, payload)
-        : await pacienteService.create(payload);
-
+      const res = isEdit ? await pacienteService.update(id, paciente) : await pacienteService.create(paciente);
       if (res.success) {
         const pacienteCreado = res.data;
-
         const tieneAntecedentes = Object.values(antecedentesData).some(v => v && v !== 'No' && v !== '');
-
         if (historiaId) {
           await historiaClinicaService.updateAntecedentes(historiaId, antecedentesData);
         } else if (tieneAntecedentes) {
-          await historiaClinicaService.create({
-            pacienteId: pacienteCreado.id,
-            ...antecedentesData,
-          });
+          await historiaClinicaService.create({ pacienteId: pacienteCreado.id, ...antecedentesData });
         }
-
         navigate(`/pacientes/${pacienteCreado.id}/workspace`);
       } else {
-        setError(res.message || 'Error al guardar');
+        setError(res.message || t('error_saving'));
       }
-    } catch (err) {
-      setError(err.message || 'Error al guardar');
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { setError(err.message || t('error_saving')); } finally { setSaving(false); }
   };
 
   if (loading) {
@@ -169,7 +110,7 @@ export default function PacienteFormPage() {
       <div className="paciente-form-page">
         <div className="paciente-form-page__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando cliente...</p>
+          <p>{t('loading_client')}</p>
         </div>
       </div>
     );
@@ -179,10 +120,10 @@ export default function PacienteFormPage() {
     <div className="paciente-form-page">
       <div className="paciente-form-page__header">
         <button className="btn btn--ghost" onClick={() => navigate('/pacientes')}>
-          <ArrowLeft size={18} /> Volver
+          <ArrowLeft size={18} /> {t('back', { ns: 'common' })}
         </button>
         <h2 className="paciente-form-page__title">
-          {isEdit ? 'Editar Cliente' : 'Nuevo Cliente'}
+          {isEdit ? t('edit_client') : t('new_client')}
         </h2>
       </div>
 
@@ -190,52 +131,47 @@ export default function PacienteFormPage() {
 
       <form onSubmit={handleSubmit}>
         <div className="form-card">
-          <h3 className="form-section__title">Datos Personales</h3>
+          <h3 className="form-section__title">{t('personal_data')}</h3>
           <div className="form-grid form-grid--2">
             <div className="form-field">
               <label className="form-label">ID *</label>
-              <input
-                className="form-input"
-                value={paciente.licenciaConducir}
+              <input className="form-input" value={paciente.licenciaConducir}
                 onChange={(e) => handleChange('licenciaConducir', e.target.value)}
-                maxLength={20}
-                placeholder="Ingrese su numero de identificacion"
-                required
-              />
+                maxLength={20} placeholder={t('id_number_placeholder')} required />
             </div>
             <div className="form-field">
-              <label className="form-label">Apellido Paterno *</label>
+              <label className="form-label">{t('last_name_p')} *</label>
               <input className="form-input" value={paciente.apellidoPaterno} onChange={(e) => handleChange('apellidoPaterno', e.target.value)} required />
             </div>
             <div className="form-field">
-              <label className="form-label">Apellido Materno</label>
+              <label className="form-label">{t('last_name_m')}</label>
               <input className="form-input" value={paciente.apellidoMaterno} onChange={(e) => handleChange('apellidoMaterno', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Nombres *</label>
+              <label className="form-label">{t('first_names')} *</label>
               <input className="form-input" value={paciente.nombres} onChange={(e) => handleChange('nombres', e.target.value)} required />
             </div>
             <div className="form-field">
-              <label className="form-label">Fecha de Nacimiento</label>
+              <label className="form-label">{t('birth_date')}</label>
               <input type="date" className="form-input" value={paciente.fechaNacimiento} onChange={(e) => handleChange('fechaNacimiento', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Sexo</label>
+              <label className="form-label">{t('gender')}</label>
               <select className="form-select" value={paciente.sexo} onChange={(e) => handleChange('sexo', e.target.value)}>
-                <option value="">Seleccionar</option>
-                <option value="M">Masculino</option>
-                <option value="F">Femenino</option>
+                <option value="">{t('select_option')}</option>
+                <option value="M">{t('gender_male')}</option>
+                <option value="F">{t('gender_female')}</option>
               </select>
             </div>
             <div className="form-field">
-              <label className="form-label">Estado Civil</label>
+              <label className="form-label">{t('civil_status')}</label>
               <select className="form-select" value={paciente.estadoCivil} onChange={(e) => handleChange('estadoCivil', e.target.value)}>
-                <option value="">Seleccionar</option>
-                <option value="Soltero">Soltero(a)</option>
-                <option value="Casado">Casado(a)</option>
-                <option value="Divorciado">Divorciado(a)</option>
-                <option value="Viudo">Viudo(a)</option>
-                <option value="Conviviente">Conviviente</option>
+                <option value="">{t('select_option')}</option>
+                <option value="Soltero">{t('civil_soltero')}</option>
+                <option value="Casado">{t('civil_casado')}</option>
+                <option value="Divorciado">{t('civil_divorciado')}</option>
+                <option value="Viudo">{t('civil_viudo')}</option>
+                <option value="Conviviente">{t('civil_conviviente')}</option>
               </select>
             </div>
             <div className="form-field">
@@ -246,14 +182,14 @@ export default function PacienteFormPage() {
         </div>
 
         <div className="form-card">
-          <h3 className="form-section__title">Contacto</h3>
+          <h3 className="form-section__title">{t('contact_info')}</h3>
           <div className="form-grid form-grid--2">
             <div className="form-field">
-              <label className="form-label">Telefono</label>
+              <label className="form-label">{t('phone', { ns: 'common' })}</label>
               <input className="form-input" value={paciente.telefono} onChange={(e) => handleChange('telefono', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Email</label>
+              <label className="form-label">{t('email', { ns: 'common' })}</label>
               <input type="email" className="form-input" value={paciente.email} onChange={(e) => handleChange('email', e.target.value)} />
             </div>
             <div className="form-field">
@@ -261,7 +197,7 @@ export default function PacienteFormPage() {
               <input className="form-input" value={paciente.ciudadEstado || ''} onChange={(e) => handleChange('ciudadEstado', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Direccion</label>
+              <label className="form-label">{t('address', { ns: 'common' })}</label>
               <input className="form-input" value={paciente.direccion} onChange={(e) => handleChange('direccion', e.target.value)} />
             </div>
             <div className="form-field">
@@ -273,61 +209,57 @@ export default function PacienteFormPage() {
               <input className="form-input" value={paciente.lugarProcedencia} onChange={(e) => handleChange('lugarProcedencia', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Grado de Instruccion</label>
+              <label className="form-label">Grado de Instrucción</label>
               <select className="form-select" value={paciente.gradoInstruccion} onChange={(e) => handleChange('gradoInstruccion', e.target.value)}>
-                <option value="">Seleccionar</option>
+                <option value="">{t('select_option')}</option>
                 <option value="Primaria">Primaria</option>
                 <option value="Secundaria">Secundaria</option>
-                <option value="Tecnico">Tecnico</option>
+                <option value="Tecnico">Técnico</option>
                 <option value="Universitario">Universitario</option>
                 <option value="Postgrado">Postgrado</option>
               </select>
             </div>
             <div className="form-field">
-              <label className="form-label">Ocupacion</label>
+              <label className="form-label">{t('occupation')}</label>
               <input className="form-input" value={paciente.ocupacion} onChange={(e) => handleChange('ocupacion', e.target.value)} />
             </div>
           </div>
         </div>
 
         <div className="form-card">
-          <h3 className="form-section__title">Contacto de Emergencia</h3>
+          <h3 className="form-section__title">{t('emergency_contact_title')}</h3>
           <div className="form-grid form-grid--2">
             <div className="form-field">
-              <label className="form-label">Nombre acompanante</label>
+              <label className="form-label">{t('emergency_name')}</label>
               <input className="form-input" value={paciente.nombreAcompanante} onChange={(e) => handleChange('nombreAcompanante', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Contacto emergencia</label>
+              <label className="form-label">{t('emergency_phone')}</label>
               <input className="form-input" value={paciente.contactoEmergencia} onChange={(e) => handleChange('contactoEmergencia', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Telefono emergencia</label>
+              <label className="form-label">{t('emergency_phone')}</label>
               <input className="form-input" value={paciente.telefonoEmergencia} onChange={(e) => handleChange('telefonoEmergencia', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Parentesco</label>
+              <label className="form-label">{t('emergency_relationship')}</label>
               <input className="form-input" value={paciente.parentescoEmergencia} onChange={(e) => handleChange('parentescoEmergencia', e.target.value)} />
             </div>
           </div>
         </div>
 
         <div className="form-card">
-          <h3 className="form-section__title">Antecedentes Medicos</h3>
-          <AntecedentesEditor
-            values={antecedentesData}
-            onChange={handleAntecedentesChange}
-            compact
-          />
+          <h3 className="form-section__title">{t('medical_history_title')}</h3>
+          <AntecedentesEditor values={antecedentesData} onChange={handleAntecedentesChange} compact />
         </div>
 
         <div className="paciente-form-page__actions">
           <button type="button" className="btn btn--secondary" onClick={() => navigate('/pacientes')} disabled={saving}>
-            Cancelar
+            {t('cancel', { ns: 'common' })}
           </button>
           <button type="submit" className="btn btn--primary" disabled={saving}>
             {saving ? <Loader2 size={18} className="spinner" /> : <Save size={18} />}
-            {saving ? 'Guardando...' : 'Guardar Cliente'}
+            {saving ? t('saving') : t('save_client')}
           </button>
         </div>
       </form>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Loader2, User, FileText, Activity, Shield, Image, Clock, Calendar } from 'lucide-react';
 import { pacienteService } from '../services/pacienteService';
 import { historiaClinicaService } from '../services/historiaClinicaService';
@@ -15,19 +16,11 @@ import TabArchivos from '../components/paciente360/TabArchivos';
 import TabTimeline from '../components/paciente360/TabTimeline';
 import CitaSchedulerModal from '../components/agenda/CitaSchedulerModal';
 
-const TABS = [
-  { id: 'general', label: 'Resumen', icon: User },
-  { id: 'clinico', label: 'Historia Clínica', icon: FileText },
-  { id: 'tratamientos', label: 'Tratamientos', icon: Activity },
-  { id: 'consentimientos', label: 'Consentimientos', icon: Shield },
-  { id: 'archivos', label: 'Archivos Clínicos', icon: Image },
-  { id: 'timeline', label: 'Timeline', icon: Clock },
-];
-
 export default function Paciente360Page() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation('patients');
   const [activeTab, setActiveTab] = useState(location.state?.tab || 'general');
   const [paciente, setPaciente] = useState(null);
   const [historia, setHistoria] = useState(null);
@@ -36,6 +29,15 @@ export default function Paciente360Page() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showScheduler, setShowScheduler] = useState(false);
 
+  const TABS = [
+    { id: 'general', label: t('workspace_attention'), icon: User },
+    { id: 'clinico', label: t('workspace_history'), icon: FileText },
+    { id: 'tratamientos', label: t('workspace_treatments'), icon: Activity },
+    { id: 'consentimientos', label: 'Consentimientos', icon: Shield },
+    { id: 'archivos', label: 'Archivos Clínicos', icon: Image },
+    { id: 'timeline', label: 'Timeline', icon: Clock },
+  ];
+
   const load = useCallback(async () => {
     try {
       setLoading(true);
@@ -43,28 +45,21 @@ export default function Paciente360Page() {
         pacienteService.getById(id),
         historiaClinicaService.getByPaciente(id).catch(() => ({ success: false })),
       ]);
-
       if (pRes.success) setPaciente(pRes.data);
       if (hRes.success) setHistoria(hRes.data);
     } catch (err) {
-      setError(err.message || 'Error al cargar');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+      setError(err.message || t('error_loading'));
+    } finally { setLoading(false); }
+  }, [id, t]);
 
   useEffect(() => { load(); }, [load]);
-
-  const handleSaveEdit = () => {
-    load();
-  };
 
   if (loading) {
     return (
       <div className="workspace">
         <div className="workspace__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando workspace del cliente...</p>
+          <p>{t('loading_client')}</p>
         </div>
       </div>
     );
@@ -73,70 +68,37 @@ export default function Paciente360Page() {
   if (!paciente) {
     return (
       <div className="workspace">
-        <div className="workspace__error">{error || 'Cliente no encontrado'}</div>
+        <div className="workspace__error">{error || t('not_found', { ns: 'common' })}</div>
       </div>
     );
   }
 
   return (
     <div className="workspace workspace--light">
-      {/* Patient Header */}
       <WorkspaceHeader
         paciente={paciente}
         onEdit={() => navigate('/pacientes')}
         onMoreActions={() => setShowEditModal(true)}
         extraActions={
           <button className="btn btn--primary btn--sm" onClick={() => setShowScheduler(true)}>
-            <Calendar size={16} /> Agendar Cita
+            <Calendar size={16} /> {t('workspace_appointments')}
           </button>
         }
       />
-
-      {/* 3-Column Body */}
       <div className="workspace__body">
-        {/* Left: Tabs */}
         <WorkspaceTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
-
-        {/* Center: Content */}
         <div className="workspace__content">
-          {activeTab === 'general' && (
-            <ResumenTab paciente={paciente} historia={historia} pacienteId={id} />
-          )}
-          {activeTab === 'clinico' && (
-            <TabClinico pacienteId={id} historiaId={historia?.id} />
-          )}
-          {activeTab === 'tratamientos' && (
-            <TabTratamientos pacienteId={id} historiaId={historia?.id} />
-          )}
-          {activeTab === 'consentimientos' && (
-            <TabConsentimientos pacienteId={id} />
-          )}
-          {activeTab === 'archivos' && (
-            <TabArchivos pacienteId={id} />
-          )}
-          {activeTab === 'timeline' && (
-            <TabTimeline pacienteId={id} />
-          )}
+          {activeTab === 'general' && <ResumenTab paciente={paciente} historia={historia} pacienteId={id} />}
+          {activeTab === 'clinico' && <TabClinico pacienteId={id} historiaId={historia?.id} />}
+          {activeTab === 'tratamientos' && <TabTratamientos pacienteId={id} historiaId={historia?.id} />}
+          {activeTab === 'consentimientos' && <TabConsentimientos pacienteId={id} />}
+          {activeTab === 'archivos' && <TabArchivos pacienteId={id} />}
+          {activeTab === 'timeline' && <TabTimeline pacienteId={id} />}
         </div>
-
-        {/* Right: Timeline Sidebar */}
         <WorkspaceTimeline pacienteId={id} />
       </div>
-
-      {/* Edit Modal */}
-      <PacienteFormModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onSave={handleSaveEdit}
-        pacienteId={id}
-      />
-
-      {/* Scheduler Modal */}
-      <CitaSchedulerModal
-        isOpen={showScheduler}
-        onClose={() => setShowScheduler(false)}
-        paciente={paciente}
-      />
+      <PacienteFormModal isOpen={showEditModal} onClose={() => setShowEditModal(false)} onSave={() => load()} pacienteId={id} />
+      <CitaSchedulerModal isOpen={showScheduler} onClose={() => setShowScheduler(false)} paciente={paciente} />
     </div>
   );
 }
