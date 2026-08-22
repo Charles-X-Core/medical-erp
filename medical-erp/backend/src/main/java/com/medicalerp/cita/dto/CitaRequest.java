@@ -22,6 +22,7 @@ public class CitaRequest {
     @NotNull(message = "El paciente es requerido")
     private Long pacienteId;
 
+    @NotNull(message = "El profesional es requerido")
     private Long usuarioId;
 
     private Long tipoCitaId;

@@ -70,18 +70,13 @@ public class CitaService {
         Paciente paciente = pacienteRepository.findById(request.getPacienteId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", request.getPacienteId()));
 
-        Usuario usuario = null;
-        if (request.getUsuarioId() != null) {
-            usuario = usuarioRepository.findById(request.getUsuarioId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuario", request.getUsuarioId()));
-        }
+        Usuario usuario = usuarioRepository.findById(request.getUsuarioId())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", request.getUsuarioId()));
 
         Integer duracion = request.getDuracionMinutos() != null ? request.getDuracionMinutos() : 30;
 
-        // Validate Agenda availability if usuario assigned
-        if (usuario != null) {
-            validarDisponibilidad(usuario.getId(), request.getFecha(), request.getHora(), duracion);
-        }
+        // Always validate availability — usuarioId is required
+        validarDisponibilidad(usuario.getId(), request.getFecha(), request.getHora(), duracion);
 
         Cita cita = citaMapper.toEntity(request);
         cita.setPaciente(paciente);
@@ -401,6 +396,29 @@ public class CitaService {
 
         int duracionAnterior = cita.getDuracionMinutos();
         int nuevaDuracion = duracionAnterior + (minutosExtra != null ? minutosExtra : 0);
+
+        // Validate extension doesn't conflict with subsequent citas
+        if (cita.getUsuario() != null && cita.getFecha() != null && cita.getHora() != null) {
+            LocalDateTime finNueva = cita.getFechaHora().plusMinutes(nuevaDuracion);
+            List<Cita> siguientes = citaRepository.findActivasByUsuarioAndFecha(
+                    cita.getUsuario().getId(), cita.getFecha())
+                    .stream()
+                    .filter(c -> !c.getId().equals(id))
+                    .filter(c -> c.getHora().isAfter(cita.getHora()))
+                    .sorted(java.util.Comparator.comparing(Cita::getHora))
+                    .toList();
+
+            for (Cita siguiente : siguientes) {
+                LocalDateTime inicioSiguiente = siguiente.getFechaHora();
+                if (finNueva.isAfter(inicioSiguiente)) {
+                    throw new BusinessRuleException("BR-CIT-EN-004",
+                            "No se puede extender — la sesión se superpone con la cita de "
+                                    + siguiente.getPaciente().getNombreCompleto() + " a las "
+                                    + siguiente.getHora().toString().substring(0, 5));
+                }
+            }
+        }
+
         cita.setDuracionMinutos(nuevaDuracion);
         citaRepository.save(cita);
 
@@ -567,14 +585,17 @@ public class CitaService {
         Integer duracion = nuevaCitaRequest.getDuracionMinutos() != null
                 ? nuevaCitaRequest.getDuracionMinutos() : original.getDuracionMinutos();
 
-        // Validate availability for new slot
+        // usuarioId is required — fall back to original's usuario, error if neither has one
         Long usuarioId = nuevaCitaRequest.getUsuarioId() != null
                 ? nuevaCitaRequest.getUsuarioId()
                 : (original.getUsuario() != null ? original.getUsuario().getId() : null);
 
-        if (usuarioId != null) {
-            validarDisponibilidad(usuarioId, nuevaCitaRequest.getFecha(), nuevaCitaRequest.getHora(), duracion);
+        if (usuarioId == null) {
+            throw new BusinessRuleException("BR-CIT-AG-001",
+                    "El profesional es requerido para reprogramar la cita");
         }
+
+        validarDisponibilidad(usuarioId, nuevaCitaRequest.getFecha(), nuevaCitaRequest.getHora(), duracion);
 
         // Mark original as reprogramada
         original.setEstado("reprogramada");
@@ -582,9 +603,8 @@ public class CitaService {
 
         // Create new cita linked to original
         Paciente paciente = original.getPaciente();
-        Usuario usuario = usuarioId != null
-                ? usuarioRepository.findById(usuarioId).orElse(null)
-                : null;
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", usuarioId));
 
         Cita nueva = citaMapper.toEntity(nuevaCitaRequest);
         nueva.setPaciente(paciente);
@@ -611,9 +631,16 @@ public class CitaService {
 
         Integer duracion = request.getDuracionMinutos() != null ? request.getDuracionMinutos() : cita.getDuracionMinutos();
 
-        // Only validate availability when explicitly reassigning a doctor
-        if (request.getUsuarioId() != null) {
-            validarDisponibilidad(request.getUsuarioId(), request.getFecha(), request.getHora(), duracion, id);
+        // Validate when doctor changes OR when date/time changes
+        Long effectiveUsuarioId = request.getUsuarioId() != null ? request.getUsuarioId()
+                : (cita.getUsuario() != null ? cita.getUsuario().getId() : null);
+        boolean fechaHoraChanged = (request.getFecha() != null && !request.getFecha().equals(cita.getFechaHora() != null ? cita.getFechaHora().toLocalDate() : null))
+                || (request.getHora() != null && !request.getHora().equals(cita.getHora()));
+        boolean doctorChanged = request.getUsuarioId() != null && !request.getUsuarioId().equals(
+                cita.getUsuario() != null ? cita.getUsuario().getId() : null);
+
+        if (effectiveUsuarioId != null && (doctorChanged || fechaHoraChanged)) {
+            validarDisponibilidad(effectiveUsuarioId, request.getFecha(), request.getHora(), duracion, id);
         }
 
         citaMapper.updateEntity(cita, request);

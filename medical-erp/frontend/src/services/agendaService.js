@@ -223,20 +223,6 @@ const agendaService = {
     }
   },
 
-  // Solicitar cita (doctora → enfermera flow)
-  solicitarCita: async (citaData) => {
-    try {
-      const response = await apiClient('/api/v1/citas/solicitar', {
-        method: 'POST',
-        body: JSON.stringify(citaData),
-      });
-      return response;
-    } catch (error) {
-      console.error('Error solicitando cita:', error);
-      throw error;
-    }
-  },
-
   // Get citas solicitadas pendientes (for nurse sidebar)
   getSolicitadasPendientes: async () => {
     try {
