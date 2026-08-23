@@ -449,5 +449,19 @@
   "imported_clients": "Clients Imported",
   "skipped_clients": "Clients Skipped",
   "proxima_sesion": "Next session:",
-  "pausado_por_doctora": "Paused by doctor"
+  "pausado_por_doctora": "Paused by doctor",
+  "alergia_medicamentos": "Drug Allergies",
+  "propension_hemorragias": "Bleeding Tendency",
+  "complicaciones_anestesia": "Anesthesia Complications",
+  "presion_arterial_medicacion": "Blood Pressure Medication",
+  "cardiopatias_personales": "Personal Heart Disease",
+  "cardiopatias_familiares": "Family Heart Disease",
+  "diabetes_personal": "Personal Diabetes",
+  "diabetes_familiar": "Family Diabetes",
+  "hepatitis": "Hepatitis",
+  "otras_enfermedades": "Other Diseases",
+  "enfermedad_actual_medicacion": "Current Illness Medication",
+  "edad_anios": "{{edad}} years",
+  "masculino": "Male",
+  "femenino": "Female"
 }
