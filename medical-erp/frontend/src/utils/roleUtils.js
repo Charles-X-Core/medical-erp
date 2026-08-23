@@ -1,22 +1,16 @@
 import i18n from '../i18n';
 
-const ROLE_LABELS = {
-  admin: 'admin',
-  doctora: 'doctora',
-};
-
-const ROLE_LABELS_SHORT = {
-  admin: 'Admin',
-  doctora: 'Dra.',
-};
-
 export const getRoleLabel = (role) => {
-  if (role === 'admin') return i18n.t('Admin', { ns: 'common' });
-  if (role === 'doctora') return i18n.t('Doctor', { ns: 'common' });
+  if (role === 'admin') return i18n.t('admin', { ns: 'common' });
+  if (role === 'doctora') return i18n.t('doctor', { ns: 'common' });
   return role;
 };
 
-export const getRoleLabelShort = (role) => ROLE_LABELS_SHORT[role] || role;
+export const getRoleLabelShort = (role) => {
+  if (role === 'admin') return 'Admin';
+  if (role === 'doctora') return 'Dra.';
+  return role;
+};
 
 export const getDashboardLabel = (role) => {
   if (role === 'admin') return i18n.t('admin_panel', { ns: 'dashboard' });

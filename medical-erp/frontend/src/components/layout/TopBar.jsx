@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Search, X, FileText, Phone, Bell, Calendar } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { pacienteService } from '../../services/pacienteService';
@@ -24,6 +25,8 @@ function getInitials(nombre) {
 export default function TopBar() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation('patients');
+  const { t: tS } = useTranslation('sidebar');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -70,7 +73,7 @@ export default function TopBar() {
         <input
           type="text"
           className="topbar__search-input"
-          placeholder="Buscar cliente por nombre, ID o teléfono..."
+          placeholder={t('buscar_nombre_documento')}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -87,11 +90,11 @@ export default function TopBar() {
       </div>
 
       <div className="topbar__actions">
-        <button className="topbar__icon-btn" title="Notificaciones">
+        <button className="topbar__icon-btn" title={tS('notifications')}>
           <Bell size={20} />
           <span className="topbar__badge">3</span>
         </button>
-        <button className="topbar__icon-btn" title="Calendario">
+        <button className="topbar__icon-btn" title={t('date', { ns: 'common' })}>
           <Calendar size={20} />
         </button>
 
@@ -134,7 +137,7 @@ export default function TopBar() {
             </div>
           ) : (
             <div className="topbar__empty">
-              <p>No se encontraron clientes con "{query}"</p>
+              <p>{t('no_results', { ns: 'common' })} "{query}"</p>
             </div>
           )}
         </div>

@@ -1,24 +1,24 @@
-// ============================================
-// Cita estados — labels y clases (no hardcodeo)
-// ============================================
+import i18n from '../i18n';
 
-export const CITA_ESTADOS = {
-  solicitada: { label: 'Solicitada', tone: 'warning', icon: 'Clock' },
-  pendiente: { label: 'Pendiente', tone: 'neutral' },
-  programada: { label: 'Programada', tone: 'info' },
-  confirmada: { label: 'Confirmada', tone: 'info' },
-  asistio: { label: 'Asistió', tone: 'success' },
-  llegada: { label: 'Llegó', tone: 'success' },
-  en_atencion: { label: 'En Atención', tone: 'active', icon: 'Stethoscope' },
-  completada: { label: 'Completada', tone: 'success' },
-  cancelada: { label: 'Cancelada', tone: 'danger' },
-  reprogramada: { label: 'Reprogramada', tone: 'warning' },
-  no_show: { label: 'No Asistió', tone: 'danger' },
+export const getCitaEstado = (estado) => {
+  const estados = {
+    solicitada: { key: 'solicitada', tone: 'warning', icon: 'Clock' },
+    pendiente: { key: 'pendiente', tone: 'neutral' },
+    programada: { key: 'programada', tone: 'info' },
+    confirmada: { key: 'confirmada', tone: 'info' },
+    asistio: { key: 'asistio', tone: 'success' },
+    llegada: { key: 'llegada', tone: 'success' },
+    en_atencion: { key: 'en_atencion', tone: 'active', icon: 'Stethoscope' },
+    completada: { key: 'completada', tone: 'success' },
+    cancelada: { key: 'cancelada', tone: 'danger' },
+    reprogramada: { key: 'reprogramada', tone: 'warning' },
+    no_show: { key: 'no_show', tone: 'danger' },
+  };
+  const found = estados[estado];
+  if (!found) return { label: estado || '—', tone: 'neutral' };
+  return { ...found, label: i18n.t(`estado_${found.key}`, { ns: 'dashboard' }) };
 };
 
-export const getCitaEstado = (estado) =>
-  CITA_ESTADOS[estado] || { label: estado || '—', tone: 'neutral' };
-
-export const formatNombre = (pacienteNombre) => pacienteNombre || 'Paciente';
+export const formatNombre = (pacienteNombre) => pacienteNombre || i18n.t('patient', { ns: 'common' });
 
 export const formatHora = (hora) => (hora ? hora.substring(0, 5) : '—');
