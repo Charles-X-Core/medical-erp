@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { HeartPulse, Plus, X, Stethoscope, FileCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function PasoDiagnostico({ formData, updateFormData }) {
+  const { t } = useTranslation('clinical');
+  const { t: tP } = useTranslation('patients');
   const { diagnostico } = formData;
   const [nuevoDiagnostico, setNuevoDiagnostico] = useState('');
 
@@ -32,18 +35,18 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
     <div className="wizard-step">
       <h2 className="wizard-step__title">
         <Stethoscope size={20} />
-        Diagnóstico
+        {t('diagnostico')}
       </h2>
 
       {/* Signos Vitales */}
       <div className="wizard-card">
         <h3 className="wizard-card__subtitle">
           <HeartPulse size={16} />
-          Signos Vitales
+          {t('signos_vitales_label')}
         </h3>
         <div className="wizard-grid wizard-grid--4">
           <div className="wizard-field">
-            <label>Presión Arterial</label>
+            <label>{t('presion_arterial')}</label>
             <input
               className="wizard-input"
               value={diagnostico.signosVitales.presionArterial}
@@ -52,7 +55,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
             />
           </div>
           <div className="wizard-field">
-            <label>Pulso (lpm)</label>
+            <label>{t('pulso_lpm')}</label>
             <input
               className="wizard-input"
               type="number"
@@ -62,7 +65,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
             />
           </div>
           <div className="wizard-field">
-            <label>Temperatura (°C)</label>
+            <label>{t('temperatura_c')}</label>
             <input
               className="wizard-input"
               type="number"
@@ -73,7 +76,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
             />
           </div>
           <div className="wizard-field">
-            <label>Peso (kg)</label>
+            <label>{t('peso_kg')}</label>
             <input
               className="wizard-input"
               type="number"
@@ -84,7 +87,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
             />
           </div>
           <div className="wizard-field">
-            <label>Talla (cm)</label>
+            <label>{tP('estatura_cm')}</label>
             <input
               className="wizard-input"
               type="number"
@@ -94,7 +97,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
             />
           </div>
           <div className="wizard-field">
-            <label>Saturación O₂ (%)</label>
+            <label>{t('saturacion_o2')}</label>
             <input
               className="wizard-input"
               type="number"
@@ -104,7 +107,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
             />
           </div>
           <div className="wizard-field">
-            <label>Freq. Respiratoria</label>
+            <label>{t('frecuencia_resp')}</label>
             <input
               className="wizard-input"
               type="number"
@@ -118,16 +121,16 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
 
       {/* Examen */}
       <div className="wizard-card">
-        <h3 className="wizard-card__subtitle">Examen Clínico</h3>
+        <h3 className="wizard-card__subtitle">{tP('examen_fisico')}</h3>
         <div className="wizard-grid wizard-grid--1">
           <div className="wizard-field">
-            <label>Examen Físico General</label>
+            <label>{tP('examen_fisico')}</label>
             <textarea
               className="wizard-textarea"
               rows={3}
               value={diagnostico.examenClinicoGeneral}
               onChange={(e) => updateFormData('diagnostico', { examenClinicoGeneral: e.target.value })}
-              placeholder="Describa los hallazgos del examen físico"
+              placeholder={t('examen_fisico_placeholder')}
             />
           </div>
         </div>
@@ -135,7 +138,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
 
       {/* Diagnósticos - Texto libre */}
       <div className="wizard-card">
-        <h3 className="wizard-card__subtitle">Diagnóstico</h3>
+        <h3 className="wizard-card__subtitle">{tP('diagnostico')}</h3>
 
         <div className="wizard-field">
           <textarea
@@ -143,7 +146,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
             rows={4}
             value={diagnostico.diagnosticoTexto}
             onChange={(e) => updateFormData('diagnostico', { diagnosticoTexto: e.target.value })}
-            placeholder="Escriba el diagnóstico (uno por línea)"
+            placeholder={tP('diagnostico_placeholder')}
           />
         </div>
       </div>
@@ -152,7 +155,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
       <div className="wizard-card">
         <h3 className="wizard-card__subtitle">
           <FileCheck size={16} />
-          Consentimiento
+          {t('consentimiento')}
         </h3>
         <label className="wizard-checkbox">
           <input
@@ -160,7 +163,7 @@ export default function PasoDiagnostico({ formData, updateFormData }) {
             checked={diagnostico.consentimientoInformado}
             onChange={(e) => updateFormData('diagnostico', { consentimientoInformado: e.target.checked })}
           />
-          <span>Consentimiento informado firmado</span>
+          <span>{t('consentimiento_firmado')}</span>
         </label>
       </div>
     </div>

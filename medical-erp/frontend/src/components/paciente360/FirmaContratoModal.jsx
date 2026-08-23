@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Send, CheckCircle, Shield, Tablet, Eye, Loader, AlertCircle, X, Mail } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { contratoPwaService } from '../../services/contratoPwaService';
@@ -6,6 +7,7 @@ import HtmlDocViewer from '../common/HtmlDocViewer';
 const POLL_INTERVAL = 3000;
 
 export default function FirmaContratoModal({ open, onClose, pacienteId, pacienteNombre, onSigned }) {
+  const { t } = useTranslation(['patients', 'contracts']);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
@@ -86,12 +88,12 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
           if (pollErrorsRef.current >= 3) {
             clearInterval(pollingRef.current);
             setPolling(false);
-            setPollingError('Error de conexion con el servidor. Intente enviar de nuevo.');
+            setPollingError(t('firma_error_conexion'));
           }
         }
       }, POLL_INTERVAL);
     } catch {
-      setPollingError('Error al enviar el contrato a la tablet.');
+      setPollingError(t('firma_error_envio'));
     } finally {
       setSending(false);
     }
@@ -126,7 +128,7 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
   const viewerOverlay = polling ? (
     <>
       <Loader size={24} className="html-doc-viewer__spin" />
-      <span>Esperando firma en tablet...</span>
+      <span>{t('firma_esperando')}</span>
       <div className="html-doc-viewer__waiting">
         <div className="html-doc-viewer__waiting-dot" />
         <div className="html-doc-viewer__waiting-dot" />
@@ -137,18 +139,18 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
 
   const viewerActions = !alreadySigned && !polling ? (
     <button className="wizard-step__btn-firma" onClick={handleEnviarTablet} disabled={sending}>
-      <Tablet size={18} /> {sending ? 'Enviando...' : 'Enviar a tablet para firma'}
+      <Tablet size={18} /> {sending ? t('firma_enviando') : t('firma_enviar_tablet')}
     </button>
   ) : null;
 
   const viewerFooter = alreadySigned ? (
     <div className="wizard-step__contrato-firma-enviado">
       <CheckCircle size={20} className="wizard-step__firma-check" />
-      <span>Contrato firmado exitosamente</span>
+      <span>{t('firma_exito')}</span>
       {sessionId && (
         <>
           <button className="wizard-step__btn-pdf" onClick={handleVerPDF}>
-            <Eye size={16} /> Ver PDF firmado
+            <Eye size={16} /> {t('firma_ver_pdf')}
           </button>
           <button
             className="wizard-step__btn-pdf"
@@ -156,7 +158,7 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
             disabled={emailSending || emailSent}
             style={{ marginLeft: '8px' }}
           >
-            <Mail size={16} /> {emailSent ? 'Email enviado' : emailSending ? 'Enviando...' : 'Enviar por email'}
+            <Mail size={16} /> {emailSent ? t('firma_email_sent') : emailSending ? t('firma_enviando') : t('firma_enviar_email')}
           </button>
         </>
       )}
@@ -165,7 +167,7 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
     <div className="wizard-step__contrato-firma-pendiente" style={{ color: '#dc2626' }}>
       <p><AlertCircle size={16} /> {pollingError}</p>
       <button className="wizard-step__btn-firma" onClick={handleEnviarTablet}>
-        <Tablet size={18} /> Reenviar a tablet
+        <Tablet size={18} /> {t('firma_reenviar')}
       </button>
     </div>
   ) : null;
@@ -177,7 +179,7 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
           <div className="modal__title">
             <Shield size={20} />
             <div>
-              <span>Contrato de Membresia</span>
+              <span>{t('contract_title')}</span>
               <span className="firma-contrato-modal__patient">{pacienteNombre}</span>
             </div>
           </div>
@@ -190,15 +192,15 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
           {loading && (
             <div className="firma-contrato-modal__loading">
               <Loader size={20} className="wizard-step__spin" />
-              <span>Cargando contrato...</span>
+              <span>{t('contract_loading')}</span>
             </div>
           )}
 
           {!loading && previewHtml && (
             <HtmlDocViewer
-              title="Contrato de Membresia - Optimal Health NOW"
+              title={t('contract_preview')}
               htmlContent={previewHtml}
-              badge={alreadySigned ? 'Firmado' : null}
+              badge={alreadySigned ? t('firmado', { ns: 'patients' }) : null}
               maxHeight="700px"
               overlay={viewerOverlay}
               actions={viewerActions}
@@ -209,7 +211,7 @@ export default function FirmaContratoModal({ open, onClose, pacienteId, paciente
           {!loading && !previewHtml && (
             <div className="firma-contrato-modal__loading">
               <AlertCircle size={20} />
-              <span>No se pudo cargar el contrato</span>
+              <span>{t('contract_error_load')}</span>
             </div>
           )}
         </div>

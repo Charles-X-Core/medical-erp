@@ -1,4 +1,5 @@
 import { useContext, createContext } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const DragCitaCtx = createContext(null);
 
@@ -23,6 +24,7 @@ function formatTime(timeStr) {
 
 export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30, col = 0, numCols = 1, onClick, onResize }) {
   const drag = useContext(DragCitaCtx);
+  const { t } = useTranslation('agenda');
   const [h, m] = (cita.hora || '00:00').split(':').map(Number);
   const startMin = h * 60 + m;
   const offsetMin = startMin - hour * 60;
@@ -98,7 +100,7 @@ export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30,
         <div
           className="agenda-week__cita-resize"
           onMouseDown={handleResizeStart}
-          title="Arrastrar para cambiar duración"
+          title={t('arrastrar_duracion')}
         />
       )}
     </div>

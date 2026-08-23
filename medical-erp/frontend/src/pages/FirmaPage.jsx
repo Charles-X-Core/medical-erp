@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FileText, Send, CheckCircle, AlertTriangle, RotateCcw } from 'lucide-react';
 
 export default function FirmaPage() {
+  const { t } = useTranslation('contracts');
   const [searchParams] = useSearchParams();
   const pacienteId = searchParams.get('pacienteId');
   const token = searchParams.get('token');
@@ -87,12 +89,12 @@ export default function FirmaPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data?.message || 'Error al firmar');
+        throw new Error(data?.message || t('errorFirmar'));
       }
 
       setSent(true);
     } catch (err) {
-      setError(err.message || 'Error al enviar la firma');
+      setError(err.message || t('errorFirmaEnvio'));
     } finally {
       setSending(false);
     }
@@ -103,8 +105,8 @@ export default function FirmaPage() {
       <div className="firma-page">
         <div className="firma-page__card">
           <AlertTriangle size={48} />
-          <h2>Enlace invalido</h2>
-          <p>No se encontro el cliente asociado a este enlace.</p>
+          <h2>{t('enlace_invalido')}</h2>
+          <p>{t('noClienteEncontrado')}</p>
         </div>
       </div>
     );
@@ -115,8 +117,8 @@ export default function FirmaPage() {
       <div className="firma-page">
         <div className="firma-page__card firma-page__card--success">
           <CheckCircle size={64} />
-          <h2>Firma registrada</h2>
-          <p>Su firma ha sido registrada exitosamente. El documento ha sido generado y almacenado de forma segura.</p>
+          <h2>{t('firmaRegistrada')}</h2>
+          <p>{t('firma_exito_text')}</p>
           <span className="firma-page__timestamp">{new Date().toLocaleString('es-PE')}</span>
         </div>
       </div>
@@ -127,8 +129,8 @@ export default function FirmaPage() {
     <div className="firma-page">
       <div className="firma-page__card">
         <FileText size={40} className="firma-page__icon" />
-        <h2>Documento de Admision</h2>
-        <p>Por favor firme en el recuadro a continuacion para confirmar su registro.</p>
+        <h2>{t('documentoAdmision')}</h2>
+        <p>{t('documento_instruccion')}</p>
 
         {error && (
           <div className="firma-page__error">
@@ -148,19 +150,19 @@ export default function FirmaPage() {
             onTouchMove={draw}
             onTouchEnd={stopDraw}
           />
-          <span className="firma-page__canvas-label">Firme aqui</span>
+          <span className="firma-page__canvas-label">{t('firme_aqui')}</span>
         </div>
 
         <div className="firma-page__actions">
           <button className="firma-page__btn-clear" onClick={clearCanvas}>
-            <RotateCcw size={16} /> Limpiar
+            <RotateCcw size={16} /> {t('limpiarFirma')}
           </button>
           <button
             className="firma-page__btn-sign"
             onClick={handleSign}
             disabled={!hasSignature || sending}
           >
-            <Send size={16} /> {sending ? 'Enviando...' : 'Confirmar Firma'}
+            <Send size={16} /> {sending ? t('enviando') : t('confirmarFirmaBtn')}
           </button>
         </div>
       </div>

@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Clock, User, FileText, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 
-const ESTADO_LABELS = {
-  solicitada: 'Solicitada', pendiente: 'Pendiente', programada: 'Programada',
-  confirmada: 'Confirmada', asistio: 'Asistio', en_atencion: 'En Atencion',
-  completada: 'Completada', cancelada: 'Cancelada', reprogramada: 'Reprogramada',
-  no_show: 'No Asistio',
+const ESTADO_KEYS = {
+  solicitada: 'estado_solicitada', pendiente: 'estado_pendiente', programada: 'estado_programada',
+  confirmada: 'estado_confirmada', asistio: 'estado_asistio', en_atencion: 'estado_en_atencion',
+  completada: 'estado_completada', cancelada: 'estado_cancelada', reprogramada: 'estado_reprogramada',
+  no_show: 'estado_no_show',
 };
 
 const ESTADO_COLORS = {
@@ -14,19 +15,28 @@ const ESTADO_COLORS = {
   completada: '#6B7D95', cancelada: '#EF4444', reprogramada: '#A78BFA', no_show: '#EF4444',
 };
 
-const PRIORIDAD_CONFIG = {
-  URGENTE: { label: 'Urgente', icon: AlertCircle, color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
-  ALTA: { label: 'Alta', icon: AlertTriangle, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
-  NORMAL: { label: 'Normal', icon: Info, color: '#3B82F6', bg: 'rgba(59,130,246,0.1)' },
-  BAJA: { label: 'Baja', icon: Info, color: '#6B7D95', bg: 'rgba(107,125,149,0.1)' },
+const PRIORIDAD_KEYS = {
+  URGENTE: 'urgente', ALTA: 'alta', NORMAL: 'normal', BAJA: 'baja',
 };
 
-const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const PRIORIDAD_ICONS = {
+  URGENTE: AlertCircle, ALTA: AlertTriangle, NORMAL: Info, BAJA: Info,
+};
 
-function formatFechaDisplay(fechaStr) {
+const PRIORIDAD_COLORS = {
+  URGENTE: '#EF4444', ALTA: '#F59E0B', NORMAL: '#3B82F6', BAJA: '#6B7D95',
+};
+
+const PRIORIDAD_BG = {
+  URGENTE: 'rgba(239,68,68,0.1)', ALTA: 'rgba(245,158,11,0.1)', NORMAL: 'rgba(59,130,246,0.1)', BAJA: 'rgba(107,125,149,0.1)',
+};
+
+const MONTH_KEYS = ['month_enero', 'month_febrero', 'month_marzo', 'month_abril', 'month_mayo', 'month_junio', 'month_julio', 'month_agosto', 'month_septiembre', 'month_octubre', 'month_noviembre', 'month_diciembre'];
+
+function formatFechaDisplay(fechaStr, t) {
   if (!fechaStr) return '';
   const [y, m, d] = fechaStr.split('-').map(Number);
-  return `${d} de ${MESES[m - 1]}`;
+  return `${d} de ${t(MONTH_KEYS[m - 1], { ns: 'agenda' })}`;
 }
 
 function formatTimeRange(hora, duracionMinutos) {
@@ -40,6 +50,7 @@ function formatTimeRange(hora, duracionMinutos) {
 }
 
 export default function CitaPopover({ cita, children, col = 0, numCols = 1 }) {
+  const { t } = useTranslation('dashboard');
   const [visible, setVisible] = useState(false);
   const [position, setPosition] = useState({ side: 'right', vertical: 'top' });
   const timeoutRef = useRef(null);
@@ -80,8 +91,9 @@ export default function CitaPopover({ cita, children, col = 0, numCols = 1 }) {
 
   if (!cita) return children;
 
-  const prioridad = PRIORIDAD_CONFIG[cita.prioridad] || PRIORIDAD_CONFIG.NORMAL;
-  const PrioridadIcon = prioridad.icon;
+  const prioridadKey = PRIORIDAD_KEYS[cita.prioridad] || 'normal';
+  const PrioridadIcon = PRIORIDAD_ICONS[cita.prioridad] || Info;
+  const prioridadColor = PRIORIDAD_COLORS[cita.prioridad] || '#3B82F6';
 
   const popoverStyle = {};
   if (position.side === 'left') {
@@ -113,13 +125,13 @@ export default function CitaPopover({ cita, children, col = 0, numCols = 1 }) {
               className="cita-popover__estado"
               style={{ color: ESTADO_COLORS[cita.estado], backgroundColor: `${ESTADO_COLORS[cita.estado]}18` }}
             >
-              {ESTADO_LABELS[cita.estado] || cita.estado}
+              {t(ESTADO_KEYS[cita.estado] || 'estado_programada')}
             </span>
           </div>
           <div className="cita-popover__details">
             <div className="cita-popover__row">
               <Clock size={13} />
-              <span>{formatFechaDisplay(cita.fecha)} &middot; {formatTimeRange(cita.hora, cita.duracionMinutos)}</span>
+              <span>{formatFechaDisplay(cita.fecha, t)} &middot; {formatTimeRange(cita.hora, cita.duracionMinutos)}</span>
             </div>
             {cita.tipoCitaNombre && (
               <div className="cita-popover__row">
@@ -128,9 +140,9 @@ export default function CitaPopover({ cita, children, col = 0, numCols = 1 }) {
               </div>
             )}
             {cita.prioridad && cita.prioridad !== 'NORMAL' && (
-              <div className="cita-popover__row" style={{ color: prioridad.color }}>
+              <div className="cita-popover__row" style={{ color: prioridadColor }}>
                 <PrioridadIcon size={13} />
-                <span style={{ fontWeight: 600 }}>{prioridad.label}</span>
+                <span style={{ fontWeight: 600 }}>{t(prioridadKey)}</span>
               </div>
             )}
             {cita.motivo && (

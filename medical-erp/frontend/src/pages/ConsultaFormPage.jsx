@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Loader2, CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { consultasService } from '../services/consultasService';
 import { historiaClinicaService } from '../services/historiaClinicaService';
 import SignosVitalesForm from '../components/consulta/SignosVitalesForm';
@@ -8,6 +9,7 @@ import DiagnosticoForm from '../components/consulta/DiagnosticoForm';
 import PlanTratamientoForm from '../components/consulta/PlanTratamientoForm';
 
 export default function ConsultaFormPage() {
+  const { t } = useTranslation('clinical');
   const { id } = useParams();
   const { historiaId } = useParams();
   const navigate = useNavigate();
@@ -39,7 +41,6 @@ export default function ConsultaFormPage() {
           const hRes = await historiaClinicaService.getById(parentHistoriaId);
           if (hRes.success) {
             const pRes = await historiaClinicaService.getByPaciente(hRes.data.pacienteId);
-            // actually getByPaciente returns historia; we need patient name
           }
         } catch (ignored) {}
       }
@@ -64,14 +65,14 @@ export default function ConsultaFormPage() {
           notas: c.notas || '',
         });
       } else {
-        setError(res.message || 'Error al cargar consulta');
+        setError(res.message || t('error_loading_consulta'));
       }
     } catch (err) {
-      setError(err.message || 'Error al cargar consulta');
+      setError(err.message || t('error_loading_consulta'));
     } finally {
       setLoading(false);
     }
-  }, [id, parentHistoriaId]);
+  }, [id, parentHistoriaId, t]);
 
   useEffect(() => {
     load();
@@ -90,10 +91,10 @@ export default function ConsultaFormPage() {
       if (res.success) {
         navigate(`/consultas/${res.data.id}`);
       } else {
-        setError(res.message || 'Error al guardar');
+        setError(res.message || t('error_guardar'));
       }
     } catch (err) {
-      setError(err.message || 'Error al guardar');
+      setError(err.message || t('error_guardar'));
     } finally {
       setSaving(false);
     }
@@ -106,10 +107,10 @@ export default function ConsultaFormPage() {
       if (res.success) {
         navigate(`/consultas/${res.data.id}`);
       } else {
-        setError(res.message || 'Error al firmar');
+        setError(res.message || t('error_firmar'));
       }
     } catch (err) {
-      setError(err.message || 'Error al firmar');
+      setError(err.message || t('error_firmar'));
     }
   };
 
@@ -118,7 +119,7 @@ export default function ConsultaFormPage() {
       <div className="consulta-form-page">
         <div className="consulta-form-page__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando consulta...</p>
+          <p>{t('loading_session')}</p>
         </div>
       </div>
     );
@@ -128,19 +129,19 @@ export default function ConsultaFormPage() {
     <div className="consulta-form-page">
       <div className="consulta-form-page__header">
         <button type="button" className="btn btn--ghost" onClick={() => navigate(-1)}>
-          <ArrowLeft size={18} /> Volver
+          <ArrowLeft size={18} /> {t('back', { ns: 'common' })}
         </button>
-        <h2 className="consulta-form-page__title">{isEdit ? 'Editar Consulta' : 'Nueva Consulta'}</h2>
+        <h2 className="consulta-form-page__title">{isEdit ? t('consulta_form_title') : t('consulta_form_new')}</h2>
       </div>
 
       {error && <div className="consulta-form-page__error">{error}</div>}
 
       <form onSubmit={handleSubmit}>
         <div className="form-card">
-          <h3 className="form-section__title">Datos Generales</h3>
+          <h3 className="form-section__title">{t('datos_generales', { ns: 'clinical' })}</h3>
           <div className="form-grid form-grid--2">
             <div className="form-field">
-              <label className="form-label">Fecha *</label>
+              <label className="form-label">{t('fecha_requerida')}</label>
               <input
                 type="datetime-local"
                 className="form-input"
@@ -150,7 +151,7 @@ export default function ConsultaFormPage() {
               />
             </div>
             <div className="form-field">
-              <label className="form-label">Motivo *</label>
+              <label className="form-label">{t('motivo_requerido')}</label>
               <input
                 className="form-input"
                 value={form.motivo}
@@ -159,7 +160,7 @@ export default function ConsultaFormPage() {
               />
             </div>
             <div className="form-field">
-              <label className="form-label">Tiempo de Enfermedad</label>
+              <label className="form-label">{t('tiempo_enfermedad')}</label>
               <input
                 className="form-input"
                 value={form.tiempoEnfermedad}
@@ -170,14 +171,14 @@ export default function ConsultaFormPage() {
         </div>
 
         <div className="form-card">
-          <h3 className="form-section__title">Anamnesis</h3>
+          <h3 className="form-section__title">{t('anamnesis')}</h3>
           <div className="form-grid form-grid--1">
             <div className="form-field">
-              <label className="form-label">Signos y Síntomas</label>
+              <label className="form-label">{t('signos_sintomas')}</label>
               <textarea className="form-textarea" rows={4} value={form.signosSintomas} onChange={(e) => handleChange('signosSintomas', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Relato Cronológico</label>
+              <label className="form-label">{t('relato_cronologico')}</label>
               <textarea className="form-textarea" rows={4} value={form.relatoCronologico} onChange={(e) => handleChange('relatoCronologico', e.target.value)} />
             </div>
           </div>
@@ -188,7 +189,7 @@ export default function ConsultaFormPage() {
         </div>
 
         <div className="form-card">
-          <h3 className="form-section__title">Examen Físico</h3>
+          <h3 className="form-section__title">{t('examen_fisico')}</h3>
           <textarea className="form-textarea" rows={4} value={form.examenClinicoGeneral} onChange={(e) => handleChange('examenClinicoGeneral', e.target.value)} />
         </div>
 
@@ -201,21 +202,21 @@ export default function ConsultaFormPage() {
         </div>
 
         <div className="form-card">
-          <h3 className="form-section__title">Notas</h3>
+          <h3 className="form-section__title">{t('notas', { ns: 'common' })}</h3>
           <textarea className="form-textarea" rows={4} value={form.notas} onChange={(e) => handleChange('notas', e.target.value)} />
         </div>
 
         <div className="consulta-form-page__actions">
           <button type="button" className="btn btn--secondary" onClick={() => navigate(-1)} disabled={saving}>
-            Cancelar
+            {t('cancel', { ns: 'common' })}
           </button>
           <button type="submit" className="btn btn--primary" disabled={saving}>
             {saving ? <Loader2 size={18} className="spinner" /> : <Save size={18} />}
-            {saving ? 'Guardando...' : 'Guardar Consulta'}
+            {saving ? t('guardando') : t('guardar_consulta')}
           </button>
           {isEdit && (
             <button type="button" className="btn btn--success" onClick={handleFirmar} disabled={saving}>
-              <CheckCircle size={18} /> Firmar
+              <CheckCircle size={18} /> {t('firmar', { ns: 'contracts' })}
             </button>
           )}
         </div>

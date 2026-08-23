@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { X, Clock, User, AlertTriangle, Minus, Plus, Trash2, CalendarClock, Play, Square, CheckCircle, Timer, UserX } from 'lucide-react';
 import agendaService from '../../services/agendaService';
 import { getCitaEstado } from '../../utils/citaEstados';
@@ -19,6 +20,7 @@ function formatElapsed(seconds) {
 export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation('agenda');
   const role = getPrimaryRole(user);
   const isDoctora = role === 'doctora';
 
@@ -73,52 +75,47 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
     }, 1000);
   }, []);
 
-  // Doctora: unified start = registrar asistencia + iniciar atencion
   const handleStartAttention = useCallback(async () => {
     setSaving(true);
     try {
-      // If cita is confirmada, register attendance first
       if (cita.estado === 'confirmada') {
         await agendaService.marcarLlegada(cita.id);
       }
-      // Then start attention (works for confirmada->asistio or asistio)
       await agendaService.iniciarAtencion(cita.id);
       if (onRefresh) onRefresh();
       onClose();
       navigate(`/pacientes/${cita.pacienteId}/workspace`);
     } catch {
-      setMsg({ type: 'error', text: 'Error al iniciar atención' });
+      setMsg({ type: 'error', text: t('error_starting') });
     }
     setSaving(false);
-  }, [cita, navigate, onRefresh, onClose]);
+  }, [cita, navigate, onRefresh, onClose, t]);
 
-  // Register attendance (llegada)
   const handleMarkArrival = useCallback(async () => {
     setSaving(true);
     try {
       await agendaService.marcarLlegada(cita.id);
-      setMsg({ type: 'success', text: 'Llegada registrada' });
+      setMsg({ type: 'success', text: t('llegada_registrada') });
       if (onRefresh) onRefresh();
     } catch {
-      setMsg({ type: 'error', text: 'Error al registrar llegada' });
+      setMsg({ type: 'error', text: t('error_arrival') });
     }
     setSaving(false);
-  }, [cita, onRefresh]);
+  }, [cita, onRefresh, t]);
 
-  // Reject solicitud
   const handleReject = useCallback(async () => {
-    if (!window.confirm('¿Rechazar esta solicitud?')) return;
+    if (!window.confirm(t('confirm_reject'))) return;
     setSaving(true);
     try {
-      await agendaService.rechazarCita(cita.id, 'Solicitud rechazada');
-      setMsg({ type: 'success', text: 'Solicitud rechazada' });
+      await agendaService.rechazarCita(cita.id, t('solicitud_rechazada'));
+      setMsg({ type: 'success', text: t('solicitud_rechazada') });
       if (onRefresh) onRefresh();
       setTimeout(onClose, 1000);
     } catch {
-      setMsg({ type: 'error', text: 'Error al rechazar' });
+      setMsg({ type: 'error', text: t('error_reject') });
     }
     setSaving(false);
-  }, [cita, onRefresh, onClose]);
+  }, [cita, onRefresh, onClose, t]);
 
   const stopTimer = useCallback(() => {
     setTimerRunning(false);
@@ -129,16 +126,16 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
   }, []);
 
   const handleComplete = async () => {
-    if (!window.confirm('¿Completar esta cita?')) return;
+    if (!window.confirm(t('confirm_complete'))) return;
     setSaving(true);
     try {
       stopTimer();
       await agendaService.completarCita(cita.id);
-      setMsg({ type: 'success', text: 'Cita completada' });
+      setMsg({ type: 'success', text: t('status_completada') });
       if (onRefresh) onRefresh();
       setTimeout(onClose, 1000);
     } catch {
-      setMsg({ type: 'error', text: 'Error al completar' });
+      setMsg({ type: 'error', text: t('error_complete') });
     }
     setSaving(false);
   };
@@ -155,13 +152,13 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
         const affected = res.data?.citasAfectadas?.length || 0;
         setMsg({
           type: 'success',
-          text: `Sesión extendida a ${newDuracion} min${affected > 0 ? `. ${affected} cita(s) afectada(s)` : ''}`
+          text: t('sesion_extendida', { duration: newDuracion, affected })
         });
         setMinutosExtra('');
         if (onRefresh) onRefresh();
       }
     } catch {
-      setMsg({ type: 'error', text: 'Error al extender' });
+      setMsg({ type: 'error', text: t('error_extend') });
     }
     setExtending(false);
   };
@@ -180,39 +177,39 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
         prioridad: cita.prioridad,
         notas: cita.notas,
       });
-      setMsg({ type: 'success', text: 'Duración actualizada' });
+      setMsg({ type: 'success', text: t('duracion_actualizada') });
       if (onRefresh) onRefresh();
     } catch {
-      setMsg({ type: 'error', text: 'Error al actualizar' });
+      setMsg({ type: 'error', text: t('error_saving') });
     }
     setSaving(false);
   };
 
   const handleCancel = async () => {
-    if (!window.confirm('¿Cancelar esta cita?')) return;
+    if (!window.confirm(t('confirm_cancel'))) return;
     setSaving(true);
     try {
       stopTimer();
-      await agendaService.cancelarCita(cita.id, 'Cancelada desde detalle');
-      setMsg({ type: 'success', text: 'Cita cancelada' });
+      await agendaService.cancelarCita(cita.id, t('cancelada_detalle'));
+      setMsg({ type: 'success', text: t('status_cancelada') });
       if (onRefresh) onRefresh();
       setTimeout(onClose, 1000);
     } catch {
-      setMsg({ type: 'error', text: 'Error al cancelar' });
+      setMsg({ type: 'error', text: t('error_cancel') });
     }
     setSaving(false);
   };
 
   const handleNoShow = async () => {
-    if (!window.confirm('¿Marcar como no asistida?')) return;
+    if (!window.confirm(t('confirm_no_show'))) return;
     setSaving(true);
     try {
       await agendaService.marcarNoShow(cita.id);
-      setMsg({ type: 'success', text: 'Marcada como no asistida' });
+      setMsg({ type: 'success', text: t('status_no_show') });
       if (onRefresh) onRefresh();
       setTimeout(onClose, 1000);
     } catch {
-      setMsg({ type: 'error', text: 'Error al marcar no show' });
+      setMsg({ type: 'error', text: t('error_no_show') });
     }
     setSaving(false);
   };
@@ -226,7 +223,6 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
   const finMin = h * 60 + duracion;
   const horaFin = `${String(Math.floor(finMin / 60)).padStart(2, '0')}:${String(finMin % 60).padStart(2, '0')}`;
 
-  // State flags
   const isEnAtencion = cita.estado === 'en_atencion';
   const isConfirmada = cita.estado === 'confirmada';
   const isAsistio = cita.estado === 'asistio' || cita.estado === 'llegada';
@@ -234,7 +230,6 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
   const isSolicitada = cita.estado === 'solicitada';
   const isFinal = cita.estado === 'completada' || cita.estado === 'cancelada' || cita.estado === 'no_show';
 
-  // Role-based action flags
   const doctoraCanStart = isDoctora && (isConfirmada || isAsistio);
   const doctoraCanComplete = isDoctora && isEnAtencion;
   const doctoraCanExtend = isDoctora && (isEnAtencion || isConfirmada);
@@ -246,7 +241,7 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
     <div className="cita-detalle-overlay" onClick={onClose}>
       <div className="cita-detalle-modal" onClick={(e) => e.stopPropagation()}>
         <div className="cita-detalle-modal__header">
-          <h3>Detalle de Cita</h3>
+          <h3>{t('appointment_detail')}</h3>
           <button className="cita-detalle-modal__close" onClick={onClose}><X size={18} /></button>
         </div>
 
@@ -254,7 +249,7 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
           <div className="cita-detalle-modal__field">
             <User size={14} />
             <div>
-              <label>Cliente</label>
+              <label>{t('client', { ns: 'common' })}</label>
               <span>{cita.pacienteNombre || '—'}</span>
             </div>
           </div>
@@ -263,14 +258,14 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
             <div className="cita-detalle-modal__field">
               <CalendarClock size={14} />
               <div>
-                <label>Fecha</label>
+                <label>{t('date', { ns: 'common' })}</label>
                 <span>{cita.fecha || '—'}</span>
               </div>
             </div>
             <div className="cita-detalle-modal__field">
               <Clock size={14} />
               <div>
-                <label>Hora</label>
+                <label>{t('time', { ns: 'common' })}</label>
                 <span>{horaInicio} - {horaFin}</span>
               </div>
             </div>
@@ -278,12 +273,12 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
 
           <div className="cita-detalle-modal__row">
             <div className="cita-detalle-modal__field">
-              <label>Estado</label>
+              <label>{t('status', { ns: 'common' })}</label>
               <span className={`cita-detalle-modal__estado cita-detalle-modal__estado--${estado.tone}`}>{estado.label}</span>
             </div>
             {cita.tipoCitaNombre && (
               <div className="cita-detalle-modal__field">
-                <label>Tipo</label>
+                <label>{t('type', { ns: 'common' })}</label>
                 <span>{cita.tipoCitaNombre}</span>
               </div>
             )}
@@ -293,7 +288,7 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
             <div className="cita-detalle-modal__field">
               <User size={14} />
               <div>
-                <label>Doctora</label>
+                <label>{t('doctor', { ns: 'common' })}</label>
                 <span>{cita.usuarioNombre}</span>
               </div>
             </div>
@@ -301,12 +296,11 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
 
           {cita.motivo && (
             <div className="cita-detalle-modal__field">
-              <label>Motivo</label>
+              <label>{t('motivo', { ns: 'patients' })}</label>
               <span>{cita.motivo}</span>
             </div>
           )}
 
-          {/* Timer - Doctora only when en_atencion or can start */}
           {isDoctora && (isEnAtencion || doctoraCanStart) && (
             <div className={`cita-detalle-modal__timer ${timerRunning ? 'cita-detalle-modal__timer--active' : ''}`}>
               <div className="cita-detalle-modal__timer-display">
@@ -321,34 +315,33 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
                     onClick={handleStartAttention}
                     disabled={saving}
                   >
-                    <Play size={14} /> {saving ? 'Iniciando...' : 'Iniciar Atención'}
+                    <Play size={14} /> {saving ? t('iniciando') : t('start_attention')}
                   </button>
                 )}
                 {timerRunning && (
                   <button className="cita-detalle-modal__timer-btn cita-detalle-modal__timer-btn--stop" onClick={stopTimer}>
-                    <Square size={14} /> Pausar
+                    <Square size={14} /> {t('pausar')}
                   </button>
                 )}
                 {timerRunning && (
                   <span className="cita-detalle-modal__timer-duracion">
-                    Duración: {duracion} min
+                    {t('duracion_label', { duration: duracion })}
                   </span>
                 )}
               </div>
             </div>
           )}
 
-          {/* Extension control - Doctora only */}
           {doctoraCanExtend && (
             <div className="cita-detalle-modal__extend">
-              <label><Timer size={14} /> Extender sesión</label>
+              <label><Timer size={14} /> {t('extender_sesion')}</label>
               <div className="cita-detalle-modal__extend-row">
                 <input
                   type="number"
                   min="0"
                   max="120"
                   step="5"
-                  placeholder="Minutos extra"
+                  placeholder={t('minutos_extra')}
                   value={minutosExtra}
                   onChange={(e) => setMinutosExtra(e.target.value)}
                   className="cita-detalle-modal__extend-input"
@@ -359,19 +352,18 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
                   onClick={handleExtend}
                   disabled={extending || (!minutosExtra || parseInt(minutosExtra) <= 0)}
                 >
-                  {extending ? '...' : 'Extender'}
+                  {extending ? '...' : t('extender')}
                 </button>
               </div>
               <span className="cita-detalle-modal__extend-hint">
-                Las citas afectadas serán reacomodadas automáticamente
+                {t('citas_reacomodadas')}
               </span>
             </div>
           )}
 
-          {/* Duration control */}
           {canSaveDuration && (
             <div className="cita-detalle-modal__duration">
-              <label>Duración (minutos)</label>
+              <label>{t('duracion_minutos')}</label>
               <div className="cita-detalle-modal__duration-control">
                 <button
                   className="cita-detalle-modal__duration-btn"
@@ -404,8 +396,8 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
             <div className="cita-detalle-modal__warning">
               <AlertTriangle size={16} />
               <div>
-                <strong>Conflicto detectado</strong>
-                <p>Extender a {duracion}min afecta la siguiente cita:</p>
+                <strong>{t('conflicto_detectado')}</strong>
+                <p>{t('extender_afecta', { duration: duracion })}</p>
                 {extensionInfo.citasAfectadas?.map((c) => (
                   <p key={c.citaId} className="cita-detalle-modal__conflict-detail">
                     {c.pacienteNombre} ({c.horaInicio} - {c.horaFin})
@@ -421,18 +413,16 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
         </div>
 
         <div className="cita-detalle-modal__footer">
-          {/* Doctora: Complete button */}
           {doctoraCanComplete && (
             <button
               className="cita-detalle-modal__btn cita-detalle-modal__btn--complete"
               onClick={handleComplete}
               disabled={saving}
             >
-              <CheckCircle size={14} /> {saving ? 'Completando...' : 'Completar Cita'}
+              <CheckCircle size={14} /> {saving ? t('completando') : t('complete')}
             </button>
           )}
 
-          {/* Doctora: Confirm button */}
           {doctoraCanConfirm && (
             <button
               className="cita-detalle-modal__btn cita-detalle-modal__btn--confirm"
@@ -440,41 +430,38 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
                 setSaving(true);
                 try {
                   await agendaService.confirmarCita(cita.id);
-                  setMsg({ type: 'success', text: 'Cita confirmada' });
+                  setMsg({ type: 'success', text: t('status_confirmada') });
                   if (onRefresh) onRefresh();
                 } catch {
-                  setMsg({ type: 'error', text: 'Error al confirmar' });
+                  setMsg({ type: 'error', text: t('error_confirm') });
                 }
                 setSaving(false);
               }}
               disabled={saving}
             >
-              Confirmar
+              {t('confirm')}
             </button>
           )}
 
-          {/* Save duration */}
           {canSaveDuration && (
             <button
               className="cita-detalle-modal__btn cita-detalle-modal__btn--save"
               onClick={handleSaveDuration}
               disabled={saving || duracion === cita.duracionMinutos}
             >
-              {saving ? 'Guardando...' : 'Guardar Cambios'}
+              {saving ? t('guardando') : t('guardar_cambios')}
             </button>
           )}
 
-          {/* No-show button */}
           {!isFinal && (
             <button className="cita-detalle-modal__btn cita-detalle-modal__btn--noshow" onClick={handleNoShow} disabled={saving}>
-              <UserX size={14} /> No Asistió
+              <UserX size={14} /> {t('no_asistio_btn')}
             </button>
           )}
 
-          {/* Cancel button */}
           {canCancel && (
             <button className="cita-detalle-modal__btn cita-detalle-modal__btn--cancel" onClick={handleCancel} disabled={saving}>
-              <Trash2 size={14} /> Cancelar
+              <Trash2 size={14} /> {t('cancel')}
             </button>
           )}
         </div>

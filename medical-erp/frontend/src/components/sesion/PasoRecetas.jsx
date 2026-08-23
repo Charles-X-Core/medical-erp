@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pill, Plus, X, FileText, Lightbulb } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const TEMPLATES = [
   {
@@ -27,6 +28,8 @@ const TEMPLATES = [
 ];
 
 export default function PasoRecetas({ formData, updateFormData }) {
+  const { t } = useTranslation('clinical');
+  const { t: tP } = useTranslation('patients');
   const { recetas } = formData;
   const [showTemplates, setShowTemplates] = useState(false);
 
@@ -93,13 +96,13 @@ export default function PasoRecetas({ formData, updateFormData }) {
     <div className="wizard-step">
       <h2 className="wizard-step__title">
         <Pill size={20} />
-        Recetas Médicas
+        {tP('recetas_medicas')}
       </h2>
 
       <div className="wizard-actions">
         <button className="wizard-btn wizard-btn--primary" onClick={addNewReceta}>
           <Plus size={16} />
-          Nueva Receta
+          {t('nueva_receta')}
         </button>
         <button
           className="wizard-btn wizard-btn--secondary"
@@ -112,11 +115,11 @@ export default function PasoRecetas({ formData, updateFormData }) {
 
       {showTemplates && (
         <div className="wizard-card wizard-card--highlight">
-          <h3 className="wizard-card__subtitle">Templates Rápidos</h3>
+          <h3 className="wizard-card__subtitle">{t('templates_rapidos')}</h3>
           <div className="wizard-chips">
-            {TEMPLATES.map((t) => (
-              <button key={t.nombre} className="wizard-chip" onClick={() => applyTemplate(t)}>
-                {t.nombre}
+            {TEMPLATES.map((template) => (
+              <button key={template.nombre} className="wizard-chip" onClick={() => applyTemplate(template)}>
+                {template.nombre}
               </button>
             ))}
           </div>
@@ -128,7 +131,7 @@ export default function PasoRecetas({ formData, updateFormData }) {
           <div className="wizard-card__header">
             <h3 className="wizard-card__subtitle">
               <FileText size={16} />
-              Receta {recetaIndex + 1}
+              {t('receta_numero', { number: recetaIndex + 1 })}
             </h3>
             <button className="wizard-btn-icon" onClick={() => removeReceta(recetaIndex)}>
               <X size={16} />
@@ -140,16 +143,16 @@ export default function PasoRecetas({ formData, updateFormData }) {
               <div key={medIndex} className="wizard-med-row">
                 <div className="wizard-grid wizard-grid--4">
                   <div className="wizard-field">
-                    <label>Medicamento</label>
+                    <label>{tP('medicamentos_actuales_label')}</label>
                     <input
                       className="wizard-input"
                       value={med.nombre}
                       onChange={(e) => updateMedicamento(recetaIndex, medIndex, 'nombre', e.target.value)}
-                      placeholder="Nombre"
+                      placeholder={tP('nombre')}
                     />
                   </div>
                   <div className="wizard-field">
-                    <label>Dosis</label>
+                    <label>{t('dosis')}</label>
                     <input
                       className="wizard-input"
                       value={med.dosis}
@@ -158,7 +161,7 @@ export default function PasoRecetas({ formData, updateFormData }) {
                     />
                   </div>
                   <div className="wizard-field">
-                    <label>Frecuencia</label>
+                    <label>{t('frecuencia')}</label>
                     <input
                       className="wizard-input"
                       value={med.frecuencia}
@@ -167,12 +170,12 @@ export default function PasoRecetas({ formData, updateFormData }) {
                     />
                   </div>
                   <div className="wizard-field">
-                    <label>Duración</label>
+                    <label>{t('duracion')}</label>
                     <input
                       className="wizard-input"
                       value={med.duracion}
                       onChange={(e) => updateMedicamento(recetaIndex, medIndex, 'duracion', e.target.value)}
-                      placeholder="Ej: 7 días"
+                      placeholder={t('duracion_placeholder')}
                     />
                   </div>
                 </div>
@@ -188,29 +191,29 @@ export default function PasoRecetas({ formData, updateFormData }) {
             ))}
             <button className="wizard-btn wizard-btn--text" onClick={() => addMedicamento(recetaIndex)}>
               <Plus size={14} />
-              Agregar medicamento
+              {t('agregar_medicamento')}
             </button>
           </div>
 
           <div className="wizard-field">
-            <label>Indicaciones</label>
+            <label>{t('indicaciones')}</label>
             <textarea
               className="wizard-textarea"
               rows={2}
               value={receta.indicaciones}
               onChange={(e) => updateReceta(recetaIndex, 'indicaciones', e.target.value)}
-              placeholder="Indicaciones especiales para el paciente"
+              placeholder={t('indicaciones_placeholder')}
             />
           </div>
 
           <div className="wizard-field">
-            <label>Observaciones</label>
+            <label>{t('observaciones')}</label>
             <textarea
               className="wizard-textarea"
               rows={2}
               value={receta.observaciones}
               onChange={(e) => updateReceta(recetaIndex, 'observaciones', e.target.value)}
-              placeholder="Notas adicionales (opcional)"
+              placeholder={t('observaciones_placeholder')}
             />
           </div>
         </div>
@@ -219,7 +222,7 @@ export default function PasoRecetas({ formData, updateFormData }) {
       {recetas.length === 0 && (
         <div className="wizard-empty">
           <Pill size={32} />
-          <p>No se han agregado recetas</p>
+          <p>{t('sin_recetas')}</p>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import PasoPaciente from '../components/sesion/PasoPaciente';
 import PasoEnfermedad from '../components/sesion/PasoEnfermedad';
 import PasoDiagnostico from '../components/sesion/PasoDiagnostico';
@@ -10,16 +11,6 @@ import PasoTratamientos from '../components/sesion/PasoTratamientos';
 import PasoResumen from '../components/sesion/PasoResumen';
 import { pacienteService } from '../services/pacienteService';
 import { consultasService } from '../services/consultasService';
-
-const STEPS = [
-  { id: 1, label: 'Cliente', component: PasoPaciente },
-  { id: 2, label: 'Enfermedad', component: PasoEnfermedad },
-  { id: 3, label: 'Diagnóstico', component: PasoDiagnostico },
-  { id: 4, label: 'Evidencias', component: PasoEvidencias },
-  { id: 5, label: 'Recetas', component: PasoRecetas },
-  { id: 6, label: 'Tratamientos', component: PasoTratamientos },
-  { id: 7, label: 'Resumen', component: PasoResumen },
-];
 
 const INITIAL_STATE = {
   paciente: null,
@@ -61,6 +52,7 @@ const INITIAL_STATE = {
 };
 
 export default function SesionClinicaPage() {
+  const { t } = useTranslation('clinical');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const pacienteIdParam = searchParams.get('pacienteId');
@@ -69,6 +61,16 @@ export default function SesionClinicaPage() {
   const [formData, setFormData] = useState(INITIAL_STATE);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+
+  const STEPS = [
+    { id: 1, label: t('client', { ns: 'patients' }), component: PasoPaciente },
+    { id: 2, label: t('step_disease'), component: PasoEnfermedad },
+    { id: 3, label: t('step_diagnosis'), component: PasoDiagnostico },
+    { id: 4, label: t('step_evidence'), component: PasoEvidencias },
+    { id: 5, label: t('step_prescriptions'), component: PasoRecetas },
+    { id: 6, label: t('tratamientos'), component: PasoTratamientos },
+    { id: 7, label: t('resumen', { ns: 'patients' }), component: PasoResumen },
+  ];
 
   useEffect(() => {
     if (pacienteIdParam) {
@@ -85,7 +87,6 @@ export default function SesionClinicaPage() {
         paciente: pacienteData,
         pacienteId: pacienteData.id,
       }));
-      // Look up existing historia clinica
       try {
         const historiaResp = await consultasService.getHistoriaByPaciente(id);
         const historiaData = historiaResp?.data || historiaResp;
@@ -97,7 +98,7 @@ export default function SesionClinicaPage() {
       }
     } catch (err) {
       console.error('Error loading paciente:', err);
-      setError('Error al cargar el cliente');
+      setError(t('error_loading_client'));
     }
   };
 
@@ -143,7 +144,6 @@ export default function SesionClinicaPage() {
     setSaving(true);
     setError(null);
     try {
-      // 1. Create historia clinica if not exists
       let historiaId = formData.historiaId;
       if (!historiaId) {
         const historiaData = {
@@ -157,7 +157,6 @@ export default function SesionClinicaPage() {
         historiaId = historiaCreated.id;
       }
 
-      // 2. Create consulta
       const consultaData = {
         historiaId,
         fecha: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
@@ -183,7 +182,6 @@ export default function SesionClinicaPage() {
       const consultaCreated = consultaResp?.data || consultaResp;
       const consultaId = consultaCreated.id;
 
-      // 3. Create tratamientos
       if (formData.tratamientos.length > 0) {
         const tratamientosData = formData.tratamientos.map((t) => ({
           consultaId,
@@ -196,7 +194,6 @@ export default function SesionClinicaPage() {
         await consultasService.createTratamientosBatch(tratamientosData);
       }
 
-      // 4. Create recetas
       if (formData.recetas.length > 0) {
         const recetasData = formData.recetas.map((r) => ({
           consultaId,
@@ -208,7 +205,6 @@ export default function SesionClinicaPage() {
         await consultasService.createRecetasBatch(recetasData);
       }
 
-      // 5. Upload evidencias
       for (const ev of formData.evidencias) {
         if (ev.file) {
           const uploadData = new FormData();
@@ -224,7 +220,7 @@ export default function SesionClinicaPage() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Error saving session:', err);
-      setError(err.message || 'Error al guardar la sesión');
+      setError(err.message || t('error_saving_session'));
     } finally {
       setSaving(false);
     }
@@ -237,9 +233,9 @@ export default function SesionClinicaPage() {
         <div className="sesion-page__header">
           <button className="sesion-page__back" onClick={() => navigate('/recepcion')}>
             <ArrowLeft size={18} />
-            Recepción
+            {t('recepcion', { ns: 'patients' })}
           </button>
-          <h1 className="sesion-page__title">Sesión Clínica</h1>
+          <h1 className="sesion-page__title">{t('session_title')}</h1>
           {formData.paciente && (
             <span className="sesion-page__patient">
               {formData.paciente.apellidoPaterno} {formData.paciente.nombres}
@@ -290,7 +286,7 @@ export default function SesionClinicaPage() {
             disabled={currentStep === 1}
           >
             <ArrowLeft size={18} />
-            Anterior
+            {t('previous', { ns: 'common' })}
           </button>
 
           {currentStep < 7 ? (
@@ -299,7 +295,7 @@ export default function SesionClinicaPage() {
               onClick={goNext}
               disabled={!canGoNext()}
             >
-              Siguiente
+              {t('next', { ns: 'common' })}
               <ArrowRight size={18} />
             </button>
           ) : (
@@ -311,12 +307,12 @@ export default function SesionClinicaPage() {
               {saving ? (
                 <>
                   <Loader2 size={18} className="spin" />
-                  Guardando...
+                  {t('saving')}
                 </>
               ) : (
                 <>
                   <Check size={18} />
-                  Guardar Sesión
+                  {t('save_session')}
                 </>
               )}
             </button>

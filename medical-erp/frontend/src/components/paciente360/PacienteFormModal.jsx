@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Loader2, ChevronRight, ChevronLeft, Check, Shield, Calendar } from 'lucide-react';
 import { pacienteService } from '../../services/pacienteService';
 import { historiaClinicaService } from '../../services/historiaClinicaService';
@@ -7,19 +8,19 @@ import PasoContrato from '../admision-steps/PasoContrato';
 import CitaSchedulerModal from '../agenda/CitaSchedulerModal';
 
 const STEPS_NEW = [
-  { label: 'Identificacion', icon: 'user' },
-  { label: 'Datos Personales', icon: 'heart' },
-  { label: 'Contacto', icon: 'phone' },
-  { label: 'Emergencia y Salud', icon: 'stethoscope' },
-  { label: 'Contrato', icon: 'shield' },
-  { label: 'Agendar Cita', icon: 'calendar' },
+  { labelKey: 'step_identificacion', icon: 'user' },
+  { labelKey: 'personal_data', icon: 'heart' },
+  { labelKey: 'contact_info', icon: 'phone' },
+  { labelKey: 'emergency_contact_title', icon: 'stethoscope' },
+  { labelKey: 'workspace_contracts', icon: 'shield' },
+  { labelKey: 'agendar_cita', icon: 'calendar' },
 ];
 
 const STEPS_EDIT = [
-  { label: 'Identificacion', icon: 'user' },
-  { label: 'Datos Personales', icon: 'heart' },
-  { label: 'Contacto', icon: 'phone' },
-  { label: 'Emergencia y Salud', icon: 'stethoscope' },
+  { labelKey: 'step_identificacion', icon: 'user' },
+  { labelKey: 'personal_data', icon: 'heart' },
+  { labelKey: 'contact_info', icon: 'phone' },
+  { labelKey: 'emergency_contact_title', icon: 'stethoscope' },
 ];
 
 const emptyPaciente = {
@@ -45,6 +46,7 @@ const emptyPaciente = {
 };
 
 export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId = null }) {
+  const { t } = useTranslation('patients');
   const isEdit = Boolean(pacienteId);
   const steps = isEdit ? STEPS_EDIT : STEPS_NEW;
   const lastDataStep = 3;
@@ -129,10 +131,10 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
           }
         } catch {}
       } else {
-        setError(res.message || 'Error al cargar cliente');
+        setError(res.message || t('error_loading'));
       }
     } catch (err) {
-      setError(err.message || 'Error al cargar cliente');
+      setError(err.message || t('error_loading'));
     } finally {
       setLoading(false);
     }
@@ -149,13 +151,13 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
 
   const validateStep = (step) => {
     if (step === 0) {
-      if (!formData.licenciaConducir?.trim()) { setError('El ID es obligatorio'); return false; }
-      if (formData.licenciaConducir.trim().length < 8) { setError('El ID debe tener al menos 8 caracteres'); return false; }
-      if (!formData.apellidoPaterno?.trim()) { setError('El apellido paterno es obligatorio'); return false; }
-      if (!formData.nombres?.trim()) { setError('Los nombres son obligatorios'); return false; }
+      if (!formData.licenciaConducir?.trim()) { setError(t('id_required', { ns: 'patients' })); return false; }
+      if (formData.licenciaConducir.trim().length < 8) { setError(t('id_min_length', { ns: 'patients' })); return false; }
+      if (!formData.apellidoPaterno?.trim()) { setError(t('last_name_required', { ns: 'patients' })); return false; }
+      if (!formData.nombres?.trim()) { setError(t('names_required', { ns: 'patients' })); return false; }
     }
     if (step === contratoStep && !isEdit && !contratoFirmado) {
-      setError('El contrato debe ser firmado antes de continuar');
+      setError(t('contract_required', { ns: 'patients' }));
       return false;
     }
     return true;
@@ -180,7 +182,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
         throw createErr;
       }
     }
-    if (!result.success) throw new Error(result.message || 'Error al guardar');
+    if (!result.success) throw new Error(result.message || t('error_saving'));
 
     const pacId = result.data.id;
     const tieneAntecedentes = Object.values(antecedentesData).some(v => v && v !== 'No' && v !== '');
@@ -204,7 +206,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
         setCreatedPacienteId(pacId);
         setCurrentStep(prev => prev + 1);
       } catch (err) {
-        setError(err.message || 'Error al guardar cliente');
+        setError(err.message || t('error_saving'));
       } finally {
         setSaving(false);
       }
@@ -231,7 +233,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
       }
       onClose();
     } catch (err) {
-      setError(err.message || 'Error al guardar');
+      setError(err.message || t('error_saving'));
     } finally {
       setSaving(false);
     }
@@ -253,7 +255,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
     <div className="wizard-overlay">
       <div className="wizard-modal" onClick={(e) => e.stopPropagation()}>
         <div className="wizard-header">
-          <h3>{isEdit ? 'Editar Cliente' : 'Nuevo Cliente'}</h3>
+          <h3>{isEdit ? t('edit_client') : t('new_client')}</h3>
           <button className="wizard-close" onClick={onClose}><X size={20} /></button>
         </div>
 
@@ -264,7 +266,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
                 <div className="wizard-step__circle">
                   {i < currentStep ? <Check size={14} /> : i + 1}
                 </div>
-                <span className="wizard-step__label">{step.label}</span>
+                <span className="wizard-step__label">{t(step.labelKey)}</span>
               </div>
               {i < steps.length - 1 && <div className="wizard-step__connector" />}
             </div>
@@ -276,7 +278,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
         {loading ? (
           <div className="wizard-loading">
             <Loader2 size={28} className="spinner" />
-            <p>Cargando datos...</p>
+            <p>{t('loading_data', { ns: 'common' })}</p>
           </div>
         ) : (
           <div className="wizard-body">
@@ -285,20 +287,20 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
               <div className="wizard-form-section">
                 <div className="wizard-form-grid">
                   <div className="wizard-field wizard-field--full">
-                    <label>ID *</label>
-                    <input type="text" name="licenciaConducir" value={formData.licenciaConducir} onChange={handleInputChange} required maxLength={20} placeholder="Minimo 8 caracteres" />
+                    <label>{t('doc_number')} *</label>
+                    <input type="text" name="licenciaConducir" value={formData.licenciaConducir} onChange={handleInputChange} required maxLength={20} placeholder={t('id_number_placeholder')} />
                   </div>
                   <div className="wizard-field">
-                    <label>Apellido Paterno *</label>
-                    <input type="text" name="apellidoPaterno" value={formData.apellidoPaterno} onChange={handleInputChange} required placeholder="Apellido paterno" />
+                    <label>{t('last_name_p')} *</label>
+                    <input type="text" name="apellidoPaterno" value={formData.apellidoPaterno} onChange={handleInputChange} required placeholder={t('last_name_p')} />
                   </div>
                   <div className="wizard-field">
-                    <label>Apellido Materno</label>
-                    <input type="text" name="apellidoMaterno" value={formData.apellidoMaterno} onChange={handleInputChange} placeholder="Apellido materno" />
+                    <label>{t('last_name_m')}</label>
+                    <input type="text" name="apellidoMaterno" value={formData.apellidoMaterno} onChange={handleInputChange} placeholder={t('last_name_m')} />
                   </div>
                   <div className="wizard-field wizard-field--full">
-                    <label>Nombres *</label>
-                    <input type="text" name="nombres" value={formData.nombres} onChange={handleInputChange} required placeholder="Nombres completos" />
+                    <label>{t('first_names')} *</label>
+                    <input type="text" name="nombres" value={formData.nombres} onChange={handleInputChange} required placeholder={t('manual_form_names')} />
                   </div>
                 </div>
               </div>
@@ -309,26 +311,26 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
               <div className="wizard-form-section">
                 <div className="wizard-form-grid">
                   <div className="wizard-field">
-                    <label>Fecha de Nacimiento</label>
+                    <label>{t('birth_date')}</label>
                     <input type="date" name="fechaNacimiento" value={formData.fechaNacimiento} onChange={handleInputChange} />
                   </div>
                   <div className="wizard-field">
-                    <label>Sexo</label>
+                    <label>{t('gender')}</label>
                     <select name="sexo" value={formData.sexo} onChange={handleInputChange}>
-                      <option value="">Seleccionar...</option>
-                      <option value="M">Masculino</option>
-                      <option value="F">Femenino</option>
+                      <option value="">{t('select_option', { ns: 'common' })}</option>
+                      <option value="M">{t('gender_male')}</option>
+                      <option value="F">{t('gender_female')}</option>
                     </select>
                   </div>
                   <div className="wizard-field">
-                    <label>Estado Civil</label>
+                    <label>{t('civil_status')}</label>
                     <select name="estadoCivil" value={formData.estadoCivil} onChange={handleInputChange}>
-                      <option value="">Seleccionar...</option>
-                      <option value="Soltero">Soltero(a)</option>
-                      <option value="Casado">Casado(a)</option>
-                      <option value="Divorciado">Divorciado(a)</option>
-                      <option value="Viudo">Viudo(a)</option>
-                      <option value="Conviviente">Conviviente</option>
+                      <option value="">{t('select_option', { ns: 'common' })}</option>
+                      <option value="Soltero">{t('civil_soltero')}</option>
+                      <option value="Casado">{t('civil_casado')}</option>
+                      <option value="Divorciado">{t('civil_divorciado')}</option>
+                      <option value="Viudo">{t('civil_viudo')}</option>
+                      <option value="Conviviente">{t('civil_conviviente')}</option>
                     </select>
                   </div>
                 </div>
@@ -340,43 +342,43 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
               <div className="wizard-form-section">
                 <div className="wizard-form-grid">
                   <div className="wizard-field">
-                    <label>Telefono</label>
-                    <input type="text" name="telefono" value={formData.telefono} onChange={handleInputChange} placeholder="Numero de telefono" />
+                    <label>{t('phone_placeholder')}</label>
+                    <input type="text" name="telefono" value={formData.telefono} onChange={handleInputChange} placeholder={t('phone_placeholder')} />
                   </div>
                   <div className="wizard-field">
-                    <label>Email</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="correo@ejemplo.com" />
+                    <label>{t('email_placeholder')}</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder={t('email_placeholder')} />
                   </div>
                   <div className="wizard-field">
-                    <label>Ciudad / Estado</label>
-                    <input type="text" name="ciudadEstado" value={formData.ciudadEstado} onChange={handleInputChange} placeholder="Ciudad o estado" />
+                    <label>{t('ciudad_estado')}</label>
+                    <input type="text" name="ciudadEstado" value={formData.ciudadEstado} onChange={handleInputChange} placeholder={t('ciudad_estado')} />
                   </div>
                   <div className="wizard-field">
-                    <label>Direccion</label>
-                    <input type="text" name="direccion" value={formData.direccion} onChange={handleInputChange} placeholder="Direccion completa" />
+                    <label>{t('address_placeholder')}</label>
+                    <input type="text" name="direccion" value={formData.direccion} onChange={handleInputChange} placeholder={t('address_placeholder')} />
                   </div>
                   <div className="wizard-field">
-                    <label>Lugar de Nacimiento</label>
-                    <input type="text" name="lugarNacimiento" value={formData.lugarNacimiento} onChange={handleInputChange} placeholder="Ciudad, pais" />
+                    <label>{t('lugar_nacimiento')}</label>
+                    <input type="text" name="lugarNacimiento" value={formData.lugarNacimiento} onChange={handleInputChange} placeholder={t('ciudad_estado')} />
                   </div>
                   <div className="wizard-field">
-                    <label>Lugar de Procedencia</label>
-                    <input type="text" name="lugarProcedencia" value={formData.lugarProcedencia} onChange={handleInputChange} placeholder="Ciudad, pais" />
+                    <label>{t('procedencia')}</label>
+                    <input type="text" name="lugarProcedencia" value={formData.lugarProcedencia} onChange={handleInputChange} placeholder={t('ciudad_estado')} />
                   </div>
                   <div className="wizard-field">
-                    <label>Grado de Instruccion</label>
+                    <label>{t('grado_instruccion')}</label>
                     <select name="gradoInstruccion" value={formData.gradoInstruccion} onChange={handleInputChange}>
-                      <option value="">Seleccionar...</option>
-                      <option value="Primaria">Primaria</option>
-                      <option value="Secundaria">Secundaria</option>
-                      <option value="Tecnico">Tecnico</option>
-                      <option value="Universitario">Universitario</option>
-                      <option value="Postgrado">Postgrado</option>
+                      <option value="">{t('select_option', { ns: 'common' })}</option>
+                      <option value="Primaria">{t('primaria', { ns: 'patients' })}</option>
+                      <option value="Secundaria">{t('secundaria', { ns: 'patients' })}</option>
+                      <option value="Tecnico">{t('tecnico', { ns: 'patients' })}</option>
+                      <option value="Universitario">{t('universitario', { ns: 'patients' })}</option>
+                      <option value="Postgrado">{t('postgrado', { ns: 'patients' })}</option>
                     </select>
                   </div>
                   <div className="wizard-field">
-                    <label>Ocupacion</label>
-                    <input type="text" name="ocupacion" value={formData.ocupacion} onChange={handleInputChange} placeholder="Profesion u ocupacion" />
+                    <label>{t('occupation')}</label>
+                    <input type="text" name="ocupacion" value={formData.ocupacion} onChange={handleInputChange} placeholder={t('occupation')} />
                   </div>
                 </div>
               </div>
@@ -386,28 +388,28 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
             {currentStep === 3 && (
               <>
                 <div className="wizard-form-section">
-                  <h4>Contacto de Emergencia</h4>
+                  <h4>{t('emergency_contact_title')}</h4>
                   <div className="wizard-form-grid">
                     <div className="wizard-field">
-                      <label>Acompanante</label>
-                      <input type="text" name="nombreAcompanante" value={formData.nombreAcompanante} onChange={handleInputChange} placeholder="Nombre del acompanante" />
+                      <label>{t('acompanante')}</label>
+                      <input type="text" name="nombreAcompanante" value={formData.nombreAcompanante} onChange={handleInputChange} placeholder={t('acompanante')} />
                     </div>
                     <div className="wizard-field">
-                      <label>Contacto Emergencia</label>
-                      <input type="text" name="contactoEmergencia" value={formData.contactoEmergencia} onChange={handleInputChange} placeholder="Nombre o numero" />
+                      <label>{t('contacto_emergencia')}</label>
+                      <input type="text" name="contactoEmergencia" value={formData.contactoEmergencia} onChange={handleInputChange} placeholder={t('emergency_name')} />
                     </div>
                     <div className="wizard-field">
-                      <label>Telefono Emergencia</label>
-                      <input type="text" name="telefonoEmergencia" value={formData.telefonoEmergencia} onChange={handleInputChange} placeholder="Numero de emergencia" />
+                      <label>{t('emergency_phone')}</label>
+                      <input type="text" name="telefonoEmergencia" value={formData.telefonoEmergencia} onChange={handleInputChange} placeholder={t('phone_placeholder')} />
                     </div>
                     <div className="wizard-field">
-                      <label>Parentesco</label>
-                      <input type="text" name="parentescoEmergencia" value={formData.parentescoEmergencia} onChange={handleInputChange} placeholder="Ej: Madre, Esposo, Hermano" />
+                      <label>{t('parentesco')}</label>
+                      <input type="text" name="parentescoEmergencia" value={formData.parentescoEmergencia} onChange={handleInputChange} placeholder={t('manual_form_relationship')} />
                     </div>
                   </div>
                 </div>
                 <div className="wizard-form-section">
-                  <h4>Antecedentes Medicos <span className="section-hint">(Opcional)</span></h4>
+                  <h4>{t('medical_history_title')} <span className="section-hint">({t('optional', { ns: 'common' })})</span></h4>
                   <AntecedentesEditor values={antecedentesData} onChange={handleAntecedentesChange} compact />
                 </div>
               </>
@@ -435,21 +437,21 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
                   <>
                     <div style={{ marginBottom: 16 }}>
                       <Calendar size={32} color="#16a34a" />
-                      <h4 style={{ margin: '8px 0 4px' }}>Agendar Primera Cita</h4>
-                      <p style={{ color: '#64748b', fontSize: 14 }}>Seleccione dia y hora para la primera cita del cliente</p>
+                      <h4 style={{ margin: '8px 0 4px' }}>{t('agendar_cita')}</h4>
+                      <p style={{ color: '#64748b', fontSize: 14 }}>{t('seleccionar_cliente')}</p>
                     </div>
                     <button
                       className="wizard-btn wizard-btn--next"
                       onClick={() => setShowScheduler(true)}
                       style={{ gap: 8, margin: '0 auto' }}
                     >
-                      <Calendar size={16} /> Seleccionar Fecha y Hora
+                      <Calendar size={16} /> {t('seleccionar_cliente')}
                     </button>
                   </>
                 ) : (
                   <div style={{ padding: 24, color: '#94a3b8' }}>
                     <Shield size={32} />
-                    <p style={{ marginTop: 8 }}>El contrato debe estar firmado antes de agendar la primera cita</p>
+                    <p style={{ marginTop: 8 }}>{t('workspace_warning_no_contract')}</p>
                   </div>
                 )}
               </div>
@@ -460,32 +462,32 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
         {!loading && (
           <div className="wizard-footer">
             <button type="button" className="wizard-btn wizard-btn--cancel" onClick={onClose} disabled={saving}>
-              Cancelar
+              {t('cancel', { ns: 'common' })}
             </button>
 
             {currentStep > 0 && (
               <button type="button" className="wizard-btn wizard-btn--back" onClick={handlePrev} disabled={saving}>
-                <ChevronLeft size={16} /> Anterior
+                <ChevronLeft size={16} /> {t('anterior')}
               </button>
             )}
 
             {isLastStep && showPostSteps ? (
               <button type="button" className="wizard-btn wizard-btn--save" onClick={handleFinishPostSteps} disabled={saving}>
-                <Check size={16} /> Finalizar
+                <Check size={16} /> {t('guardar_finalizar')}
               </button>
             ) : currentStep === lastDataStep && !isEdit ? (
               <button type="button" className="wizard-btn wizard-btn--save" onClick={handleNext} disabled={saving}>
                 {saving ? <Loader2 size={16} className="spinner" /> : <Check size={16} />}
-                {saving ? 'Guardando...' : 'Crear y Continuar'}
+                {saving ? t('saving') : t('guardar_agendar')}
               </button>
             ) : isEdit ? (
               <button type="button" className="wizard-btn wizard-btn--save" onClick={handleSubmit} disabled={saving}>
                 {saving ? <Loader2 size={16} className="spinner" /> : <Check size={16} />}
-                {saving ? 'Guardando...' : 'Actualizar'}
+                {saving ? t('saving') : t('save_client')}
               </button>
             ) : (
               <button type="button" className="wizard-btn wizard-btn--next" onClick={handleNext} disabled={saving}>
-                Siguiente <ChevronRight size={16} />
+                {t('siguiente')} <ChevronRight size={16} />
               </button>
             )}
           </div>

@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { User, Phone, Mail, MapPin, AlertTriangle, History, Loader2, Edit2, Save, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { historiaClinicaService } from '../../services/historiaClinicaService';
 import AntecedentesEditor, { ANTECEDENTES_FIELDS_DISPLAY, getActiveAntecedentes } from '../ui/AntecedentesEditor';
 
 export default function PasoPaciente({ formData, updateFormData, paciente }) {
+  const { t } = useTranslation('patients');
+  const { t: tC } = useTranslation('clinical');
+  const { t: tCommon } = useTranslation('common');
   const [historia, setHistoria] = useState(null);
   const [loadingHistoria, setLoadingHistoria] = useState(false);
   const [editingAntecedentes, setEditingAntecedentes] = useState(false);
@@ -32,8 +36,8 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
     return (
       <div className="wizard-step wizard-step--empty">
         <AlertTriangle size={48} />
-        <h3>Cliente no seleccionado</h3>
-        <p>Vuelva a Recepcion y seleccione un paciente.</p>
+        <h3>{tC('error_loading_client')}</h3>
+        <p>{tC('back_to_reception')}</p>
       </div>
     );
   }
@@ -70,11 +74,11 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
     setSavingAntecedentes(true);
     try {
       const result = await historiaClinicaService.updateAntecedentes(historia.id, antecedentesValues);
-      if (!result.success) throw new Error(result.message || 'Error al guardar');
+      if (!result.success) throw new Error(result.message || tC('error_guardar'));
       const updated = { ...historia, ...antecedentesValues };
       setHistoria(updated);
       setEditingAntecedentes(false);
-      setSavedMsg('Guardado');
+      setSavedMsg(tCommon('saved_successfully'));
       setTimeout(() => setSavedMsg(''), 2000);
     } catch {
     } finally {
@@ -86,7 +90,7 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
     <div className="wizard-step">
       <h2 className="wizard-step__title">
         <User size={20} />
-        Datos del Paciente
+        {tC('datos_paciente')}
       </h2>
 
       {/* Patient Info Card */}
@@ -103,49 +107,49 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
 
         <div className="wizard-grid wizard-grid--3">
           <div className="wizard-field">
-            <label>Edad</label>
+            <label>{t('edad')}</label>
             <span>{edad} anios</span>
           </div>
           <div className="wizard-field">
-            <label>Sexo</label>
+            <label>{t('sexo')}</label>
             <span>{paciente.sexo || '-'}</span>
           </div>
           <div className="wizard-field">
-            <label>Estado Civil</label>
+            <label>{t('estado_civil')}</label>
             <span>{paciente.estadoCivil || '-'}</span>
           </div>
           <div className="wizard-field">
-            <label><Phone size={14} /> Telefono</label>
+            <label><Phone size={14} /> {t('telefono')}</label>
             <span>{paciente.telefono || '-'}</span>
           </div>
           <div className="wizard-field">
-            <label><Mail size={14} /> Email</label>
+            <label><Mail size={14} /> {tCommon('email')}</label>
             <span>{paciente.email || '-'}</span>
           </div>
           <div className="wizard-field">
-            <label><MapPin size={14} /> Ciudad/Estado</label>
+            <label><MapPin size={14} /> {t('ciudad_estado')}</label>
             <span>{paciente.ciudadEstado || '-'}</span>
           </div>
         </div>
 
         {paciente.direccion && (
           <div className="wizard-field wizard-field--full">
-            <label>Direccion</label>
+            <label>{t('direccion')}</label>
             <span>{paciente.direccion}</span>
           </div>
         )}
 
         <div className="wizard-grid wizard-grid--3">
           <div className="wizard-field">
-            <label>Peso</label>
+            <label>{tC('peso')}</label>
             <span>{paciente.peso ? `${paciente.peso} kg` : '-'}</span>
           </div>
           <div className="wizard-field">
-            <label>Estatura</label>
+            <label>{tC('estatura')}</label>
             <span>{paciente.estatura ? `${paciente.estatura} cm` : '-'}</span>
           </div>
           <div className="wizard-field">
-            <label>Contacto Emergencia</label>
+            <label>{t('contacto_emergencia')}</label>
             <span>{paciente.contactoEmergencia || '-'}</span>
           </div>
         </div>
@@ -156,22 +160,22 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
         <div className="wizard-antecedentes-header">
           <h3 className="wizard-card__subtitle">
             <AlertTriangle size={16} />
-            Antecedentes Medicos
+            {t('medical_history_title')}
           </h3>
           <div className="wizard-antecedentes-header__actions">
             {savedMsg && <span className="saved-message">{savedMsg}</span>}
             {!editingAntecedentes ? (
               <button className="btn btn--ghost btn--sm" onClick={startEditAntecedentes} disabled={!historia}>
-                <Edit2 size={14} /> Editar
+                <Edit2 size={14} /> {tCommon('edit')}
               </button>
             ) : (
               <>
                 <button className="btn btn--ghost btn--sm" onClick={() => setEditingAntecedentes(false)}>
-                  <X size={14} /> Cancelar
+                  <X size={14} /> {tCommon('cancel')}
                 </button>
                 <button className="btn btn--primary btn--sm" onClick={saveAntecedentes} disabled={savingAntecedentes}>
                   {savingAntecedentes ? <Loader2 size={14} className="spinner" /> : <Save size={14} />}
-                  {savingAntecedentes ? 'Guardando...' : 'Guardar'}
+                  {savingAntecedentes ? tCommon('saving') : tCommon('save')}
                 </button>
               </>
             )}
@@ -181,7 +185,7 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
         {loadingHistoria ? (
           <div className="wizard-loading">
             <Loader2 size={20} className="spin" />
-            <span>Cargando antecedentes...</span>
+            <span>{tCommon('loading_data')}</span>
           </div>
         ) : editingAntecedentes ? (
           <div className="antecedentes-edit">
@@ -193,12 +197,12 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
           </div>
         ) : !historia ? (
           <div className="wizard-empty-inline">
-            <p>No se ha creado historia clinica para este paciente.</p>
-            <p className="wizard-text--muted">Los antecedentes se crearan automaticamente al guardar la sesion.</p>
+            <p>{tC('no_historia_clinica')}</p>
+            <p className="wizard-text--muted">{tC('antecedentes_automaticos')}</p>
           </div>
         ) : activeAntecedentes.length === 0 ? (
           <div className="wizard-empty-inline">
-            <p>Sin antecedentes registrados.</p>
+            <p>{t('sin_antecedentes')}</p>
           </div>
         ) : (
           <div className="wizard-antecedentes-compact">
@@ -206,7 +210,7 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
               <div key={key} className="wizard-antecedente-compact-item">
                 <span className="wizard-antecedente-compact-dot" />
                 <span className="wizard-antecedente-compact-label">{label}</span>
-                {value !== 'Si' && (
+                {value !== tC('si') && (
                   <span className="wizard-antecedente-compact-detail">{value}</span>
                 )}
               </div>
@@ -219,10 +223,10 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
       <div className="wizard-card">
         <h3 className="wizard-card__subtitle">
           <History size={16} />
-          Ultimas Consultas
+          {tC('ultimas_consultas')}
         </h3>
         <p className="wizard-text--muted">
-          Las consultas previas se mostraran aqui cuando esten disponibles.
+          {tC('consultas_previas_disponibles')}
         </p>
       </div>
     </div>

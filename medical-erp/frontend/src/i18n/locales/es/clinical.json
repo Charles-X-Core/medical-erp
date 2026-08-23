@@ -124,5 +124,21 @@
   "guardar_historia": "Guardar Historia",
   "nueva_consulta": "Nueva Consulta",
   "sin_consultas_registradas": "No hay consultas registradas",
-  "ver": "Ver"
+  "ver": "Ver",
+  "bajo_peso": "Bajo peso",
+  "peso_normal": "Normal",
+  "sobrepeso": "Sobrepeso",
+  "obesidad": "Obesidad",
+  "diagnostico_y_plan": "Diagnóstico y Plan",
+  "error_loading_consulta": "Error al cargar consulta",
+  "loading_historia": "Cargando historia clínica...",
+  "error_loading_historia": "Error al cargar historia clínica",
+  "cardiopatias_personales": "Cardiopatías Personales",
+  "cardiopatias_familiares": "Cardiopatías Familiares",
+  "diabetes_personal": "Diabetes Personal",
+  "diabetes_familiar": "Diabetes Familiar",
+  "otras_enfermedades": "Otras Enfermedades",
+  "datos_generales": "Datos Generales",
+  "firmar": "Firmar",
+  "back_to_client": "Volver al cliente"
 }

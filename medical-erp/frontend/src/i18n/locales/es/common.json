@@ -90,5 +90,6 @@
   "clean": "Limpiar",
   "mark_read": "Marcar como leídas",
   "session_expired": "Sesión expirada",
-  "sin_doc": "Sin documento"
+  "sin_doc": "Sin documento",
+  "minutos": "minutos"
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Clock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { consultasService } from '../../services/consultasService';
@@ -12,27 +13,28 @@ function formatFecha(fecha) {
   return new Date(fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function getRelativeTime(fecha) {
-  if (!fecha) return '';
-  const now = new Date();
-  const date = new Date(fecha);
-  const diffMs = now - date;
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHrs = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMin < 1) return 'Ahora';
-  if (diffMin < 60) return `${diffMin}m`;
-  if (diffHrs < 24) return `${diffHrs}h`;
-  if (diffDays === 1) return 'Ayer';
-  if (diffDays < 7) return `${diffDays}d`;
-  return formatFecha(fecha);
-}
-
 export default function WorkspaceTimeline({ pacienteId }) {
+  const { t } = useTranslation('patients');
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  function getRelativeTime(fecha) {
+    if (!fecha) return '';
+    const now = new Date();
+    const date = new Date(fecha);
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHrs = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMin < 1) return t('ahora', { ns: 'patients' });
+    if (diffMin < 60) return `${diffMin}m`;
+    if (diffHrs < 24) return `${diffHrs}h`;
+    if (diffDays === 1) return t('ayer');
+    if (diffDays < 7) return `${diffDays}d`;
+    return formatFecha(fecha);
+  }
 
   useEffect(() => {
     loadTimeline();
@@ -61,7 +63,7 @@ export default function WorkspaceTimeline({ pacienteId }) {
             id: `consulta-${c.id}`,
             type: 'consulta',
             fecha: c.fecha || c.createdAt,
-            label: 'Consulta',
+            label: t('consultas'),
             detail: c.motivo || '',
           });
         });
@@ -76,7 +78,7 @@ export default function WorkspaceTimeline({ pacienteId }) {
             id: `tratamiento-${t.id}`,
             type: 'tratamiento',
             fecha: t.createdAt,
-            label: 'Tratamiento',
+            label: t('tratamiento'),
             detail: t.procedimientoRealizado || '',
           });
         });
@@ -91,8 +93,8 @@ export default function WorkspaceTimeline({ pacienteId }) {
             id: `consent-${c.id}`,
             type: 'consentimiento',
             fecha: c.fecha || c.createdAt,
-            label: `Consentimiento: ${c.tipo || 'Trámite'}`,
-            detail: c.aceptado ? 'Aceptado' : 'Pendiente de aceptación',
+            label: `${t('consentimientos')}: ${c.tipo || 'Trámite'}`,
+            detail: c.aceptado ? t('aceptado_label') : t('pendiente_aceptacion'),
           });
         });
       }
@@ -110,8 +112,8 @@ export default function WorkspaceTimeline({ pacienteId }) {
             id: `cita-${c.id}`,
             type: 'cita',
             fecha: c.fechaHora || c.createdAt,
-            label: 'Cita',
-            detail: parts.join(' · ') || 'Cita registrada',
+            label: t('buscar_cita'),
+            detail: parts.join(' · ') || t('consulta_registrada'),
           });
         });
       }
@@ -125,8 +127,8 @@ export default function WorkspaceTimeline({ pacienteId }) {
             id: `receta-${r.id}`,
             type: 'receta',
             fecha: r.createdAt,
-            label: 'Receta',
-            detail: r.medicamentos || r.indicaciones || 'Receta emitida',
+            label: t('recetas_medicas'),
+            detail: r.medicamentos || r.indicaciones || t('indicaciones'),
           });
         });
       }
@@ -143,15 +145,15 @@ export default function WorkspaceTimeline({ pacienteId }) {
   return (
     <div className="workspace__timeline">
       <div className="workspace-timeline">
-        <h3 className="workspace-timeline__title">Línea de Tiempo</h3>
+        <h3 className="workspace-timeline__title">{t('linea_tiempo')}</h3>
 
         {loading ? (
           <div className="workspace-timeline__empty">
             <Clock size={16} className="spinner" />
-            <span>Cargando...</span>
+            <span>{t('loading', { ns: 'common' })}</span>
           </div>
         ) : events.length === 0 ? (
-          <div className="workspace-timeline__empty">Sin eventos registrados</div>
+          <div className="workspace-timeline__empty">{t('sin_eventos')}</div>
         ) : (
           <>
             <div className="workspace-timeline__list">
@@ -177,7 +179,7 @@ export default function WorkspaceTimeline({ pacienteId }) {
               className="workspace-timeline__link"
               onClick={() => navigate(`/pacientes/${pacienteId}/detalle`, { state: { tab: 'timeline' } })}
             >
-              Ver línea de tiempo completa
+              {t('ver_linea_completa')}
               <ArrowRight size={14} />
             </button>
           </>

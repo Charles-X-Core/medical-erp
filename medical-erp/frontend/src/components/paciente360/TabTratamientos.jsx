@@ -1,27 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2, Calendar, Stethoscope, Clock, CheckCircle, AlertCircle, ChevronDown, ChevronUp, Activity, Target, TrendingUp, DollarSign, Play, Pause, XCircle } from 'lucide-react';
 import { tratamientoService } from '../../services/tratamientoService';
 import { getTreatmentLabel } from '../../config/attentionTypes';
 import TratamientoTimeline from '../atencion/TratamientoTimeline';
 
-const ESTADO_CONFIG = {
-  PENDIENTE: { label: 'Pendiente', icon: Clock, color: '#F59E0B', bg: '#FFFBEB' },
-  PROGRAMADO: { label: 'Programado', icon: Calendar, color: '#3B82F6', bg: '#EFF6FF' },
-  EN_CURSO: { label: 'En Curso', icon: Activity, color: '#22C55E', bg: '#F0FDF4' },
-  PAUSADO: { label: 'Pausado', icon: Pause, color: '#F59E0B', bg: '#FFFBEB' },
-  FINALIZADO: { label: 'Finalizado', icon: CheckCircle, color: '#6B7D95', bg: '#E2E8F0' },
-  CANCELADO: { label: 'Cancelado', icon: XCircle, color: '#EF4444', bg: '#FEF2F2' },
-};
-
-const FILTERS = [
-  { key: 'todos', label: 'Todos' },
-  { key: 'PENDIENTE', label: 'Pendientes' },
-  { key: 'PROGRAMADO', label: 'Programados' },
-  { key: 'EN_CURSO', label: 'En Curso' },
-  { key: 'FINALIZADO', label: 'Finalizados' },
-];
-
 export default function TabTratamientos({ pacienteId, historiaId }) {
+  const { t } = useTranslation('patients');
   const [tratamientos, setTratamientos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterEstado, setFilterEstado] = useState('todos');
@@ -56,6 +41,14 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
   };
 
   const getEstadoBadge = (estado) => {
+    const ESTADO_CONFIG = {
+      PENDIENTE: { label: t('pending', { ns: 'common' }), icon: Clock, color: '#F59E0B', bg: '#FFFBEB' },
+      PROGRAMADO: { label: t('programado', { ns: 'patients' }), icon: Calendar, color: '#3B82F6', bg: '#EFF6FF' },
+      EN_CURSO: { label: t('active', { ns: 'common' }), icon: Activity, color: '#22C55E', bg: '#F0FDF4' },
+      PAUSADO: { label: t('pausado', { ns: 'patients' }), icon: Pause, color: '#F59E0B', bg: '#FFFBEB' },
+      FINALIZADO: { label: t('finalizado', { ns: 'patients' }), icon: CheckCircle, color: '#6B7D95', bg: '#E2E8F0' },
+      CANCELADO: { label: t('cancelled', { ns: 'common' }), icon: XCircle, color: '#EF4444', bg: '#FEF2F2' },
+    };
     const config = ESTADO_CONFIG[estado] || ESTADO_CONFIG.PENDIENTE;
     const Icon = config.icon;
     return (
@@ -91,16 +84,24 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
       <div className="tab-tratamientos">
         <div className="loading">
           <Loader2 size={24} className="spinner" />
-          <p>Cargando tratamientos...</p>
+          <p>{t('loading', { ns: 'common' })}</p>
         </div>
       </div>
     );
   }
 
+  const FILTERS = [
+    { key: 'todos', label: t('all', { ns: 'common' }) },
+    { key: 'PENDIENTE', label: t('pending', { ns: 'common' }) },
+    { key: 'PROGRAMADO', label: t('programado') },
+    { key: 'EN_CURSO', label: t('active', { ns: 'common' }) },
+    { key: 'FINALIZADO', label: t('finalizado') },
+  ];
+
   return (
     <div className="tab-tratamientos">
       <div className="tab-tratamientos__header">
-        <h3>Seguimiento de Tratamientos</h3>
+        <h3>{t('tratamientos_seguimiento')}</h3>
         <div className="tab-tratamientos__filters">
           {FILTERS.map(f => {
             const count = f.key === 'todos'
@@ -123,24 +124,24 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
         <div className="tab-tratamientos__summary">
           <div className="summary-item">
             <Stethoscope size={16} />
-            <span>Total: <strong>{tratamientos.length}</strong></span>
+            <span>{t('total', { ns: 'common' })}: <strong>{tratamientos.length}</strong></span>
           </div>
           <div className="summary-item">
             <Activity size={16} style={{ color: '#22C55E' }} />
-            <span>Activos: <strong>{activos}</strong></span>
+            <span>{t('active', { ns: 'common' })}: <strong>{activos}</strong></span>
           </div>
           <div className="summary-item">
             <Clock size={16} style={{ color: '#F59E0B' }} />
-            <span>Pendientes: <strong>{pendientes}</strong></span>
+            <span>{t('pending', { ns: 'common' })}: <strong>{pendientes}</strong></span>
           </div>
           <div className="summary-item">
             <CheckCircle size={16} style={{ color: '#6B7D95' }} />
-            <span>Completados: <strong>{completados}</strong></span>
+            <span>{t('completed', { ns: 'common' })}: <strong>{completados}</strong></span>
           </div>
           {totalCosto > 0 && (
             <div className="summary-item">
               <DollarSign size={16} />
-              <span>Total: <strong>{formatCurrency(totalCosto)}</strong></span>
+              <span>{t('total', { ns: 'common' })}: <strong>{formatCurrency(totalCosto)}</strong></span>
             </div>
           )}
         </div>
@@ -149,7 +150,7 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
       {filtered.length === 0 ? (
         <div className="empty-state">
           <Stethoscope size={40} strokeWidth={1.2} />
-          <p>{tratamientos.length === 0 ? 'No hay tratamientos registrados' : 'No hay tratamientos con este filtro'}</p>
+          <p>{tratamientos.length === 0 ? t('sin_tratamientos_registrados') : t('filtrar_tratamientos')}</p>
         </div>
       ) : (
         <div className="tab-tratamientos__list">
@@ -193,19 +194,19 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
                     {t.fechaInicio && (
                       <div className="tratamiento-meta-item">
                         <Calendar size={13} />
-                        <span>Inicio: {formatDate(t.fechaInicio)}</span>
+                        <span>{t('inicio_label_2')} {formatDate(t.fechaInicio)}</span>
                       </div>
                     )}
                     {t.fechaFin && (
                       <div className="tratamiento-meta-item">
                         <CheckCircle size={13} />
-                        <span>Fin: {formatDate(t.fechaFin)}</span>
+                        <span>{t('fecha_fin')}: {formatDate(t.fechaFin)}</span>
                       </div>
                     )}
                     {t.sesionesPlaneadas > 0 && (
                       <div className="tratamiento-meta-item">
                         <Activity size={13} />
-                        <span>Sesiones: {t.sesionesRealizadas || 0}/{t.sesionesPlaneadas}</span>
+                        <span>{t('sesion')}: {t.sesionesRealizadas || 0}/{t.sesionesPlaneadas}</span>
                       </div>
                     )}
                   </div>
@@ -230,42 +231,42 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
                   <div className="tratamiento-card__detail">
                     {t.diagnosticoInicial && (
                       <div className="tratamiento-detail-section">
-                        <span className="tratamiento-detail-label">Diagnóstico Inicial</span>
+                        <span className="tratamiento-detail-label">{t('diagnostico')}</span>
                         <p className="tratamiento-detail-text">{t.diagnosticoInicial}</p>
                       </div>
                     )}
 
                     {t.observaciones && (
                       <div className="tratamiento-detail-section">
-                        <span className="tratamiento-detail-label">Observaciones</span>
+                        <span className="tratamiento-detail-label">{t('observations', { ns: 'common' })}</span>
                         <p className="tratamiento-detail-text">{t.observaciones}</p>
                       </div>
                     )}
 
                     {t.resultadoFinal && (
                       <div className="tratamiento-detail-section">
-                        <span className="tratamiento-detail-label">Resultado Final</span>
+                        <span className="tratamiento-detail-label">{t('resultado_final', { ns: 'patients' })}</span>
                         <p className="tratamiento-detail-text">{t.resultadoFinal}</p>
                       </div>
                     )}
 
                     {t.motivoPausa && (
                       <div className="tratamiento-detail-section">
-                        <span className="tratamiento-detail-label">Motivo de Pausa</span>
+                        <span className="tratamiento-detail-label">{t('motivo_pausa')}</span>
                         <p className="tratamiento-detail-text">{t.motivoPausa}</p>
                       </div>
                     )}
 
                     {t.motivoCancelacion && (
                       <div className="tratamiento-detail-section">
-                        <span className="tratamiento-detail-label">Motivo de Cancelación</span>
+                        <span className="tratamiento-detail-label">{t('motivo_cancelacion')}</span>
                         <p className="tratamiento-detail-text">{t.motivoCancelacion}</p>
                       </div>
                     )}
 
                     {t.costoEstimado > 0 && (
                       <div className="tratamiento-detail-section">
-                        <span className="tratamiento-detail-label">Costo Estimado</span>
+                        <span className="tratamiento-detail-label">{t('costo_total')}</span>
                         <p className="tratamiento-detail-text">{formatCurrency(t.costoEstimado)}</p>
                       </div>
                     )}

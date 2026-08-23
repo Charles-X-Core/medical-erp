@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Clock, Calendar } from 'lucide-react';
 
-const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
-const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const DAY_KEYS = ['day_sunday', 'day_monday', 'day_tuesday', 'day_wednesday', 'day_thursday', 'day_friday', 'day_saturday'];
+const MONTH_KEYS = ['month_enero', 'month_febrero', 'month_marzo', 'month_abril', 'month_mayo', 'month_junio', 'month_julio', 'month_agosto', 'month_septiembre', 'month_octubre', 'month_noviembre', 'month_diciembre'];
 
 export default function RelojWidget() {
+  const { t } = useTranslation('agenda');
   const [hora, setHora] = useState(new Date());
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export default function RelojWidget() {
       </div>
       <div className="reloj-widget__date">
         <Calendar size={14} />
-        <span>{DIAS[hora.getDay()]} {hora.getDate()} de {MESES[hora.getMonth()]}</span>
+        <span>{t(DAY_KEYS[hora.getDay()])} {hora.getDate()} de {t(MONTH_KEYS[hora.getMonth()])}</span>
       </div>
     </div>
   );

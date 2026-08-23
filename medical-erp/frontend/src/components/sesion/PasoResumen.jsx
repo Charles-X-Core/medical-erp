@@ -1,15 +1,19 @@
 import { FileText, Calendar, TrendingUp, DollarSign, CheckCircle } from 'lucide-react';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function PasoResumen({ formData, updateFormData }) {
+  const { t } = useTranslation('clinical');
+  const { t: tP } = useTranslation('patients');
+  const { t: tCommon } = useTranslation('common');
   const { paciente, enfermedad, diagnostico, evidencias, recetas, tratamientos, resumen } = formData;
 
-  const costoTotal = tratamientos.reduce((sum, t) => sum + (parseFloat(t.costoTotal) || 0), 0);
+  const costoTotal = tratamientos.reduce((sum, tr) => sum + (parseFloat(tr.costoTotal) || 0), 0);
 
   // Auto-derive tipoTratamiento from treatment categories
   useEffect(() => {
     if (tratamientos.length > 0 && !resumen.tipoTratamiento) {
-      const categorias = [...new Set(tratamientos.map((t) => t.categoria).filter(Boolean))];
+      const categorias = [...new Set(tratamientos.map((tr) => tr.categoria).filter(Boolean))];
       if (categorias.length > 0) {
         updateFormData('resumen', { tipoTratamiento: categorias.join(', ') });
       }
@@ -27,26 +31,26 @@ export default function PasoResumen({ formData, updateFormData }) {
     <div className="wizard-step">
       <h2 className="wizard-step__title">
         <CheckCircle size={20} />
-        Resumen de la Sesión
+        {tP('resumen_sesion')}
       </h2>
 
       {/* Patient Summary */}
       <div className="wizard-card">
         <h3 className="wizard-card__subtitle">
           <FileText size={16} />
-          Datos del Paciente
+          {t('datos_paciente')}
         </h3>
         <div className="wizard-grid wizard-grid--3">
           <div className="wizard-field">
-            <label>Nombre</label>
+            <label>{tP('nombre_completo')}</label>
             <span>{paciente?.apellidoPaterno} {paciente?.nombres}</span>
           </div>
           <div className="wizard-field">
-            <label>ID</label>
+            <label>{tP('id_number_placeholder')}</label>
             <span>{paciente?.licenciaConducir || '-'}</span>
           </div>
           <div className="wizard-field">
-            <label>Motivo</label>
+            <label>{tP('motivo')}</label>
             <span>{enfermedad.motivo || '-'}</span>
           </div>
         </div>
@@ -54,7 +58,7 @@ export default function PasoResumen({ formData, updateFormData }) {
 
       {/* Diagnosis Summary */}
       <div className="wizard-card">
-        <h3 className="wizard-card__subtitle">Diagnóstico</h3>
+        <h3 className="wizard-card__subtitle">{t('diagnostico')}</h3>
         {diagnostico.diagnosticoTexto ? (
           <div className="wizard-diagnostico-texto">
             {diagnostico.diagnosticoTexto.split('\n').map((line, i) => (
@@ -64,28 +68,28 @@ export default function PasoResumen({ formData, updateFormData }) {
             ))}
           </div>
         ) : (
-          <p className="wizard-text--muted">Sin diagnósticos registrados</p>
+          <p className="wizard-text--muted">{t('sin_diagnosticos')}</p>
         )}
       </div>
 
       {/* Treatment Summary */}
       <div className="wizard-card">
-        <h3 className="wizard-card__subtitle">Tratamientos</h3>
+        <h3 className="wizard-card__subtitle">{t('tratamientos')}</h3>
         {tratamientos.length > 0 ? (
           <div className="wizard-list">
-            {tratamientos.map((t, i) => (
+            {tratamientos.map((tr, i) => (
               <div key={i} className="wizard-list__item">
-                <span>{t.procedimientoRealizado}</span>
-                <span className="wizard-list__cost">${parseFloat(t.costoTotal || 0).toFixed(2)}</span>
+                <span>{tr.procedimientoRealizado}</span>
+                <span className="wizard-list__cost">${parseFloat(tr.costoTotal || 0).toFixed(2)}</span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="wizard-text--muted">Sin tratamientos registrados</p>
+          <p className="wizard-text--muted">{tP('sin_tratamientos_registrados')}</p>
         )}
         {tratamientos.length > 0 && (
           <div className="wizard-total wizard-total--small">
-            <span>Total:</span>
+            <span>{tP('total_costo')}</span>
             <span>${costoTotal.toFixed(2)}</span>
           </div>
         )}
@@ -93,50 +97,50 @@ export default function PasoResumen({ formData, updateFormData }) {
 
       {/* Recetas Summary */}
       <div className="wizard-card">
-        <h3 className="wizard-card__subtitle">Recetas</h3>
+        <h3 className="wizard-card__subtitle">{tP('recetas')}</h3>
         {recetas.length > 0 ? (
           <div className="wizard-list">
             {recetas.map((r, i) => (
               <div key={i} className="wizard-list__item wizard-list__item--column">
-                <span className="wizard-list__receta-title">Receta {i + 1}</span>
+                <span className="wizard-list__receta-title">{tP('receta')} {i + 1}</span>
                 {r.medicamentos.map((med, j) => (
                   <span key={j} className="wizard-list__med">
                     {med.nombre} {med.dosis} — {med.frecuencia} × {med.duracion}
                   </span>
                 ))}
                 {r.indicaciones && (
-                  <span className="wizard-list__indicaciones">Indicaciones: {r.indicaciones}</span>
+                  <span className="wizard-list__indicaciones">{tP('indicaciones')}: {r.indicaciones}</span>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="wizard-text--muted">Sin recetas creadas</p>
+          <p className="wizard-text--muted">{tP('sin_recetas')}</p>
         )}
       </div>
 
       {/* Evidencias count */}
       <div className="wizard-card">
-        <h3 className="wizard-card__subtitle">Evidencias</h3>
-        <p>{evidencias.length} foto(s) adjunta(s)</p>
+        <h3 className="wizard-card__subtitle">{tP('evidencias_fotograficas')}</h3>
+        <p>{evidencias.length} {tP('fotos_adjuntas')}</p>
       </div>
 
       {/* Resumen fields */}
       <div className="wizard-card">
-        <h3 className="wizard-card__subtitle">Resumen del Tratamiento</h3>
+        <h3 className="wizard-card__subtitle">{tP('resumen_tratamiento')}</h3>
         <div className="wizard-grid wizard-grid--1">
           <div className="wizard-field">
-            <label><TrendingUp size={14} /> Tipo de Tratamiento</label>
+            <label><TrendingUp size={14} /> {tP('tipo_tratamiento_label')}</label>
             <input
               className="wizard-input"
               value={resumen.tipoTratamiento}
               onChange={(e) => updateFormData('resumen', { tipoTratamiento: e.target.value })}
-              placeholder="Ej: Regenerativo, Estético, Hormonal..."
+              placeholder={tP('tipo_tratamiento_placeholder')}
             />
           </div>
           <div className="wizard-grid wizard-grid--2">
             <div className="wizard-field">
-              <label>Sesiones Realizadas</label>
+              <label>{t('sesiones_realizadas')}</label>
               <input
                 className="wizard-input"
                 type="number"
@@ -146,7 +150,7 @@ export default function PasoResumen({ formData, updateFormData }) {
               />
             </div>
             <div className="wizard-field">
-              <label><Calendar size={14} /> Próxima Fecha</label>
+              <label><Calendar size={14} /> {tP('proxima_fecha')}</label>
               <input
                 className="wizard-input"
                 type="date"
@@ -156,13 +160,13 @@ export default function PasoResumen({ formData, updateFormData }) {
             </div>
           </div>
           <div className="wizard-field">
-            <label>Evolución / Mejoría Observada</label>
+            <label>{tP('evolucion_mejoria')}</label>
             <textarea
               className="wizard-textarea"
               rows={3}
               value={resumen.evolucionMejoria}
               onChange={(e) => updateFormData('resumen', { evolucionMejoria: e.target.value })}
-              placeholder="Describa la evolución y mejoría observada durante el tratamiento"
+              placeholder={tP('evolucion_mejoria_placeholder')}
             />
           </div>
         </div>
@@ -171,7 +175,7 @@ export default function PasoResumen({ formData, updateFormData }) {
       {/* Total Cost */}
       <div className="wizard-total wizard-total--final">
         <DollarSign size={24} />
-        <span>Costo Total de la Consulta:</span>
+        <span>{tP('costo_total_consulta')}</span>
         <span className="wizard-total__amount">${costoTotal.toFixed(2)}</span>
       </div>
     </div>

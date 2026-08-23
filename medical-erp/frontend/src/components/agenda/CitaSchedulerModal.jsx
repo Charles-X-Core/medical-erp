@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Calendar, Clock, User, FileText, CheckCircle, AlertCircle, Loader2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import agendaService from '../../services/agendaService';
 import { pacienteService } from '../../services/pacienteService';
@@ -37,10 +38,6 @@ function isPastDate(fechaStr) {
   return fechaStr < today;
 }
 
-const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-const DIAS_CORTOS = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
-const DIAS_LARGOS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-
 function getDaysInMonth(year, month) {
   return new Date(year, month + 1, 0).getDate();
 }
@@ -53,12 +50,15 @@ function formatDateStr(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
-function formatDiaLargo(fechaStr) {
+function formatDiaLargo(fechaStr, t) {
   const d = new Date(fechaStr + 'T12:00:00');
-  return `${DIAS_LARGOS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;
+  const dayKeys = ['day_sunday', 'day_monday', 'day_tuesday', 'day_wednesday', 'day_thursday', 'day_friday', 'day_saturday'];
+  const monthKeys = ['month_enero', 'month_febrero', 'month_marzo', 'month_abril', 'month_mayo', 'month_junio', 'month_julio', 'month_agosto', 'month_septiembre', 'month_octubre', 'month_noviembre', 'month_diciembre'];
+  return `${t(dayKeys[d.getDay()], { ns: 'agenda' })} ${d.getDate()} de ${t(monthKeys[d.getMonth()], { ns: 'agenda' })}`;
 }
 
 export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialPaciente, tratamientoId, onCitaCreada }) {
+  const { t } = useTranslation('agenda');
   const [doctoras, setDoctoras] = useState([]);
   const [doctoraId, setDoctoraId] = useState('');
   const [doctoraName, setDoctoraName] = useState('');
@@ -95,7 +95,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
   }, [calYear, calMonth]);
 
   const tipoSeleccionado = useMemo(() => {
-    return tiposCita.find(t => t.id?.toString() === tipoCitaId?.toString()) || null;
+    return tiposCita.find(tipo => tipo.id?.toString() === tipoCitaId?.toString()) || null;
   }, [tiposCita, tipoCitaId]);
 
   const duracion = tipoSeleccionado?.duracionMinutos || 30;
@@ -141,7 +141,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
       if (list.length > 0) {
         setDoctoras(list);
         setDoctoraId(list[0].id?.toString() || '');
-        setDoctoraName(list[0].nombre || `Doctora #${list[0].id}`);
+        setDoctoraName(list[0].nombre || `${t('doctora_id', { id: list[0].id })}`);
       }
     } catch {
       setDoctoras([]);
@@ -223,7 +223,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
         duracionMinutos: duracion,
         tipoCitaId: tipoCitaId || undefined,
         tratamientoId: tratamientoId || undefined,
-        motivo: notas || tipoSeleccionado?.nombre || 'Consulta',
+        motivo: notas || tipoSeleccionado?.nombre || t('consulta_default'),
         notas: notas || undefined,
         prioridad: 'NORMAL',
       });
@@ -233,7 +233,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
         onClose();
       }, 1500);
     } catch (err) {
-      setError(err.message || 'Error al crear la cita');
+      setError(err.message || t('error_crear_cita'));
     } finally {
       setSending(false);
     }
@@ -243,11 +243,13 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
 
   const fullName = paciente ? `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`.trim() : '';
 
+  const monthKeys = ['month_enero', 'month_febrero', 'month_marzo', 'month_abril', 'month_mayo', 'month_junio', 'month_julio', 'month_agosto', 'month_septiembre', 'month_octubre', 'month_noviembre', 'month_diciembre'];
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content cita-scheduler" onClick={e => e.stopPropagation()}>
         <div className="cita-scheduler__header">
-          <h3><Calendar size={20} /> Agendar Próxima Cita</h3>
+          <h3><Calendar size={20} /> {t('agendar_proxima')}</h3>
           <button className="cita-scheduler__close" onClick={onClose}><X size={20} /></button>
         </div>
 
@@ -255,8 +257,8 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
           {exito ? (
             <div className="cita-scheduler__exito">
               <CheckCircle size={48} />
-              <h4>Cita agendada correctamente</h4>
-              <p>{fullName} — {formatDiaLargo(diaSeleccionado)} a las {normalizeTime(slotSeleccionado.inicio)}</p>
+              <h4>{t('cita_agendada')}</h4>
+              <p>{fullName} — {formatDiaLargo(diaSeleccionado, t)} a las {normalizeTime(slotSeleccionado.inicio)}</p>
             </div>
           ) : (
             <>
@@ -267,26 +269,26 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
                     <span>{`${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`.trim()}</span>
                     {!initialPaciente && (
                       <button className="cita-scheduler__paciente-change" onClick={() => { setPaciente(null); setShowPacienteSearch(true); }}>
-                        Cambiar
+                        {t('cambiar', { ns: 'common' })}
                       </button>
                     )}
                   </>
                 ) : (
-                  <span className="cita-scheduler__paciente-placeholder">Seleccionar cliente</span>
+                  <span className="cita-scheduler__paciente-placeholder">{t('seleccionar_cliente')}</span>
                 )}
               </div>
 
               {showPacienteSearch && !paciente && (
                 <div className="cita-scheduler__field">
-                  <label><Search size={14} /> Buscar cliente</label>
+                  <label><Search size={14} /> {t('buscar_cliente')}</label>
                   <input
                     type="text"
                     value={pacienteQuery}
                     onChange={e => { setPacienteQuery(e.target.value); searchPaciente(e.target.value); }}
-                    placeholder="Nombre, apellido o documento..."
+                    placeholder={t('buscar_placeholder')}
                     autoFocus
                   />
-                  {searchingPaciente && <span className="cita-scheduler__search-hint"><Loader2 size={12} className="spinner" /> Buscando...</span>}
+                  {searchingPaciente && <span className="cita-scheduler__search-hint"><Loader2 size={12} className="spinner" /> {t('cargando')}</span>}
                   {pacienteResults.length > 0 && (
                     <div className="cita-scheduler__paciente-results">
                       {pacienteResults.slice(0, 5).map(p => (
@@ -303,32 +305,32 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
                     </div>
                   )}
                   {pacienteQuery.length >= 2 && !searchingPaciente && pacienteResults.length === 0 && (
-                    <span className="cita-scheduler__search-hint">Sin resultados</span>
+                    <span className="cita-scheduler__search-hint">{t('sin_resultados')}</span>
                   )}
                 </div>
               )}
 
               {doctoras.length > 1 && (
                 <div className="cita-scheduler__field">
-                  <label>Doctora</label>
+                  <label>{t('scheduler_doctor')}</label>
                   <select value={doctoraId} onChange={e => {
                     const d = doctoras.find(x => x.id?.toString() === e.target.value);
                     setDoctoraId(e.target.value);
                     setDoctoraName(d?.nombre || '');
                   }}>
                     {doctoras.map(d => (
-                      <option key={d.id} value={d.id}>{d.nombre || `Doctora #${d.id}`}</option>
+                      <option key={d.id} value={d.id}>{d.nombre || t('doctora_id', { id: d.id })}</option>
                     ))}
                   </select>
                 </div>
               )}
 
               <div className="cita-scheduler__field">
-                <label><FileText size={14} /> Tipo de cita</label>
+                <label><FileText size={14} /> {t('tipo_cita', { ns: 'patients' })}</label>
                 <select value={tipoCitaId} onChange={e => setTipoCitaId(e.target.value)}>
-                  <option value="">Seleccionar tipo...</option>
-                  {tiposCita.map(t => (
-                    <option key={t.id} value={t.id}>{t.nombre} — {t.duracionMinutos} min</option>
+                  <option value="">{t('seleccionar_tipo')}</option>
+                  {tiposCita.map(tipo => (
+                    <option key={tipo.id} value={tipo.id}>{tipo.nombre} — {tipo.duracionMinutos} min</option>
                   ))}
                 </select>
               </div>
@@ -336,7 +338,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
               {tipoSeleccionado && (
                 <div className="cita-scheduler__tipo-info">
                   <Clock size={14} />
-                  <span>{tipoSeleccionado.nombre} — {tipoSeleccionado.duracionMinutos} minutos</span>
+                  <span>{tipoSeleccionado.nombre} — {tipoSeleccionado.duracionMinutos} {t('minutos', { ns: 'common' })}</span>
                 </div>
               )}
 
@@ -344,7 +346,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
                 <div className="cita-scheduler__calendario">
                   <div className="cita-scheduler__cal-nav">
                     <button onClick={handlePrevMonth} className="cita-scheduler__cal-btn"><ChevronLeft size={16} /></button>
-                    <span className="cita-scheduler__cal-title">{MESES[calMonth]} {calYear}</span>
+                    <span className="cita-scheduler__cal-title">{t(monthKeys[calMonth])} {calYear}</span>
                     <button onClick={handleNextMonth} className="cita-scheduler__cal-btn"><ChevronRight size={16} /></button>
                   </div>
 
@@ -391,26 +393,26 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
                   </div>
 
                   <div className="cita-scheduler__cal-legend">
-                    <span><span className="cita-scheduler__legend-dot cita-scheduler__legend-dot--ok" /> Con cupos</span>
-                    <span><span className="cita-scheduler__legend-dot cita-scheduler__legend-dot--full" /> Lleno</span>
-                    <span><span className="cita-scheduler__legend-dot cita-scheduler__legend-dot--empty" /> Sin agenda</span>
+                    <span><span className="cita-scheduler__legend-dot cita-scheduler__legend-dot--ok" /> {t('con_cupos')}</span>
+                    <span><span className="cita-scheduler__legend-dot cita-scheduler__legend-dot--full" /> {t('lleno')}</span>
+                    <span><span className="cita-scheduler__legend-dot cita-scheduler__legend-dot--empty" /> {t('sin_agenda')}</span>
                   </div>
                 </div>
 
                 <div className="cita-scheduler__horarios">
                   {loading ? (
                     <div className="cita-scheduler__loading">
-                      <Loader2 size={20} className="spinner" /> Cargando...
+                      <Loader2 size={20} className="spinner" /> {t('cargando')}
                     </div>
                   ) : diaSeleccionado ? (
                     <>
                       <h4 className="cita-scheduler__horarios-titulo">
-                        {formatDiaLargo(diaSeleccionado)}
+                        {formatDiaLargo(diaSeleccionado, t)}
                       </h4>
                       {slotsDelDia.length === 0 ? (
                         <div className="cita-scheduler__empty">
                           <AlertCircle size={20} />
-                          <p>Sin horarios disponibles</p>
+                          <p>{t('sin_horarios_disp')}</p>
                         </div>
                       ) : (
                         <div className="cita-scheduler__slots">
@@ -431,10 +433,10 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
                               >
                                 <span className="cita-scheduler__slot-hora">{inicio} — {fin}</span>
                                 <span className="cita-scheduler__slot-estado">
-                                  {esDisponible ? 'Disponible' :
-                                   estado === 'OCUPADO' ? `Ocupado${slot.descripcion ? ` (${slot.descripcion})` : ''}` :
-                                   estado === 'BLOQUEADO' ? 'Bloqueado' :
-                                   estado === 'EN_BUFFER' ? 'Preparación' : 'No disponible'}
+                                  {esDisponible ? t('disponible', { ns: 'patients' }) :
+                                   estado === 'OCUPADO' ? `${t('ocupado', { ns: 'patients' })}${slot.descripcion ? ` (${slot.descripcion})` : ''}` :
+                                   estado === 'BLOQUEADO' ? t('bloqueado', { ns: 'patients' }) :
+                                   estado === 'EN_BUFFER' ? t('preparacion', { ns: 'patients' }) : t('no_disponible', { ns: 'patients' })}
                                 </span>
                               </button>
                             );
@@ -445,18 +447,18 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
                   ) : (
                     <div className="cita-scheduler__hint">
                       <Calendar size={20} />
-                      <p>Selecciona un día en el calendario</p>
+                      <p>{t('seleccionar_fecha')}</p>
                     </div>
                   )}
                 </div>
               </div>
 
               <div className="cita-scheduler__field cita-scheduler__field--full">
-                <label><FileText size={14} /> Notas (opcional)</label>
+                <label><FileText size={14} /> {t('notas_opcional')}</label>
                 <textarea
                   value={notas}
                   onChange={e => setNotas(e.target.value)}
-                  placeholder="Motivo de la consulta..."
+                  placeholder={t('motivo_placeholder')}
                   rows={2}
                 />
               </div>
@@ -470,14 +472,14 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
               {slotSeleccionado && diaSeleccionado && (
                 <div className="cita-scheduler__resumen">
                   <div className="cita-scheduler__resumen-linea">
-                    <strong>{tipoSeleccionado?.nombre || 'Consulta'}</strong>
+                    <strong>{tipoSeleccionado?.nombre || t('consulta_default')}</strong>
                     <span>·</span>
-                    <span>{formatDiaLargo(diaSeleccionado)}</span>
+                    <span>{formatDiaLargo(diaSeleccionado, t)}</span>
                     <span>·</span>
                     <span>{normalizeTime(slotSeleccionado.inicio)}</span>
                   </div>
                   <div className="cita-scheduler__resumen-linea cita-scheduler__resumen-linea--sub">
-                    {doctoraName} · {duracion} minutos
+                    {doctoraName} · {duracion} {t('minutos', { ns: 'common' })}
                   </div>
                 </div>
               )}
@@ -487,13 +489,13 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
 
         {!exito && (
           <div className="cita-scheduler__footer">
-            <button className="btn btn--ghost" onClick={onClose}>Cancelar</button>
+            <button className="btn btn--ghost" onClick={onClose}>{t('cancel', { ns: 'common' })}</button>
             <button
               className="btn btn--primary"
               onClick={handleConfirmar}
               disabled={!slotSeleccionado || sending}
             >
-              {sending ? 'Agendando...' : 'Agendar Cita'}
+              {sending ? t('agendando') : t('agendar_cita_btn')}
             </button>
           </div>
         )}

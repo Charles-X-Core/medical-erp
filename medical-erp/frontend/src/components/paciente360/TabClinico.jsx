@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Search, Calendar, Stethoscope, Pill, FileText, Eye, ChevronDown, ChevronUp, Filter, Activity, Heart, Thermometer, Wind } from 'lucide-react';
 import { consultasService } from '../../services/consultasService';
@@ -27,6 +28,7 @@ function VitalBadge({ label, value, unit, icon: Icon, warning }) {
 }
 
 export default function TabClinico({ pacienteId, historiaId }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [consultas, setConsultas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,7 +102,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
       <div className="tab-clinico">
         <div className="loading">
           <Loader2 size={24} className="spinner" />
-          <p>Cargando historial clínico...</p>
+          <p>{t('loading', { ns: 'common' })}</p>
         </div>
       </div>
     );
@@ -109,19 +111,19 @@ export default function TabClinico({ pacienteId, historiaId }) {
   return (
     <div className="tab-clinico">
       <div className="tab-clinico__header">
-        <h3>Historial de Consultas</h3>
+        <h3>{t('ultimas_consultas', { ns: 'clinical' })}</h3>
         <div className="tab-clinico__filters">
           <button
             className={`btn btn--ghost btn--sm ${showFilters ? 'active' : ''}`}
             onClick={() => setShowFilters(!showFilters)}
           >
-            <Filter size={16} /> Filtros
+            <Filter size={16} /> {t('filter', { ns: 'patients' })}
           </button>
           <div className="filter-input">
             <Search size={16} />
             <input
               type="text"
-              placeholder="Buscar por motivo, diagnóstico..."
+              placeholder={t('buscar_motivo_diagnostico')}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
@@ -132,7 +134,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
       {showFilters && (
         <div className="tab-clinico__date-filters">
           <div className="date-filter">
-            <label>Desde:</label>
+            <label>{t('desde', { ns: 'patients' })}:</label>
             <input
               type="date"
               value={fechaDesde}
@@ -140,7 +142,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
             />
           </div>
           <div className="date-filter">
-            <label>Hasta:</label>
+            <label>{t('hasta', { ns: 'patients' })}:</label>
             <input
               type="date"
               value={fechaHasta}
@@ -152,7 +154,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
               className="btn btn--ghost btn--sm"
               onClick={() => { setFechaDesde(''); setFechaHasta(''); }}
             >
-              Limpiar fechas
+              {t('limpiar_fechas')}
             </button>
           )}
         </div>
@@ -161,7 +163,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
       {filtered.length === 0 ? (
         <div className="empty-state">
           <Stethoscope size={40} strokeWidth={1.2} />
-          <p>{consultas.length === 0 ? 'No hay consultas registradas' : 'No hay coincidencias con los filtros'}</p>
+          <p>{consultas.length === 0 ? t('sin_consultas') : t('sin_coincidencias')}</p>
         </div>
       ) : (
         <div className="tab-clinico__list">
@@ -190,7 +192,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
                   </div>
                   <div className="consulta-card__badges">
                     {c.firmado && (
-                      <span className="consulta-badge consulta-badge--firmado">Firmada</span>
+                      <span className="consulta-badge consulta-badge--firmado">{t('consulta_signed', { ns: 'clinical' })}</span>
                     )}
                     {c.tipoTratamiento && (
                       <span className="consulta-badge consulta-badge--tratamiento">
@@ -205,12 +207,12 @@ export default function TabClinico({ pacienteId, historiaId }) {
 
                 <div className="consulta-card__motivo">
                   <Stethoscope size={14} />
-                  <span>{c.motivo || 'Sin motivo registrado'}</span>
+                  <span>{c.motivo || t('sin_motivo_registrado')}</span>
                 </div>
 
                 {diagText && (
                   <div className="consulta-card__diagnostico">
-                    <strong>Diagnóstico:</strong> {diagText}
+                    <strong>{t('diagnostico', { ns: 'clinical' })}:</strong> {diagText}
                   </div>
                 )}
 
@@ -219,23 +221,23 @@ export default function TabClinico({ pacienteId, historiaId }) {
                     {/* Anamnesis */}
                     <div className="consulta-card__section">
                       <div className="consulta-card__section-label">
-                        <Stethoscope size={12} /> Anamnesis
+                        <Stethoscope size={12} /> {t('anamnesis', { ns: 'clinical' })}
                       </div>
                       {c.tiempoEnfermedad && (
                         <div className="detail-field">
-                          <span className="detail-label">Tiempo de enfermedad:</span>
+                          <span className="detail-label">{t('tiempo_enfermedad', { ns: 'clinical' })}:</span>
                           <span>{c.tiempoEnfermedad}</span>
                         </div>
                       )}
                       {c.signosSintomas && (
                         <div className="detail-field">
-                          <span className="detail-label">Signos/Síntomas:</span>
+                          <span className="detail-label">{t('signos_sintomas', { ns: 'clinical' })}:</span>
                           <span>{c.signosSintomas}</span>
                         </div>
                       )}
                       {c.relatoCronologico && (
                         <div className="detail-field">
-                          <span className="detail-label">Relato cronológico:</span>
+                          <span className="detail-label">{t('relato_cronologico', { ns: 'clinical' })}:</span>
                           <span>{c.relatoCronologico}</span>
                         </div>
                       )}
@@ -244,33 +246,33 @@ export default function TabClinico({ pacienteId, historiaId }) {
                     {/* Exploración + Signos Vitales */}
                     <div className="consulta-card__section">
                       <div className="consulta-card__section-label">
-                        <Activity size={12} /> Exploración
+                        <Activity size={12} /> {t('exploration', { ns: 'clinical' })}
                       </div>
                       {c.examenClinicoGeneral && (
                         <div className="detail-field">
-                          <span className="detail-label">Examen clínico:</span>
+                          <span className="detail-label">{t('examen_fisico', { ns: 'clinical' })}:</span>
                           <span>{c.examenClinicoGeneral}</span>
                         </div>
                       )}
                       {c.funcionesBiologicas && (
                         <div className="detail-field">
-                          <span className="detail-label">Funciones biológicas:</span>
+                          <span className="detail-label">{t('actividad_placeholder', { ns: 'clinical' })}:</span>
                           <span>{c.funcionesBiologicas}</span>
                         </div>
                       )}
                       {Object.keys(sv).length > 0 && (
                         <div className="consulta-card__vitals">
-                          <span className="detail-label">Signos vitales:</span>
+                          <span className="detail-label">{t('signos_vitales', { ns: 'clinical' })}:</span>
                           <div className="consulta-card__vitals-grid">
                             <VitalBadge icon={Heart} label="PA" value={sv.presionArterial} unit="mmHg" warning={sv.presionArterial && (String(sv.presionArterial).includes('14') || String(sv.presionArterial).includes('15') || String(sv.presionArterial).includes('16') || String(sv.presionArterial).includes('17') || String(sv.presionArterial).includes('18'))} />
-                            <VitalBadge icon={Activity} label="Pulso" value={sv.pulso} unit="lpm" warning={sv.pulso && (sv.pulso < 50 || sv.pulso > 100)} />
-                            <VitalBadge icon={Thermometer} label="Temp" value={sv.temperatura} unit="°C" warning={sv.temperatura && (sv.temperatura < 36 || sv.temperatura > 37.5)} />
-                            <VitalBadge icon={Activity} label="SpO2" value={sv.saturacion} unit="%" warning={sv.saturacion && sv.saturacion < 95} />
-                            <VitalBadge icon={Wind} label="FR" value={sv.frecuenciaRespiratoria} unit="rpm" warning={sv.frecuenciaRespiratoria && (sv.frecuenciaRespiratoria < 12 || sv.frecuenciaRespiratoria > 20)} />
-                            <VitalBadge icon={Activity} label="Peso" value={sv.peso} unit="kg" />
-                            <VitalBadge icon={Activity} label="Talla" value={sv.talla} unit="cm" />
+                            <VitalBadge icon={Activity} label={t('vital_pulse', { ns: 'clinical' })} value={sv.pulso} unit={t('pulse_unit', { ns: 'clinical' })} warning={sv.pulso && (sv.pulso < 50 || sv.pulso > 100)} />
+                            <VitalBadge icon={Thermometer} label={t('vital_temperature', { ns: 'clinical' })} value={sv.temperatura} unit={t('temp_unit', { ns: 'clinical' })} warning={sv.temperatura && (sv.temperatura < 36 || sv.temperatura > 37.5)} />
+                            <VitalBadge icon={Activity} label={t('vital_spo2', { ns: 'clinical' })} value={sv.saturacion} unit={t('spo2_unit', { ns: 'clinical' })} warning={sv.saturacion && sv.saturacion < 95} />
+                            <VitalBadge icon={Wind} label={t('vital_resp_rate', { ns: 'clinical' })} value={sv.frecuenciaRespiratoria} unit={t('resp_rate_unit', { ns: 'clinical' })} warning={sv.frecuenciaRespiratoria && (sv.frecuenciaRespiratoria < 12 || sv.frecuenciaRespiratoria > 20)} />
+                            <VitalBadge icon={Activity} label={t('vital_weight', { ns: 'clinical' })} value={sv.peso} unit={t('weight_unit', { ns: 'clinical' })} />
+                            <VitalBadge icon={Activity} label={t('vital_height', { ns: 'clinical' })} value={sv.talla} unit={t('height_unit', { ns: 'clinical' })} />
                             {imc && (
-                              <VitalBadge icon={Activity} label="IMC" value={imc} unit="" />
+                              <VitalBadge icon={Activity} label={t('imc', { ns: 'clinical' })} value={imc} unit="" />
                             )}
                           </div>
                         </div>
@@ -281,7 +283,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
                     {c.evolucionMejoria && (
                       <div className="consulta-card__section">
                         <div className="consulta-card__section-label">
-                          <FileText size={12} /> Evolución
+                          <FileText size={12} /> {t('evolucion', { ns: 'clinical' })}
                         </div>
                         <div className="detail-field">
                           <span>{c.evolucionMejoria}</span>
@@ -295,7 +297,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
                         className="btn btn--ghost btn--sm"
                         onClick={(e) => { e.stopPropagation(); navigate(`/consultas/${c.id}`); }}
                       >
-                        <Eye size={14} /> Ver Detalle
+                        <Eye size={14} /> {t('ver_detalle')}
                       </button>
                       <a
                         className="btn btn--ghost btn--sm"

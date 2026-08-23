@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, FileText, Loader2, Pencil } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { historiaClinicaService } from '../services/historiaClinicaService';
 import { consultasService } from '../services/consultasService';
 import { pacienteService } from '../services/pacienteService';
 
 export default function HistoriaClinicaPage() {
+  const { t } = useTranslation('clinical');
   const { pacienteId } = useParams();
   const navigate = useNavigate();
 
@@ -62,11 +64,11 @@ export default function HistoriaClinicaPage() {
         setConsultas(cRes.data?.content || []);
       }
     } catch (err) {
-      setError(err.message || 'Error al cargar historia clínica');
+      setError(err.message || t('error_loading_historia'));
     } finally {
       setLoading(false);
     }
-  }, [pacienteId]);
+  }, [pacienteId, t]);
 
   useEffect(() => {
     load();
@@ -87,10 +89,10 @@ export default function HistoriaClinicaPage() {
       if (res.success) {
         setHistoria(res.data);
       } else {
-        setError(res.message || 'Error al guardar');
+        setError(res.message || t('error_guardar'));
       }
     } catch (err) {
-      setError(err.message || 'Error al guardar');
+      setError(err.message || t('error_guardar'));
     } finally {
       setSaving(false);
     }
@@ -105,7 +107,7 @@ export default function HistoriaClinicaPage() {
       <div className="historia-clinica-page">
         <div className="historia-clinica-page__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando historia clínica...</p>
+          <p>{t('loading_historia')}</p>
         </div>
       </div>
     );
@@ -115,10 +117,10 @@ export default function HistoriaClinicaPage() {
     <div className="historia-clinica-page">
       <div className="historia-clinica-page__header">
         <button className="btn btn--ghost" onClick={() => navigate(`/pacientes/${pacienteId}/workspace`)}>
-          <ArrowLeft size={18} /> Volver al cliente
+          <ArrowLeft size={18} /> {t('back_to_client', { ns: 'patients' })}
         </button>
         <div>
-          <h2 className="historia-clinica-page__title">Historia Clínica</h2>
+          <h2 className="historia-clinica-page__title">{t('historia_clinica_title')}</h2>
           <p className="historia-clinica-page__subtitle">
             {paciente ? `${paciente.apellidoPaterno} ${paciente.apellidoMaterno || ''}, ${paciente.nombres}` : ''}
           </p>
@@ -129,38 +131,38 @@ export default function HistoriaClinicaPage() {
 
       <form onSubmit={handleSubmit}>
         <div className="form-card">
-          <h3 className="form-section__title">Antecedentes</h3>
+          <h3 className="form-section__title">{t('antecedentes')}</h3>
           <div className="form-grid form-grid--2">
             <div className="form-field">
-              <label className="form-label">Alergia a Medicamentos</label>
+              <label className="form-label">{t('alergia_medicamentos')}</label>
               <textarea className="form-textarea" rows={3} value={form.alergiaMedicamentos} onChange={(e) => handleChange('alergiaMedicamentos', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Cardiopatías Personales</label>
+              <label className="form-label">{t('cardiopatias_personales')}</label>
               <textarea className="form-textarea" rows={3} value={form.cardiopatiasPersonales} onChange={(e) => handleChange('cardiopatiasPersonales', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Cardiopatías Familiares</label>
+              <label className="form-label">{t('cardiopatias_familiares')}</label>
               <textarea className="form-textarea" rows={3} value={form.cardiopatiasFamiliares} onChange={(e) => handleChange('cardiopatiasFamiliares', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Diabetes Personal</label>
+              <label className="form-label">{t('diabetes_personal')}</label>
               <textarea className="form-textarea" rows={3} value={form.diabetesPersonal} onChange={(e) => handleChange('diabetesPersonal', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Diabetes Familiar</label>
+              <label className="form-label">{t('diabetes_familiar')}</label>
               <textarea className="form-textarea" rows={3} value={form.diabetesFamiliar} onChange={(e) => handleChange('diabetesFamiliar', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Hepatitis</label>
+              <label className="form-label">{t('hepatitis')}</label>
               <textarea className="form-textarea" rows={3} value={form.hepatitis} onChange={(e) => handleChange('hepatitis', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Otras Enfermedades</label>
+              <label className="form-label">{t('otras_enfermedades')}</label>
               <textarea className="form-textarea" rows={3} value={form.otrasEnfermedades} onChange={(e) => handleChange('otrasEnfermedades', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">Observaciones</label>
+              <label className="form-label">{t('observaciones')}</label>
               <textarea className="form-textarea" rows={3} value={form.observaciones} onChange={(e) => handleChange('observaciones', e.target.value)} />
             </div>
           </div>
@@ -168,25 +170,25 @@ export default function HistoriaClinicaPage() {
 
         <div className="historia-clinica-page__actions">
           <button type="button" className="btn btn--secondary" onClick={() => navigate(`/pacientes/${pacienteId}/workspace`)} disabled={saving}>
-            Cancelar
+            {t('cancel', { ns: 'common' })}
           </button>
           <button type="submit" className="btn btn--primary" disabled={saving}>
             {saving ? <Loader2 size={18} className="spinner" /> : <Pencil size={18} />}
-            {saving ? 'Guardando...' : 'Guardar Historia'}
+            {saving ? t('guardando') : t('guardar_historia')}
           </button>
         </div>
       </form>
 
       <div className="form-card">
         <div className="form-section__header">
-          <h3 className="form-section__title">Consultas Recientes</h3>
+          <h3 className="form-section__title">{t('ultimas_consultas')}</h3>
           <button type="button" className="btn btn--primary btn--sm" onClick={handleNuevaConsulta} disabled={!historia}>
-            <Plus size={16} /> Nueva Consulta
+            <Plus size={16} /> {t('nueva_consulta')}
           </button>
         </div>
 
         {consultas.length === 0 ? (
-          <p className="form-section__empty">No hay consultas registradas</p>
+          <p className="form-section__empty">{t('sin_consultas_registradas')}</p>
         ) : (
           <ul className="detail-list">
             {consultas.map((c) => (
@@ -194,7 +196,7 @@ export default function HistoriaClinicaPage() {
                 <div className="detail-list__row">
                   <span><strong>{c.fecha?.substring(0, 10)}</strong> — {c.motivo}</span>
                   <button className="btn btn--ghost btn--sm" onClick={() => navigate(`/consultas/${c.id}`)}>
-                    <FileText size={14} /> Ver
+                    <FileText size={14} /> {t('ver')}
                   </button>
                 </div>
               </li>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CalendarDays, Clock, Users, ChevronRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import apiClient from '../../services/apiClient';
@@ -7,6 +8,7 @@ import apiClient from '../../services/apiClient';
 export default function AgendaHoy() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('agenda');
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,7 +25,7 @@ export default function AgendaHoy() {
         setCitas(data.data || []);
       }
     } catch (err) {
-      setError('Error al cargar agenda');
+      setError(t('error_agenda'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -53,7 +55,7 @@ export default function AgendaHoy() {
       <div className="agenda-page">
         <div className="agenda-page__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando agenda del día...</p>
+          <p>{t('cargando_agenda_hoy')}</p>
         </div>
       </div>
     );
@@ -65,7 +67,7 @@ export default function AgendaHoy() {
         <div className="agenda-page__title-area">
           <CalendarDays size={24} />
           <div>
-            <h1 className="agenda-page__title">Agenda del Día</h1>
+            <h1 className="agenda-page__title">{t('agenda_del_dia')}</h1>
             <p className="agenda-page__date">
               {new Date().toLocaleDateString('es-ES', {
                 weekday: 'long',
@@ -79,11 +81,11 @@ export default function AgendaHoy() {
         <div className="agenda-page__stats">
           <span className="agenda-page__stat">
             <Users size={16} />
-            {citas.length} citas
+            {t('citas_count', { count: citas.length })}
           </span>
           <span className="agenda-page__stat agenda-page__stat--pending">
             <Clock size={16} />
-            {citas.filter((c) => c.estado !== 'completada' && c.estado !== 'cancelada').length} pendientes
+            {t('pendientes_count', { count: citas.filter((c) => c.estado !== 'completada' && c.estado !== 'cancelada').length })}
           </span>
         </div>
       </div>
@@ -96,7 +98,7 @@ export default function AgendaHoy() {
             const paciente = cita.paciente;
             const fullName = paciente
               ? `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`
-              : 'Cliente';
+              : t('client', { ns: 'common' });
 
             return (
               <button
@@ -126,8 +128,8 @@ export default function AgendaHoy() {
         ) : (
           <div className="agenda-page__empty">
             <CalendarDays size={48} />
-            <h3>No hay citas programadas para hoy</h3>
-            <p>La agenda del día está libre.</p>
+            <h3>{t('no_citas_hoy')}</h3>
+            <p>{t('agenda_libre')}</p>
           </div>
         )}
       </div>

@@ -1,7 +1,15 @@
 import { useRef } from 'react';
 import { Camera, Upload, X, Image, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-const TIPOS_EVIDENCIA = [
+const TIPOS_EVIDENCIA_KEYS = [
+  { value: 'foto_inicio', labelKey: 'foto_antes' },
+  { value: 'foto_fin', labelKey: 'foto_despues' },
+  { value: 'imagen clinica', labelKey: 'imagen_clinica' },
+  { value: 'otro', labelKey: 'otro' },
+];
+
+const TIPOS_EVIDENCIA_FALLBACK = [
   { value: 'foto_inicio', label: 'Foto Antes' },
   { value: 'foto_fin', label: 'Foto Después' },
   { value: 'imagen clinica', label: 'Imagen Clínica' },
@@ -22,6 +30,8 @@ function validateFile(file) {
 }
 
 export default function PasoEvidencias({ formData, updateFormData }) {
+  const { t } = useTranslation('clinical');
+  const { t: tP } = useTranslation('patients');
   const fileInputRef = useRef(null);
   const { evidencias } = formData;
 
@@ -40,7 +50,7 @@ export default function PasoEvidencias({ formData, updateFormData }) {
     }
 
     if (errors.length > 0) {
-      alert('Archivos rechazados:\n' + errors.join('\n'));
+      alert(t('archivos_rechazados') + '\n' + errors.join('\n'));
     }
 
     if (valid.length > 0) {
@@ -81,11 +91,16 @@ export default function PasoEvidencias({ formData, updateFormData }) {
     updateFormData('evidencias', evidencias.filter((_, i) => i !== index));
   };
 
+  const tiposEvidencia = TIPOS_EVIDENCIA_KEYS.map((item, i) => ({
+    value: item.value,
+    label: t(item.labelKey, { ns: 'clinical', defaultValue: TIPOS_EVIDENCIA_FALLBACK[i].label }),
+  }));
+
   return (
     <div className="wizard-step">
       <h2 className="wizard-step__title">
         <Camera size={20} />
-        Evidencias Fotográficas
+        {tP('evidencias_fotograficas')}
       </h2>
 
       <div
@@ -95,8 +110,8 @@ export default function PasoEvidencias({ formData, updateFormData }) {
         onClick={() => fileInputRef.current?.click()}
       >
         <Upload size={40} />
-        <h3>Arrastre fotos aquí o haga clic para seleccionar</h3>
-        <p>JPG, PNG, GIF, WebP — Máx. 10MB por archivo</p>
+        <h3>{t('arrastre_fotos')}</h3>
+        <p>{t('formato_max_archivo')}</p>
         <input
           ref={fileInputRef}
           type="file"
@@ -113,7 +128,7 @@ export default function PasoEvidencias({ formData, updateFormData }) {
             <div key={index} className="wizard-evidence-card">
               <div className="wizard-evidence-card__preview">
                 {ev.preview ? (
-                  <img src={ev.preview} alt={`Evidencia ${index + 1}`} />
+                  <img src={ev.preview} alt={`${tP('evidencia')} ${index + 1}`} />
                 ) : (
                   <Image size={32} />
                 )}
@@ -130,9 +145,9 @@ export default function PasoEvidencias({ formData, updateFormData }) {
                   value={ev.tipo}
                   onChange={(e) => updateEvidencia(index, 'tipo', e.target.value)}
                 >
-                  {TIPOS_EVIDENCIA.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
+                  {tiposEvidencia.map((tipo) => (
+                    <option key={tipo.value} value={tipo.value}>
+                      {tipo.label}
                     </option>
                   ))}
                 </select>
@@ -140,7 +155,7 @@ export default function PasoEvidencias({ formData, updateFormData }) {
                   className="wizard-input"
                   value={ev.descripcion}
                   onChange={(e) => updateEvidencia(index, 'descripcion', e.target.value)}
-                  placeholder="Descripción (opcional)"
+                  placeholder={tP('descripcion_opcional')}
                 />
               </div>
             </div>
@@ -151,7 +166,7 @@ export default function PasoEvidencias({ formData, updateFormData }) {
       {evidencias.length === 0 && (
         <div className="wizard-empty">
           <Camera size={32} />
-          <p>No se han agregado evidencias fotográficas</p>
+          <p>{tP('sin_evidencias')}</p>
         </div>
       )}
     </div>

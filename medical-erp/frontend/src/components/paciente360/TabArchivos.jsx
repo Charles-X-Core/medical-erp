@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, Filter } from 'lucide-react';
 import { evidenciaService } from '../../services/evidenciaService';
 
-const TYPE_FILTERS = [
-  { id: '', label: 'Todas' },
-  { id: 'antes', label: 'Antes' },
-  { id: 'despues', label: 'Después' },
-  { id: 'otro', label: 'Otro' },
-];
-
 export default function TabArchivos({ pacienteId }) {
+  const { t } = useTranslation('patients');
   const [evidencias, setEvidencias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState('');
@@ -34,19 +29,26 @@ export default function TabArchivos({ pacienteId }) {
     }
   };
 
+  const TYPE_FILTERS = [
+    { id: '', label: t('all_filter', { ns: 'patients' }) },
+    { id: 'antes', label: t('antes', { ns: 'patients' }) },
+    { id: 'despues', label: t('despues', { ns: 'patients' }) },
+    { id: 'otro', label: t('otro') },
+  ];
+
   const filtered = evidencias.filter((e) => {
     if (!filtro) return true;
     return e.tipo === filtro;
   });
 
   if (loading) {
-    return <div className="tab-loading">Cargando archivos...</div>;
+    return <div className="tab-loading">{t('loading', { ns: 'common' })}</div>;
   }
 
   return (
     <div className="tab-archivos">
       <div className="tab-archivos__header">
-        <h3>Archivos Clínicos</h3>
+        <h3>{t('archivos_clinicos')}</h3>
         <div className="tab-archivos__actions">
           <div className="tab-archivos__filters">
             {TYPE_FILTERS.map((f) => (
@@ -65,7 +67,7 @@ export default function TabArchivos({ pacienteId }) {
       {filtered.length === 0 ? (
         <div className="tab-empty">
           <Image size={48} />
-          <p>No hay archivos clínicos</p>
+          <p>{t('sin_archivos')}</p>
         </div>
       ) : (
         <div className="tab-archivos__grid">
@@ -83,8 +85,8 @@ export default function TabArchivos({ pacienteId }) {
                 )}
               </div>
               <div className="archivo-card__info">
-                <span className="archivo-card__tipo">{ev.tipo || 'Otro'}</span>
-                <span className="archivo-card__desc">{ev.descripcion || 'Sin descripción'}</span>
+                <span className="archivo-card__tipo">{ev.tipo || t('otro')}</span>
+                <span className="archivo-card__desc">{ev.descripcion || t('sin_evidencias')}</span>
               </div>
             </div>
           ))}
@@ -95,7 +97,7 @@ export default function TabArchivos({ pacienteId }) {
         <div className="modal-overlay" onClick={() => setViewerImage(null)}>
           <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{viewerImage.descripcion || 'Evidencia'}</h3>
+              <h3>{viewerImage.descripcion || t('evidencias_fotograficas')}</h3>
               <button className="btn-close" onClick={() => setViewerImage(null)}>&times;</button>
             </div>
             <div className="modal-body">

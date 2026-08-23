@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Shield, FileText, Check, Clock, X, Eye, Trash2, Edit2, Save, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { pacienteConsentimientoService } from '../../services/pacienteSubServices';
 
@@ -14,14 +15,8 @@ function formatFechaHora(fecha) {
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-const ESTADO_CONFIG = {
-  FIRMADO: { label: 'Firmado', icon: Check, color: '#22C55E', bg: '#F0FDF4' },
-  BORRADOR: { label: 'Borrador', icon: FileText, color: '#94A3B8', bg: '#F8FAFC' },
-  REVISION: { label: 'En Revisión', icon: Clock, color: '#F59E0B', bg: '#FFFBEB' },
-  ANULADO: { label: 'Anulado', icon: X, color: '#EF4444', bg: '#FEF2F2' },
-};
-
 export default function TabConsentimientos({ pacienteId }) {
+  const { t } = useTranslation('patients');
   const [consentimientos, setConsentimientos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
@@ -81,25 +76,35 @@ export default function TabConsentimientos({ pacienteId }) {
   };
 
   if (loading) {
-    return <div className="tab-loading">Cargando consentimientos...</div>;
+    return <div className="tab-loading">{t('loading', { ns: 'common' })}</div>;
   }
+
+  const getEstadoConfig = (consent) => {
+    const ESTADO_CONFIG = {
+      FIRMADO: { label: t('aceptado_label'), icon: Check, color: '#22C55E', bg: '#F0FDF4' },
+      BORRADOR: { label: t('pending', { ns: 'common' }), icon: FileText, color: '#94A3B8', bg: '#F8FAFC' },
+      REVISION: { label: t('doc_estado'), icon: Clock, color: '#F59E0B', bg: '#FFFBEB' },
+      ANULADO: { label: t('cancelled', { ns: 'common' }), icon: X, color: '#EF4444', bg: '#FEF2F2' },
+    };
+    return ESTADO_CONFIG[consent.estadoDocumento] || ESTADO_CONFIG[consent.estado] || ESTADO_CONFIG.BORRADOR;
+  };
 
   return (
     <div className="tab-consentimientos">
       <div className="tab-consentimientos__header">
-        <h3>Consentimientos</h3>
+        <h3>{t('consentimientos')}</h3>
         <span className="tab-consentimientos__count">{consentimientos.length} registro(s)</span>
       </div>
 
       {consentimientos.length === 0 ? (
         <div className="tab-empty">
           <Shield size={48} />
-          <p>No hay consentimientos registrados</p>
+          <p>{t('sin_consentimientos_reg')}</p>
         </div>
       ) : (
         <div className="tab-consentimientos__list">
           {consentimientos.map((consent) => {
-            const config = ESTADO_CONFIG[consent.estadoDocumento] || ESTADO_CONFIG[consent.estado] || ESTADO_CONFIG.BORRADOR;
+            const config = getEstadoConfig(consent);
             const Icon = config.icon;
             const isExpanded = expandedId === consent.id;
             const isEditing = editingId === consent.id;
@@ -115,7 +120,7 @@ export default function TabConsentimientos({ pacienteId }) {
                     <Icon size={20} style={{ color: config.color }} />
                   </div>
                   <div className="consent-card__info">
-                    <h4 className="consent-card__nombre">{consent.tipo || consent.templateNombre || 'Consentimiento'}</h4>
+                    <h4 className="consent-card__nombre">{consent.tipo || consent.templateNombre || t('consentimientos')}</h4>
                     <span className="consent-card__fecha">{formatFecha(consent.fechaFirma || consent.createdAt)}</span>
                   </div>
                   <div className="consent-card__right">
@@ -130,19 +135,19 @@ export default function TabConsentimientos({ pacienteId }) {
                   <div className="consent-card__detail">
                     <div className="consent-card__detail-grid">
                       <div className="consent-card__detail-row">
-                        <span className="consent-card__detail-label">Tipo</span>
+                        <span className="consent-card__detail-label">{t('type', { ns: 'common' })}</span>
                         <span className="consent-card__detail-value">{consent.tipo || '-'}</span>
                       </div>
                       <div className="consent-card__detail-row">
-                        <span className="consent-card__detail-label">Estado Documento</span>
+                        <span className="consent-card__detail-label">{t('documento_estado')}</span>
                         <span className="consent-card__detail-value">{consent.estadoDocumento || consent.estado || '-'}</span>
                       </div>
                       <div className="consent-card__detail-row">
-                        <span className="consent-card__detail-label">Aceptado</span>
-                        <span className="consent-card__detail-value">{consent.aceptado ? 'Sí' : 'No'}</span>
+                        <span className="consent-card__detail-label">{t('aceptado_label')}</span>
+                        <span className="consent-card__detail-value">{consent.aceptado ? t('yes_label', { ns: 'common' }) : t('no_label', { ns: 'common' })}</span>
                       </div>
                       <div className="consent-card__detail-row">
-                        <span className="consent-card__detail-label">Fecha</span>
+                        <span className="consent-card__detail-label">{t('fecha_label')}</span>
                         <span className="consent-card__detail-value">{formatFecha(consent.fecha)}</span>
                       </div>
                       {consent.version && (
@@ -153,7 +158,7 @@ export default function TabConsentimientos({ pacienteId }) {
                       )}
                       {consent.firmaFecha && (
                         <div className="consent-card__detail-row">
-                          <span className="consent-card__detail-label">Fecha Firma</span>
+                          <span className="consent-card__detail-label">{t('fecha_firma')}</span>
                           <span className="consent-card__detail-value">{formatFechaHora(consent.firmaFecha)}</span>
                         </div>
                       )}
@@ -173,7 +178,7 @@ export default function TabConsentimientos({ pacienteId }) {
                             onClick={() => setEditingId(null)}
                             disabled={saving}
                           >
-                            Cancelar
+                            {t('cancel', { ns: 'common' })}
                           </button>
                           <button
                             className="btn btn--primary btn--sm"
@@ -181,18 +186,18 @@ export default function TabConsentimientos({ pacienteId }) {
                             disabled={saving}
                           >
                             {saving ? <Loader2 size={14} className="spinner" /> : <Save size={14} />}
-                            {saving ? 'Guardando...' : consent.aceptado ? 'Marcar como No Aceptado' : 'Marcar como Aceptado'}
+                            {saving ? t('saving') : consent.aceptado ? t('marcar_no_aceptado') : t('marcar_aceptado')}
                           </button>
                         </>
                       ) : isConfirmDelete ? (
                         <>
-                          <span className="consent-card__confirm-text">¿Eliminar este consentimiento?</span>
+                          <span className="consent-card__confirm-text">{t('eliminar_consentimiento')}</span>
                           <button
                             className="btn btn--ghost btn--sm"
                             onClick={() => setConfirmDeleteId(null)}
                             disabled={saving}
                           >
-                            Cancelar
+                            {t('cancel', { ns: 'common' })}
                           </button>
                           <button
                             className="btn btn--danger btn--sm"
@@ -200,7 +205,7 @@ export default function TabConsentimientos({ pacienteId }) {
                             disabled={saving}
                           >
                             {saving ? <Loader2 size={14} className="spinner" /> : <Trash2 size={14} />}
-                            {saving ? 'Eliminando...' : 'Eliminar'}
+                            {saving ? t('eliminando') : t('delete', { ns: 'common' })}
                           </button>
                         </>
                       ) : (
@@ -209,13 +214,13 @@ export default function TabConsentimientos({ pacienteId }) {
                             className="btn btn--ghost btn--sm"
                             onClick={(e) => { e.stopPropagation(); setEditingId(consent.id); }}
                           >
-                            <Edit2 size={14} /> Editar
+                            <Edit2 size={14} /> {t('edit', { ns: 'common' })}
                           </button>
                           <button
                             className="btn btn--ghost btn--sm btn--danger"
                             onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(consent.id); }}
                           >
-                            <Trash2 size={14} /> Eliminar
+                            <Trash2 size={14} /> {t('delete', { ns: 'common' })}
                           </button>
                         </>
                       )}

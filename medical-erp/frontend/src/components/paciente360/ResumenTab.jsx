@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Edit2, Save, X, Loader2, User, Activity, Calendar, ClipboardList } from 'lucide-react';
 import { tratamientoService } from '../../services/tratamientoService';
 import { historiaClinicaService } from '../../services/historiaClinicaService';
@@ -33,6 +34,7 @@ function getSexoLabel(sexo) {
 }
 
 export default function ResumenTab({ paciente, historia: historiaInicial, pacienteId }) {
+  const { t } = useTranslation('patients');
   const [historia, setHistoria] = useState(historiaInicial);
   const [tratamientosActivos, setTratamientosActivos] = useState([]);
   const [proximaCita, setProximaCita] = useState(null);
@@ -113,7 +115,7 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
     setErrorAntecedentes('');
     try {
       const result = await historiaClinicaService.updateAntecedentes(historia.id, antecedentesValues);
-      if (!result.success) throw new Error(result.message || 'Error al guardar');
+      if (!result.success) throw new Error(result.message || t('error_saving'));
       const refreshed = await historiaClinicaService.getByPaciente(pacienteId);
       if (refreshed.success) setHistoria(refreshed.data);
       setSavedAntecedentes(true);
@@ -129,12 +131,12 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
   const activeAntecedentes = getActiveAntecedentes(historia);
 
   const fichaFields = [
-    { label: 'Peso', value: paciente.peso ? `${paciente.peso} kg` : '-' },
-    { label: 'Estatura', value: paciente.estatura ? `${paciente.estatura} cm` : '-' },
+    { label: t('peso'), value: paciente.peso ? `${paciente.peso} kg` : '-' },
+    { label: t('estatura'), value: paciente.estatura ? `${paciente.estatura} cm` : '-' },
     { label: 'Edad', value: calcularEdad(paciente.fechaNacimiento) },
-    { label: 'Sexo', value: getSexoLabel(paciente.sexo) },
-    { label: 'Estado Civil', value: paciente.estadoCivil || '-' },
-    { label: 'Ocupación', value: paciente.ocupacion || '-' },
+    { label: t('gender'), value: getSexoLabel(paciente.sexo) },
+    { label: t('estado_civil_short'), value: paciente.estadoCivil || '-' },
+    { label: t('occupation'), value: paciente.ocupacion || '-' },
   ];
 
   return (
@@ -142,7 +144,7 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
 
       {/* ── Ficha del Paciente ── */}
       <div className="workspace-card">
-        <h3 className="workspace-card__title"><User size={16} /> Ficha del Cliente</h3>
+        <h3 className="workspace-card__title"><User size={16} /> {t('identificacion_cliente')}</h3>
         <div className="rsum__grid">
           {fichaFields.map((f) => (
             <div key={f.label} className="rsum__field">
@@ -155,20 +157,20 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
 
       {/* ── Última Consulta ── */}
       <div className="workspace-card">
-        <h3 className="workspace-card__title"><ClipboardList size={16} /> Última Consulta</h3>
+        <h3 className="workspace-card__title"><ClipboardList size={16} /> {t('ultima_consulta')}</h3>
         {ultimaConsulta ? (
           <div className="rsum__fields">
             <div className="rsum__row">
-              <span className="rsum__label">Fecha</span>
+              <span className="rsum__label">{t('fecha_label')}</span>
               <span className="rsum__value">{formatFecha(ultimaConsulta.fecha)}</span>
             </div>
             <div className="rsum__row">
-              <span className="rsum__label">Motivo</span>
+              <span className="rsum__label">{t('motivo')}</span>
               <span className="rsum__value">{ultimaConsulta.motivo || '-'}</span>
             </div>
             {ultimaConsulta.diagnosticoLista && (
               <div className="rsum__row">
-                <span className="rsum__label">Diagnóstico</span>
+                <span className="rsum__label">{t('diagnostico')}</span>
                 <span className="rsum__value">
                   {typeof ultimaConsulta.diagnosticoLista === 'string'
                     ? ultimaConsulta.diagnosticoLista
@@ -180,35 +182,35 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
             )}
             {ultimaConsulta.evolucionMejoria && (
               <div className="rsum__row">
-                <span className="rsum__label">Evolución</span>
+                <span className="rsum__label">{t('evolucion')}</span>
                 <span className="rsum__value rsum__value--muted">{ultimaConsulta.evolucionMejoria}</span>
               </div>
             )}
           </div>
         ) : (
-          <p className="rsum__empty">Sin consultas registradas</p>
+          <p className="rsum__empty">{t('sin_consultas')}</p>
         )}
       </div>
 
       {/* ── Antecedentes Médicos ── */}
       <div className="workspace-card">
         <div className="rsum__header">
-          <h3 className="workspace-card__title" style={{ margin: 0, border: 'none', padding: 0 }}>Antecedentes Médicos</h3>
+          <h3 className="workspace-card__title" style={{ margin: 0, border: 'none', padding: 0 }}>{t('medical_history_title')}</h3>
           <div className="rsum__actions">
-            {savedAntecedentes && <span className="rsum__saved">Guardado ✓</span>}
+            {savedAntecedentes && <span className="rsum__saved">{t('saving')} ✓</span>}
             {errorAntecedentes && <span className="rsum__error">{errorAntecedentes}</span>}
             {!editingAntecedentes ? (
               <button className="btn btn--ghost btn--sm" onClick={startEditAntecedentes} disabled={!historia}>
-                <Edit2 size={14} /> Editar
+                <Edit2 size={14} /> {t('editar')}
               </button>
             ) : (
               <>
                 <button className="btn btn--ghost btn--sm" onClick={cancelEditAntecedentes}>
-                  <X size={14} /> Cancelar
+                  <X size={14} /> {t('cancel', { ns: 'common' })}
                 </button>
                 <button className="btn btn--primary btn--sm" onClick={saveAntecedentes} disabled={savingAntecedentes}>
                   {savingAntecedentes ? <Loader2 size={14} className="spinner" /> : <Save size={14} />}
-                  {savingAntecedentes ? 'Guardando...' : 'Guardar'}
+                  {savingAntecedentes ? t('saving') : t('save', { ns: 'common' })}
                 </button>
               </>
             )}
@@ -223,7 +225,7 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
               compact
             />
           ) : activeAntecedentes.length === 0 ? (
-            <p className="rsum__empty">Sin antecedentes registrados</p>
+            <p className="rsum__empty">{t('sin_historia_clinica')}</p>
           ) : (
             <div className="rsum__list">
               {activeAntecedentes.map(({ key, label, value }) => (
@@ -236,7 +238,7 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
             </div>
           )
         ) : (
-          <p className="rsum__empty">No tiene historia clínica registrada</p>
+          <p className="rsum__empty">{t('sin_historia_clinica')}</p>
         )}
       </div>
 
@@ -244,14 +246,14 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
       <div className="rsum__footer">
         {/* Tratamientos Activos */}
         <div className="workspace-card">
-          <h3 className="workspace-card__title"><Activity size={16} /> Tratamientos Activos</h3>
+          <h3 className="workspace-card__title"><Activity size={16} /> {t('tab_tratamientos')}</h3>
           <div className="rsum__fields">
             {tratamientosActivos.length === 0 ? (
-              <p className="rsum__empty">Sin tratamientos activos</p>
+              <p className="rsum__empty">{t('sin_tratamientos_registrados')}</p>
             ) : (
               tratamientosActivos.map((t) => (
                 <div key={t.id} className="rsum__row">
-                  <span className="rsum__value">{t.procedimientoRealizado || t.tipoSesionTratamiento?.nombre || 'Tratamiento'}</span>
+                  <span className="rsum__value">{t.procedimientoRealizado || t.tipoSesionTratamiento?.nombre || t('tratamiento')}</span>
                   <span className={`rsum__badge rsum__badge--${t.estado === 'EN_CURSO' ? 'active' : 'pending'}`}>
                     {t.estado?.replace('_', ' ')}
                   </span>
@@ -263,25 +265,25 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
 
         {/* Próxima Cita */}
         <div className="workspace-card">
-          <h3 className="workspace-card__title"><Calendar size={16} /> Próxima Cita</h3>
+          <h3 className="workspace-card__title"><Calendar size={16} /> {t('agendar_cita')}</h3>
           <div className="rsum__fields">
             {proximaCita ? (
               <>
                 <div className="rsum__row">
-                  <span className="rsum__label">Fecha</span>
+                  <span className="rsum__label">{t('fecha_label')}</span>
                   <span className="rsum__value">{formatFecha(proximaCita.fecha)}</span>
                 </div>
                 <div className="rsum__row">
-                  <span className="rsum__label">Hora</span>
+                  <span className="rsum__label">{t('time', { ns: 'common' })}</span>
                   <span className="rsum__value">{formatHora(proximaCita.hora)}</span>
                 </div>
                 <div className="rsum__row">
-                  <span className="rsum__label">Tipo</span>
+                  <span className="rsum__label">{t('type', { ns: 'common' })}</span>
                   <span className="rsum__value">{proximaCita.tipo?.nombre || '-'}</span>
                 </div>
               </>
             ) : (
-              <p className="rsum__empty">Sin citas programadas</p>
+              <p className="rsum__empty">{t('sin_agenda')}</p>
             )}
           </div>
         </div>

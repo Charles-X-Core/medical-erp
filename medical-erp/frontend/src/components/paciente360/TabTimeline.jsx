@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Clock, Calendar, Activity, Shield, Pill, FileText, Stethoscope,
 } from 'lucide-react';
@@ -8,14 +9,6 @@ import { pacienteConsentimientoService } from '../../services/pacienteSubService
 import agendaService from '../../services/agendaService';
 import { recetaService } from '../../services/recetaService';
 
-const EVENT_CONFIG = {
-  consulta: { icon: Calendar, color: 'consulta', label: 'Consulta' },
-  tratamiento: { icon: Activity, color: 'tratamiento', label: 'Tratamiento' },
-  consentimiento: { icon: Shield, color: 'consentimiento', label: 'Consentimiento' },
-  cita: { icon: Clock, color: 'cita', label: 'Cita' },
-  receta: { icon: Pill, color: 'receta', label: 'Receta' },
-};
-
 function formatFecha(fecha) {
   if (!fecha) return '';
   return new Date(fecha).toLocaleDateString('es-ES', {
@@ -24,101 +17,112 @@ function formatFecha(fecha) {
 }
 
 function formatFechaCorta(fecha) {
-  if (!fecha) return '';
+  if (! fecha) return '';
   return new Date(fecha).toLocaleDateString('es-ES', {
     day: 'numeric', month: 'short', year: 'numeric',
   });
 }
 
-function getRelativeTime(fecha) {
-  if (!fecha) return '';
-  const now = new Date();
-  const date = new Date(fecha);
-  const diffMs = now - date;
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHrs = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  const diffWeeks = Math.floor(diffDays / 7);
-  const diffMonths = Math.floor(diffDays / 30);
-
-  if (diffMin < 1) return 'Ahora mismo';
-  if (diffMin < 60) return `Hace ${diffMin} min`;
-  if (diffHrs < 24) return `Hace ${diffHrs}h`;
-  if (diffDays === 1) return 'Ayer';
-  if (diffDays < 7) return `Hace ${diffDays} días`;
-  if (diffWeeks < 4) return `Hace ${diffWeeks} sem`;
-  if (diffMonths < 12) return `Hace ${diffMonths} mes${diffMonths > 1 ? 'es' : ''}`;
-  return formatFechaCorta(fecha);
-}
-
-function getDateGroup(fecha) {
-  if (!fecha) return 'Sin fecha';
-  const now = new Date();
-  const date = new Date(fecha);
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-  const monthAgo = new Date(today);
-  monthAgo.setMonth(monthAgo.getMonth() - 1);
-
-  if (date >= today) return 'Hoy';
-  if (date >= yesterday) return 'Ayer';
-  if (date >= weekAgo) return 'Esta semana';
-  if (date >= monthAgo) return 'Este mes';
-  return 'Anteriores';
-}
-
-const GROUP_ORDER = ['Hoy', 'Ayer', 'Esta semana', 'Este mes', 'Anteriores', 'Sin fecha'];
-
-function getConsultaDetail(c) {
-  const parts = [];
-  if (c.motivo) parts.push(c.motivo);
-  if (c.diagnosticoLista?.length) {
-    const diags = c.diagnosticoLista.map((d) => d.descripcion || d).join(', ');
-    parts.push(`DX: ${diags}`);
-  }
-  return parts.join(' · ') || 'Consulta registrada';
-}
-
-function getTratamientoDetail(t) {
-  const parts = [];
-  if (t.procedimientoRealizado) parts.push(t.procedimientoRealizado);
-  if (t.costoTotal > 0) parts.push(`$${t.costoTotal.toFixed(2)}`);
-  if (t.estado) parts.push(t.estado.replace('_', ' ').toLowerCase());
-  return parts.join(' · ') || 'Tratamiento registrado';
-}
-
-function getTratamientoBadge(estado) {
-  const map = {
-    REALIZADO: { label: 'Realizado', variant: 'active' },
-    PLANIFICADO: { label: 'Planificado', variant: 'pending' },
-    EN_CURSO: { label: 'En curso', variant: 'active' },
-    FINALIZADO: { label: 'Finalizado', variant: 'active' },
-    CANCELADO: { label: 'Cancelado', variant: 'muted' },
-    PAUSADO: { label: 'Pausado', variant: 'pending' },
-  };
-  return map[estado] || { label: estado?.replace('_', ' ') || '', variant: 'pending' };
-}
-
-function getCitaBadge(estado) {
-  const map = {
-    pendiente: { label: 'Pendiente', variant: 'pending' },
-    confirmada: { label: 'Confirmada', variant: 'active' },
-    asistio: { label: 'Asistió', variant: 'active' },
-    completada: { label: 'Completada', variant: 'active' },
-    cancelada: { label: 'Cancelada', variant: 'muted' },
-  };
-  return map[estado] || { label: estado || '', variant: 'pending' };
-}
-
 export default function TabTimeline({ pacienteId }) {
+  const { t } = useTranslation('patients');
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState(
     new Set(['consulta', 'tratamiento', 'consentimiento', 'cita', 'receta'])
   );
+
+  const EVENT_CONFIG = useMemo(() => ({
+    consulta: { icon: Calendar, color: 'consulta', label: t('consultas') },
+    tratamiento: { icon: Activity, color: 'tratamiento', label: t('tratamiento') },
+    consentimiento: { icon: Shield, color: 'consentimiento', label: t('consentimientos') },
+    cita: { icon: Clock, color: 'cita', label: t('buscar_cita') },
+    receta: { icon: Pill, color: 'receta', label: t('recetas_medicas') },
+  }), [t]);
+
+  function getRelativeTime(fecha) {
+    if (!fecha) return '';
+    const now = new Date();
+    const date = new Date(fecha);
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHrs = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+
+    if (diffMin < 1) return t('ahora_mismo', { ns: 'patients' });
+    if (diffMin < 60) return `${t('hace', { ns: 'patients' })} ${diffMin} min`;
+    if (diffHrs < 24) return `${t('hace', { ns: 'patients' })} ${diffHrs}h`;
+    if (diffDays === 1) return t('ayer');
+    if (diffDays < 7) return `${t('hace', { ns: 'patients' })} ${diffDays} ${t('dias', { ns: 'patients' })}`;
+    if (diffWeeks < 4) return `${t('hace', { ns: 'patients' })} ${diffWeeks} ${t('semanas', { ns: 'patients' })}`;
+    if (diffMonths < 12) return `${t('hace', { ns: 'patients' })} ${diffMonths} ${t('meses', { ns: 'patients' })}`;
+    return formatFechaCorta(fecha);
+  }
+
+  function getDateGroup(fecha) {
+    if (!fecha) return t('sin_fecha');
+    const now = new Date();
+    const date = new Date(fecha);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const monthAgo = new Date(today);
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+
+    if (date >= today) return t('hoy');
+    if (date >= yesterday) return t('ayer');
+    if (date >= weekAgo) return t('esta_semana');
+    if (date >= monthAgo) return t('este_mes');
+    return t('anteriores');
+  }
+
+  const GROUP_ORDER = useMemo(() => [
+    t('hoy'), t('ayer'), t('esta_semana'), t('este_mes'), t('anteriores'), t('sin_fecha')
+  ], [t]);
+
+  function getConsultaDetail(c) {
+    const parts = [];
+    if (c.motivo) parts.push(c.motivo);
+    if (c.diagnosticoLista?.length) {
+      const diags = c.diagnosticoLista.map((d) => d.descripcion || d).join(', ');
+      parts.push(`DX: ${diags}`);
+    }
+    return parts.join(' · ') || t('consulta_registrada');
+  }
+
+  function getTratamientoDetail(t) {
+    const parts = [];
+    if (t.procedimientoRealizado) parts.push(t.procedimientoRealizado);
+    if (t.costoTotal > 0) parts.push(`$${t.costoTotal.toFixed(2)}`);
+    if (t.estado) parts.push(t.estado.replace('_', ' ').toLowerCase());
+    return parts.join(' · ') || t('tratamiento_creado');
+  }
+
+  function getTratamientoBadge(estado) {
+    const map = {
+      REALIZADO: { label: t('sesion_completada'), variant: 'active' },
+      PLANIFICADO: { label: t('plan_ampliado'), variant: 'pending' },
+      EN_CURSO: { label: t('active', { ns: 'common' }), variant: 'active' },
+      FINALIZADO: { label: t('finalizado', { ns: 'patients' }), variant: 'active' },
+      CANCELADO: { label: t('cancelled', { ns: 'common' }), variant: 'muted' },
+      PAUSADO: { label: t('pausado', { ns: 'patients' }), variant: 'pending' },
+    };
+    return map[estado] || { label: estado?.replace('_', ' ') || '', variant: 'pending' };
+  }
+
+  function getCitaBadge(estado) {
+    const map = {
+      pendiente: { label: t('pending', { ns: 'common' }), variant: 'pending' },
+      confirmada: { label: t('confirmada', { ns: 'patients' }), variant: 'active' },
+      asistio: { label: t('asistio', { ns: 'patients' }), variant: 'active' },
+      completada: { label: t('completed', { ns: 'common' }), variant: 'active' },
+      cancelada: { label: t('cancelled', { ns: 'common' }), variant: 'muted' },
+    };
+    return map[estado] || { label: estado || '', variant: 'pending' };
+  }
 
   useEffect(() => { loadTimeline(); }, [pacienteId]);
 
@@ -136,7 +140,6 @@ export default function TabTimeline({ pacienteId }) {
 
       const all = [];
 
-      // ── Consultas ──
       if (consultasRes.status === 'fulfilled' && consultasRes.value?.data) {
         const list = Array.isArray(consultasRes.value.data)
           ? consultasRes.value.data
@@ -146,14 +149,13 @@ export default function TabTimeline({ pacienteId }) {
             id: `consulta-${c.id}`,
             type: 'consulta',
             fecha: c.fecha || c.createdAt,
-            label: 'Consulta',
+            label: t('consultas'),
             detail: getConsultaDetail(c),
             badge: null,
           });
         });
       }
 
-      // ── Tratamientos ──
       if (tratamientosRes.status === 'fulfilled' && tratamientosRes.value?.data) {
         const list = Array.isArray(tratamientosRes.value.data)
           ? tratamientosRes.value.data
@@ -164,14 +166,13 @@ export default function TabTimeline({ pacienteId }) {
             id: `tratamiento-${t.id}`,
             type: 'tratamiento',
             fecha: t.createdAt,
-            label: 'Tratamiento',
+            label: t('tratamiento'),
             detail: getTratamientoDetail(t),
             badge,
           });
         });
       }
 
-      // ── Consentimientos ──
       if (consentRes.status === 'fulfilled' && consentRes.value?.data) {
         const list = Array.isArray(consentRes.value.data)
           ? consentRes.value.data
@@ -181,17 +182,16 @@ export default function TabTimeline({ pacienteId }) {
             id: `consent-${c.id}`,
             type: 'consentimiento',
             fecha: c.fecha || c.createdAt,
-            label: `Consentimiento: ${c.tipo || 'Trámite'}`,
-            detail: c.aceptado ? 'Aceptado' : 'Pendiente de aceptación',
+            label: `${t('consentimientos')}: ${c.tipo || 'Trámite'}`,
+            detail: c.aceptado ? t('aceptado_label') : t('pendiente_aceptacion'),
             badge: {
-              label: c.aceptado ? 'Aceptado' : 'Pendiente',
+              label: c.aceptado ? t('aceptado_label') : t('pending', { ns: 'common' }),
               variant: c.aceptado ? 'active' : 'pending',
             },
           });
         });
       }
 
-      // ── Citas ──
       if (citasRes.status === 'fulfilled' && citasRes.value?.data) {
         const list = Array.isArray(citasRes.value.data)
           ? citasRes.value.data
@@ -206,14 +206,13 @@ export default function TabTimeline({ pacienteId }) {
             id: `cita-${c.id}`,
             type: 'cita',
             fecha: c.fechaHora || c.createdAt,
-            label: 'Cita',
-            detail: parts.join(' · ') || 'Cita registrada',
+            label: t('buscar_cita'),
+            detail: parts.join(' · ') || t('consulta_registrada'),
             badge,
           });
         });
       }
 
-      // ── Recetas ──
       if (recetasRes.status === 'fulfilled' && recetasRes.value?.data) {
         const list = Array.isArray(recetasRes.value.data)
           ? recetasRes.value.data
@@ -223,8 +222,8 @@ export default function TabTimeline({ pacienteId }) {
             id: `receta-${r.id}`,
             type: 'receta',
             fecha: r.createdAt,
-            label: 'Receta',
-            detail: r.medicamentos || r.indicaciones || 'Receta emitida',
+            label: t('recetas_medicas'),
+            detail: r.medicamentos || r.indicaciones || t('indicaciones'),
             badge: null,
           });
         });
@@ -263,20 +262,20 @@ export default function TabTimeline({ pacienteId }) {
     return GROUP_ORDER
       .filter((g) => groups[g]?.length)
       .map((g) => ({ label: g, events: groups[g] }));
-  }, [filteredEvents]);
+  }, [filteredEvents, GROUP_ORDER]);
 
   const typeCounts = useMemo(() => {
     const counts = {};
     Object.keys(EVENT_CONFIG).forEach((k) => { counts[k] = 0; });
     events.forEach((e) => { if (counts[e.type] !== undefined) counts[e.type]++; });
     return counts;
-  }, [events]);
+  }, [events, EVENT_CONFIG]);
 
   if (loading) {
     return (
       <div className="tl__loading">
         <Clock size={20} className="spinner" />
-        Cargando línea de tiempo...
+        {t('cargando_linea')}
       </div>
     );
   }
@@ -306,7 +305,7 @@ export default function TabTimeline({ pacienteId }) {
       {filteredEvents.length === 0 ? (
         <div className="tl__empty">
           <Clock size={48} />
-          <p>No hay eventos en la línea de tiempo</p>
+          <p>{t('sin_eventos_linea')}</p>
         </div>
       ) : (
         <div className="tl__groups">

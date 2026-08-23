@@ -90,5 +90,6 @@
   "clean": "Clean",
   "mark_read": "Mark as read",
   "session_expired": "Session expired",
-  "sin_doc": "No document"
+  "sin_doc": "No document",
+  "minutos": "minutes"
 }

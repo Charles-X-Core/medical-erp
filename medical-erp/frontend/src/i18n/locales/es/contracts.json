@@ -46,5 +46,16 @@
   "copiar": "Copiar",
   "enviando": "Enviando...",
   "confirmarFirmaBtn": "Confirmar Firma",
-  "errorFirmaEnvio": "Error al enviar la firma"
+  "errorFirmaEnvio": "Error al enviar la firma",
+  "install_android": "Toca los 3 puntos y selecciona \"Instalar app\"",
+  "install_ios": "Toca el botón de compartir y selecciona \"Añadir a pantalla de inicio\"",
+  "install_desktop": "Haz clic en el icono de instalación en la barra de dirección",
+  "iniciar_kiosco": "Iniciar kiosco",
+  "esperando_contrato": "Esperando contrato...",
+  "contrato_aparecera": "El contrato aparecerá automáticamente cuando se genere",
+  "enlace_invalido": "Enlace inválido",
+  "documento_instruccion": "Por favor firme en el recuadro a continuación para confirmar su registro.",
+  "firme_aqui": "Firme aquí",
+  "firma_exito_text": "Su firma ha sido registrada exitosamente. El documento ha sido generado y almacenado de forma segura.",
+  "password": "Contraseña"
 }

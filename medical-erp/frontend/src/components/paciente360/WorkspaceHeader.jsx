@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 
 export default function WorkspaceHeader({ paciente, onEdit, onMoreActions, extraActions }) {
+  const { t } = useTranslation(['patients', 'common']);
   if (!paciente) return null;
 
   const fullName = `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`.trim();
@@ -18,7 +20,7 @@ export default function WorkspaceHeader({ paciente, onEdit, onMoreActions, extra
   };
 
   const edad = calcularEdad(paciente.fechaNacimiento);
-  const sexoLabel = paciente.sexo === 'M' ? '♂' : paciente.sexo === 'F' ? '♀' : '';
+  const sexoLabel = paciente.sexo === 'M' ? '\u2642' : paciente.sexo === 'F' ? '\u2640' : '';
 
   return (
     <div className="workspace__header">
@@ -27,11 +29,11 @@ export default function WorkspaceHeader({ paciente, onEdit, onMoreActions, extra
         <div className="workspace__patient-meta">
           {sexoLabel && (
             <span className="workspace__patient-badge workspace__patient-badge--gender">
-              {sexoLabel} {edad ? `${edad} años` : ''}
+              {sexoLabel} {edad ? `${edad} ${t('years', { ns: 'patients' })}` : ''}
             </span>
           )}
           {!sexoLabel && edad && (
-            <span>{edad} años</span>
+            <span>{edad} {t('years', { ns: 'patients' })}</span>
           )}
           {paciente.licenciaConducir && (
             <span>ID: {paciente.licenciaConducir}</span>
@@ -46,10 +48,10 @@ export default function WorkspaceHeader({ paciente, onEdit, onMoreActions, extra
       <div className="workspace__header-actions">
         {extraActions}
         <button className="btn btn--ghost btn--sm" onClick={onEdit}>
-          ← Clientes
+          {t('back_to_clients')}
         </button>
         <button className="btn btn--primary btn--sm" onClick={onMoreActions}>
-          Editar
+          {t('edit', { ns: 'common' })}
         </button>
       </div>
     </div>

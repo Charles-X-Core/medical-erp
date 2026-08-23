@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { contratoPwaService } from '../services/contratoPwaService';
 import HtmlDocViewer from '../components/common/HtmlDocViewer';
 import { FileText, Send, CheckCircle, AlertTriangle, RotateCcw, LogOut, Clock, Download, X, Smartphone, ChevronDown } from 'lucide-react';
@@ -12,49 +13,43 @@ function detectPlatform() {
   return 'desktop';
 }
 
-function getInstallInstructions(platform) {
+function getInstallInstructions(platform, t) {
   switch (platform) {
     case 'android':
-      return { text: 'Toca los 3 puntos y selecciona "Instalar app"', icon: '⋮' };
+      return { text: t('install_android'), icon: '⋮' };
     case 'ios':
-      return { text: 'Toca el boton de compartir y selecciona "Anadir a pantalla de inicio"', icon: '⬆' };
+      return { text: t('install_ios'), icon: '⬆' };
     default:
-      return { text: 'Haz clic en el icono de instalacion en la barra de direccion', icon: '⬇' };
+      return { text: t('install_desktop'), icon: '⬇' };
   }
 }
 
 export default function ContratoPWA() {
+  const { t } = useTranslation('contracts');
   const [step, setStep] = useState('login');
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
 
-  // PWA install
   const deferredPrompt = useRef(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const platform = useRef(detectPlatform());
 
-  // Login
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Kiosco
   const [pacienteNombre, setPacienteNombre] = useState('');
   const [htmlContent, setHtmlContent] = useState('');
 
-  // Viewer ref
   const viewerRef = useRef(null);
 
-  // Signature state — driven by HtmlDocViewer callback
   const [hasSignature, setHasSignature] = useState(false);
 
-  // Cooldown post-firma
   const signedCooldownUntil = useRef(0);
   const lastSignedToken = useRef('');
 
-  // PWA install prompt
   useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
       setIsInstalled(true);
@@ -79,7 +74,6 @@ export default function ContratoPWA() {
     }
   };
 
-  // Polling for pending contracts (kiosco mode)
   useEffect(() => {
     if (step !== 'kiosco') return;
     let active = true;
@@ -97,7 +91,7 @@ export default function ContratoPWA() {
           loadContract(data.token);
         }
       } catch {
-        if (active) setError('Error de conexion. Reintentando...');
+        if (active) setError(t('errorConexion'));
       }
     };
 
@@ -108,7 +102,7 @@ export default function ContratoPWA() {
     }, 3000);
 
     return () => { active = false; clearTimeout(timerId); clearInterval(timerId); };
-  }, [step]);
+  }, [step, t]);
 
   const loadContract = async (t) => {
     try {
@@ -122,7 +116,7 @@ export default function ContratoPWA() {
         setHasSignature(false);
       }
     } catch {
-      setError('Error al cargar el contrato');
+      setError(t('errorCargarContrato'));
       setStep('kiosco');
     }
   };
@@ -137,7 +131,7 @@ export default function ContratoPWA() {
         body: JSON.stringify({ email, password }),
       });
       const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json?.message || 'Credenciales incorrectas');
+      if (!res.ok || !json.success) throw new Error(json?.message || t('credencialesIncorrectas'));
       const loginData = json.data;
       localStorage.setItem('token', loginData.token || '');
       localStorage.setItem('refreshToken', loginData.refreshToken || '');
@@ -148,7 +142,6 @@ export default function ContratoPWA() {
     }
   };
 
-  // Called by HtmlDocViewer when user draws or clears
   const handleSignatureChange = useCallback((signed) => {
     setHasSignature(signed);
   }, []);
@@ -168,9 +161,8 @@ export default function ContratoPWA() {
     try {
       const firmaBase64 = viewerRef.current?.getSignatureDataUrl();
       const container = viewerRef.current?.getContainer();
-      if (!firmaBase64 || !container) throw new Error('No se pudo obtener la firma');
+      if (!firmaBase64 || !container) throw new Error(t('noSeObtuvoFirma'));
 
-      // Clone container and replace canvas with image
       const clone = container.cloneNode(true);
       const canvasInClone = clone.querySelector('canvas');
       if (canvasInClone) {
@@ -181,9 +173,16 @@ export default function ContratoPWA() {
         wrapper.innerHTML = '';
         wrapper.appendChild(img);
       }
-      const htmlWithSignature = clone.innerHTML;
+      const signedBodyHtml = clone.innerHTML;
 
-      await contratoPwaService.firmar(token, firmaBase64, htmlWithSignature);
+      let fullHtml = htmlContent;
+      if (fullHtml && fullHtml.includes('<body')) {
+        fullHtml = fullHtml.replace(/<body[^>]*>[\s\S]*?<\/body>/i, `<body>${signedBodyHtml}</body>`);
+      } else {
+        fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${signedBodyHtml}</body></html>`;
+      }
+
+      await contratoPwaService.firmar(token, firmaBase64, fullHtml);
       lastSignedToken.current = token;
       signedCooldownUntil.current = Date.now() + 8000;
       setStep('exito');
@@ -195,7 +194,7 @@ export default function ContratoPWA() {
         setHasSignature(false);
       }, 4000);
     } catch (err) {
-      setError(err.message || 'Error al firmar');
+      setError(err.message || t('errorFirmar'));
     } finally {
       setSending(false);
     }
@@ -209,7 +208,7 @@ export default function ContratoPWA() {
   };
 
   const showInstallBanner = !isInstalled && !bannerDismissed;
-  const instructions = getInstallInstructions(platform.current);
+  const instructions = getInstallInstructions(platform.current, t);
 
   const renderInstallBanner = () => {
     if (!showInstallBanner) return null;
@@ -218,14 +217,14 @@ export default function ContratoPWA() {
         <div className="contrato-pwa__install-banner-content">
           <Smartphone size={18} />
           <span className="contrato-pwa__install-text">
-            <strong>Instalar OHNow Contrato</strong>
+            <strong>{t('instalarContrato')}</strong>
             <small>{instructions.text}</small>
           </span>
         </div>
         <div className="contrato-pwa__install-banner-actions">
           {isInstallable && (
             <button className="contrato-pwa__install-btn" onClick={handleInstall}>
-              <Download size={14} /> Instalar
+              <Download size={14} /> {t('pwa_install_button')}
             </button>
           )}
           <button className="contrato-pwa__install-dismiss" onClick={() => setBannerDismissed(true)}>
@@ -243,21 +242,21 @@ export default function ContratoPWA() {
         <div className="contrato-pwa__login">
           <div className="contrato-pwa__login-header">
             <FileText size={48} className="contrato-pwa__icon" />
-            <h1>OHNow Contrato</h1>
-            <p>Kiosco de Firma</p>
+            <h1>{t('instalarContrato')}</h1>
+            <p>{t('kioscoFirma')}</p>
           </div>
           <form onSubmit={handleLogin} className="contrato-pwa__login-form">
             {error && <div className="contrato-pwa__error"><AlertTriangle size={16} /> {error}</div>}
             <div className="contrato-pwa__field">
-              <label>Email</label>
+              <label>{t('email', { ns: 'common' })}</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" />
             </div>
             <div className="contrato-pwa__field">
-              <label>Password</label>
+              <label>{t('password', { ns: 'auth' })}</label>
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
             </div>
             <button type="submit" className="contrato-pwa__btn-primary">
-              <Send size={18} /> Iniciar kiosco
+              <Send size={18} /> {t('iniciar_kiosco')}
             </button>
           </form>
         </div>
@@ -272,15 +271,15 @@ export default function ContratoPWA() {
         <div className="contrato-pwa__kiosco">
           <div className="contrato-pwa__kiosco-header">
             <FileText size={40} className="contrato-pwa__icon" />
-            <h2>Esperando contrato...</h2>
-            <p>El contrato aparecera automaticamente cuando se genere</p>
+            <h2>{t('esperando_contrato')}</h2>
+            <p>{t('contrato_aparecera')}</p>
           </div>
           <div className="contrato-pwa__kiosco-spinner">
             <div className="contrato-pwa__spinner" />
           </div>
           {error && <div className="contrato-pwa__error"><AlertTriangle size={16} /> {error}</div>}
           <button className="contrato-pwa__btn-logout" onClick={handleLogout}>
-            <LogOut size={16} /> Cerrar sesion
+            <LogOut size={16} /> {t('cerrarSesion')}
           </button>
         </div>
       </div>
@@ -291,13 +290,13 @@ export default function ContratoPWA() {
     const pwaActions = (
       <>
         <button className="contrato-pwa__btn-scroll" onClick={handleScrollToSignature}>
-          <ChevronDown size={16} /> Ir a firma
+          <ChevronDown size={16} /> {t('irAFirma')}
         </button>
         <button className="contrato-pwa__btn-clear" onClick={handleClear} disabled={sending}>
-          <RotateCcw size={16} /> Limpiar firma
+          <RotateCcw size={16} /> {t('limpiarFirma')}
         </button>
         <button className="contrato-pwa__btn-sign" onClick={handleSign} disabled={!hasSignature || sending}>
-          <Send size={16} /> {sending ? 'Firmando...' : 'Confirmar firma'}
+          <Send size={16} /> {sending ? t('firmando') : t('confirmarFirma')}
         </button>
       </>
     );
@@ -328,8 +327,8 @@ export default function ContratoPWA() {
       <div className="contrato-pwa">
         <div className="contrato-pwa__exito">
           <CheckCircle size={80} className="contrato-pwa__exito-icon" />
-          <h2>Firma completada</h2>
-          <p>El contrato ha sido firmado y guardado exitosamente.</p>
+          <h2>{t('contract_firma_completada')}</h2>
+          <p>{t('contract_exito_text')}</p>
           <span className="contrato-pwa__exito-time">
             <Clock size={14} /> {new Date().toLocaleString('es-PE')}
           </span>
@@ -343,10 +342,10 @@ export default function ContratoPWA() {
       <div className="contrato-pwa">
         <div className="contrato-pwa__exito">
           <CheckCircle size={80} className="contrato-pwa__exito-icon" />
-          <h2>Este contrato ya fue firmado</h2>
-          <p>El cliente ya ha completado la firma de este contrato.</p>
+          <h2>{t('contract_already_signed')}</h2>
+          <p>{t('contract_already_text')}</p>
           <button className="contrato-pwa__btn-primary" onClick={() => setStep('kiosco')}>
-            Volver al kiosco
+            {t('contract_back_kiosko')}
           </button>
         </div>
       </div>

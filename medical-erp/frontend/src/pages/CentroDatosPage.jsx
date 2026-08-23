@@ -1,21 +1,23 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, UserPlus, FileSpreadsheet, FileUp, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ManualForm from '../components/centro-datos/ManualForm';
 import CsvImport from '../components/centro-datos/CsvImport';
 import ExcelImport from '../components/centro-datos/ExcelImport';
 import '../styles/pages/_centro-datos-page.scss';
 
-const TABS = [
-  { id: 'manual', label: 'Ingreso Manual', icon: UserPlus },
-  { id: 'csv', label: 'Importar CSV', icon: FileUp },
-  { id: 'excel', label: 'Importar Excel', icon: FileSpreadsheet },
-];
-
 export default function CentroDatosPage() {
+  const { t } = useTranslation('patients');
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('manual');
   const [importResult, setImportResult] = useState(null);
+
+  const TABS = [
+    { id: 'manual', label: t('manual_import_title'), icon: UserPlus },
+    { id: 'csv', label: t('csv_import'), icon: FileUp },
+    { id: 'excel', label: t('excel_import'), icon: FileSpreadsheet },
+  ];
 
   const handleImportSuccess = (result) => {
     setImportResult(result);
@@ -30,8 +32,8 @@ export default function CentroDatosPage() {
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="centro-datos-page__title">Centro de Datos</h1>
-          <p className="centro-datos-page__subtitle">Gestión masiva de clientes y tratamientos</p>
+          <h1 className="centro-datos-page__title">{t('data_center_title')}</h1>
+          <p className="centro-datos-page__subtitle">{t('data_center_subtitle')}</p>
         </div>
       </div>
 
@@ -65,6 +67,8 @@ export default function CentroDatosPage() {
 }
 
 function ImportResultModal({ result, onClose }) {
+  const { t } = useTranslation('patients');
+  const { t: tc } = useTranslation('common');
   const hasErrors = result.errores > 0;
   const hasSkipped = result.saltados > 0;
 
@@ -72,7 +76,7 @@ function ImportResultModal({ result, onClose }) {
     <div className="centro-datos-page__modal-overlay" onClick={onClose}>
       <div className="centro-datos-page__modal" onClick={(e) => e.stopPropagation()}>
         <div className="centro-datos-page__modal-header">
-          <h3>Resultado de Importación</h3>
+          <h3>{t('import_result')}</h3>
           <button className="centro-datos-page__modal-close" onClick={onClose}>×</button>
         </div>
         <div className="centro-datos-page__modal-body">
@@ -80,27 +84,27 @@ function ImportResultModal({ result, onClose }) {
             <div className="centro-datos-page__stat centro-datos-page__stat--success">
               <CheckCircle size={20} />
               <span className="centro-datos-page__stat-value">{result.importados}</span>
-              <span className="centro-datos-page__stat-label">Importados</span>
+              <span className="centro-datos-page__stat-label">{t('imported')}</span>
             </div>
             {hasSkipped && (
               <div className="centro-datos-page__stat centro-datos-page__stat--warning">
                 <AlertTriangle size={20} />
                 <span className="centro-datos-page__stat-value">{result.saltados}</span>
-                <span className="centro-datos-page__stat-label">Saltados</span>
+                <span className="centro-datos-page__stat-label">{t('skipped')}</span>
               </div>
             )}
             {hasErrors && (
               <div className="centro-datos-page__stat centro-datos-page__stat--error">
                 <XCircle size={20} />
                 <span className="centro-datos-page__stat-value">{result.errores}</span>
-                <span className="centro-datos-page__stat-label">Errores</span>
+                <span className="centro-datos-page__stat-label">{t('errors')}</span>
               </div>
             )}
           </div>
 
           {result.pacientesImportados?.length > 0 && (
             <div className="centro-datos-page__detail-section">
-              <h4>Clientes Importados</h4>
+              <h4>{t('imported_clients')}</h4>
               <ul className="centro-datos-page__detail-list centro-datos-page__detail-list--success">
                 {result.pacientesImportados.map((name, i) => (
                   <li key={i}>{name}</li>
@@ -111,7 +115,7 @@ function ImportResultModal({ result, onClose }) {
 
           {result.pacientesSaltados?.length > 0 && (
             <div className="centro-datos-page__detail-section">
-              <h4>Clientes Saltados</h4>
+              <h4>{t('skipped_clients')}</h4>
               <ul className="centro-datos-page__detail-list centro-datos-page__detail-list--warning">
                 {result.pacientesSaltados.map((msg, i) => (
                   <li key={i}>{msg}</li>
@@ -122,7 +126,7 @@ function ImportResultModal({ result, onClose }) {
 
           {result.mensajesError?.length > 0 && (
             <div className="centro-datos-page__detail-section">
-              <h4>Errores</h4>
+              <h4>{t('errors')}</h4>
               <ul className="centro-datos-page__detail-list centro-datos-page__detail-list--error">
                 {result.mensajesError.map((msg, i) => (
                   <li key={i}>{msg}</li>
@@ -132,7 +136,7 @@ function ImportResultModal({ result, onClose }) {
           )}
         </div>
         <div className="centro-datos-page__modal-footer">
-          <button className="centro-datos-page__btn centro-datos-page__btn--primary" onClick={onClose}>Cerrar</button>
+          <button className="centro-datos-page__btn centro-datos-page__btn--primary" onClick={onClose}>{tc('close')}</button>
         </div>
       </div>
     </div>

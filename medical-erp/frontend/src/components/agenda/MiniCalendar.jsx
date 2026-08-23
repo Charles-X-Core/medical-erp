@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, ChevronLeft, ChevronRight, ChevronDown, Search } from 'lucide-react';
 
-const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const MONTH_KEYS = ['month_enero', 'month_febrero', 'month_marzo', 'month_abril', 'month_mayo', 'month_junio', 'month_julio', 'month_agosto', 'month_septiembre', 'month_octubre', 'month_noviembre', 'month_diciembre'];
 const DIAS_CORTOS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
 
 function generateMonthGrid(date) {
@@ -91,6 +92,7 @@ function parseDateSearch(input) {
 }
 
 export default function MiniCalendar({ currentDate, onDateSelect, weekStart }) {
+  const { t } = useTranslation('agenda');
   const [isOpen, setIsOpen] = useState(false);
   const [viewDate, setViewDate] = useState(currentDate);
   const [searchInput, setSearchInput] = useState('');
@@ -141,8 +143,8 @@ export default function MiniCalendar({ currentDate, onDateSelect, weekStart }) {
   };
 
   const dateLabel = currentDate
-    ? `${currentDate.getDate()} de ${MESES[currentDate.getMonth()]}`
-    : 'Seleccionar fecha';
+    ? `${currentDate.getDate()} de ${t(MONTH_KEYS[currentDate.getMonth()])}`
+    : t('seleccionar_fecha');
 
   return (
     <div className="mini-calendar" ref={dropdownRef}>
@@ -159,7 +161,7 @@ export default function MiniCalendar({ currentDate, onDateSelect, weekStart }) {
               <ChevronLeft size={16} />
             </button>
             <span className="mini-calendar__month-label">
-              {MESES[viewDate.getMonth()]} {viewDate.getFullYear()}
+              {t(MONTH_KEYS[viewDate.getMonth()])} {viewDate.getFullYear()}
             </span>
             <button className="mini-calendar__nav-btn" onClick={() => navigateMonth(1)}>
               <ChevronRight size={16} />
@@ -190,7 +192,7 @@ export default function MiniCalendar({ currentDate, onDateSelect, weekStart }) {
             <Search size={14} />
             <input
               type="text"
-              placeholder="Buscar fecha..."
+              placeholder={t('buscar_fecha')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearchKeyDown}

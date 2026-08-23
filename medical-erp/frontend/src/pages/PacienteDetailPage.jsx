@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Pencil, Trash2, FileText, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { pacienteService } from '../services/pacienteService';
 
 export default function PacienteDetailPage() {
+  const { t } = useTranslation('patients');
+  const { t: tco } = useTranslation('common');
   const { id } = useParams();
   const navigate = useNavigate();
   const [paciente, setPaciente] = useState(null);
@@ -18,26 +21,26 @@ export default function PacienteDetailPage() {
       if (res.success) {
         setPaciente(res.data);
       } else {
-        setError(res.message || 'Error al cargar');
+        setError(res.message || tco('error_loading'));
       }
     } catch (err) {
-      setError(err.message || 'Error al cargar');
+      setError(err.message || tco('error_loading'));
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, tco]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const handleDelete = async () => {
-    if (!confirm('¿Eliminar cliente? Esta acción es irreversible.')) return;
+    if (!confirm(t('delete_irreversible'))) return;
     try {
       await pacienteService.delete(id);
       navigate('/pacientes');
     } catch (err) {
-      setError(err.message || 'Error al eliminar');
+      setError(err.message || t('error_delete'));
     }
   };
 
@@ -46,7 +49,7 @@ export default function PacienteDetailPage() {
       <div className="paciente-detail-page">
         <div className="paciente-detail-page__loading">
           <Loader2 size={32} className="spinner" />
-          <p>Cargando cliente...</p>
+          <p>{t('loading_client')}</p>
         </div>
       </div>
     );
@@ -55,7 +58,7 @@ export default function PacienteDetailPage() {
   if (!paciente) {
     return (
       <div className="paciente-detail-page">
-        <p className="paciente-detail-page__error">{error || 'Cliente no encontrado'}</p>
+        <p className="paciente-detail-page__error">{error || t('no_found')}</p>
       </div>
     );
   }
@@ -66,19 +69,19 @@ export default function PacienteDetailPage() {
     <div className="paciente-detail-page">
       <div className="paciente-detail-page__header">
         <button className="btn btn--ghost" onClick={() => navigate('/pacientes')}>
-          <ArrowLeft size={18} /> Volver
+          <ArrowLeft size={18} /> {tco('back')}
         </button>
         <div className="paciente-detail-page__title-group">
           <h2 className="paciente-detail-page__title">{fullName}</h2>
-          <span className={`estado-badge estado-badge--${paciente.estado || 'activo'}`}>{paciente.estado || 'activo'}</span>
+          <span className={`estado-badge estado-badge--${paciente.estado || 'activo'}`}>{paciente.estado || tco('active')}</span>
           <span className="pais-badge">{paciente.pais || 'PE'}</span>
         </div>
         <div className="paciente-detail-page__actions">
           <button className="btn btn--secondary" onClick={() => navigate(`/pacientes/${id}/editar`)}>
-            <Pencil size={18} /> Editar
+            <Pencil size={18} /> {tco('edit')}
           </button>
           <button className="btn btn--danger" onClick={handleDelete}>
-            <Trash2 size={18} /> Eliminar
+            <Trash2 size={18} /> {tco('delete')}
           </button>
         </div>
       </div>
@@ -92,7 +95,7 @@ export default function PacienteDetailPage() {
             className={`paciente-detail-page__tab ${activeTab === tab ? 'paciente-detail-page__tab--active' : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab === 'datos' ? t('datos_personales') : tab === 'documentos' ? t('documentos_identidad') : tab === 'seguros' ? t('seguros_medicos') : tab === 'consentimientos' ? t('consentimientos') : t('historia_clinica')}
           </button>
         ))}
       </div>
@@ -101,54 +104,54 @@ export default function PacienteDetailPage() {
         {activeTab === 'datos' && (
           <div className="detail-grid">
             <div className="detail-card">
-              <h4>Datos Personales</h4>
-              <p><strong>Nombre:</strong> {paciente.nombres}</p>
-              <p><strong>Apellidos:</strong> {paciente.apellidoPaterno} {paciente.apellidoMaterno}</p>
+              <h4>{t('personal_data')}</h4>
+              <p><strong>{t('first_names')}:</strong> {paciente.nombres}</p>
+              <p><strong>{t('apellidos')}:</strong> {paciente.apellidoPaterno} {paciente.apellidoMaterno}</p>
               <p><strong>ID:</strong> {paciente.licenciaConducir || '-'}</p>
-              <p><strong>Sexo:</strong> {paciente.sexo || '-'}</p>
-              <p><strong>Fecha Nac.:</strong> {paciente.fechaNacimiento || '-'}</p>
-              <p><strong>Estado Civil:</strong> {paciente.estadoCivil || '-'}</p>
-              <p><strong>Peso:</strong> {paciente.peso ? `${paciente.peso} kg` : '-'}</p>
-              <p><strong>Estatura:</strong> {paciente.estatura ? `${paciente.estatura} cm` : '-'}</p>
+              <p><strong>{t('gender')}:</strong> {paciente.sexo || '-'}</p>
+              <p><strong>{t('birth_date_short')}:</strong> {paciente.fechaNacimiento || '-'}</p>
+              <p><strong>{t('civil_status')}:</strong> {paciente.estadoCivil || '-'}</p>
+              <p><strong>{t('peso')}:</strong> {paciente.peso ? `${paciente.peso} kg` : '-'}</p>
+              <p><strong>{t('estatura')}:</strong> {paciente.estatura ? `${paciente.estatura} cm` : '-'}</p>
             </div>
             <div className="detail-card">
-              <h4>Contacto</h4>
-              <p><strong>Teléfono:</strong> {paciente.telefono || '-'}</p>
-              <p><strong>Email:</strong> {paciente.email || '-'}</p>
-              <p><strong>Ciudad/Estado:</strong> {paciente.ciudadEstado || '-'}</p>
-              <p><strong>Dirección:</strong> {paciente.direccion || '-'}</p>
-              <p><strong>Lugar Nac.:</strong> {paciente.lugarNacimiento || '-'}</p>
-              <p><strong>Procedencia:</strong> {paciente.lugarProcedencia || '-'}</p>
-              <p><strong>Ocupación:</strong> {paciente.ocupacion || '-'}</p>
+              <h4>{t('contact_info')}</h4>
+              <p><strong>{tco('phone')}:</strong> {paciente.telefono || '-'}</p>
+              <p><strong>{tco('email')}:</strong> {paciente.email || '-'}</p>
+              <p><strong>{t('ciudad_estado')}:</strong> {paciente.ciudadEstado || '-'}</p>
+              <p><strong>{tco('address')}:</strong> {paciente.direccion || '-'}</p>
+              <p><strong>{t('lugar_nacimiento')}:</strong> {paciente.lugarNacimiento || '-'}</p>
+              <p><strong>{t('procedencia')}:</strong> {paciente.lugarProcedencia || '-'}</p>
+              <p><strong>{t('occupation')}:</strong> {paciente.ocupacion || '-'}</p>
             </div>
             <div className="detail-card">
-              <h4>Emergencia</h4>
-              <p><strong>Acompañante:</strong> {paciente.nombreAcompanante || '-'}</p>
-              <p><strong>Contacto:</strong> {paciente.contactoEmergencia || '-'}</p>
-              <p><strong>Teléfono:</strong> {paciente.telefonoEmergencia || '-'}</p>
-              <p><strong>Parentesco:</strong> {paciente.parentescoEmergencia || '-'}</p>
+              <h4>{t('emergency_contact_title')}</h4>
+              <p><strong>{t('acompanante')}:</strong> {paciente.nombreAcompanante || '-'}</p>
+              <p><strong>{t('contacto_emergencia')}:</strong> {paciente.contactoEmergencia || '-'}</p>
+              <p><strong>{tco('phone')}:</strong> {paciente.telefonoEmergencia || '-'}</p>
+              <p><strong>{t('parentesco')}:</strong> {paciente.parentescoEmergencia || '-'}</p>
             </div>
             <div className="detail-card detail-card--full">
-              <h4>Antecedentes</h4>
-              <p><strong>Alergias:</strong> {paciente.alergias || '-'}</p>
-              <p><strong>Medicamentos Actuales:</strong> {paciente.medicamentosActuales || '-'}</p>
-              <p><strong>Personales:</strong> {paciente.antecedentesPersonales || '-'}</p>
-              <p><strong>Familiares:</strong> {paciente.antecedentesFamiliares || '-'}</p>
+              <h4>{t('antecedentes')}</h4>
+              <p><strong>{t('alergias')}:</strong> {paciente.alergias || '-'}</p>
+              <p><strong>{t('medicamentos_actuales')}:</strong> {paciente.medicamentosActuales || '-'}</p>
+              <p><strong>{t('antecedentes_personales')}:</strong> {paciente.antecedentesPersonales || '-'}</p>
+              <p><strong>{t('antecedentes_familiares')}:</strong> {paciente.antecedentesFamiliares || '-'}</p>
             </div>
           </div>
         )}
 
         {activeTab === 'documentos' && (
           <div className="detail-card">
-            <h4>Documentos de Identidad</h4>
+            <h4>{t('documentos_identidad')}</h4>
             {(paciente.documentos || []).length === 0 ? (
-              <p>Sin documentos adicionales</p>
+              <p>{t('sin_documentos')}</p>
             ) : (
               <ul className="detail-list">
                 {paciente.documentos.map((doc) => (
                   <li key={doc.id}>
                     <strong>{doc.tipoDocumento}</strong> {doc.numeroDocumento}
-                    {doc.esPrincipal && <span className="badge badge--primary">Principal</span>}
+                    {doc.esPrincipal && <span className="badge badge--primary">{t('principal')}</span>}
                   </li>
                 ))}
               </ul>
@@ -158,9 +161,9 @@ export default function PacienteDetailPage() {
 
         {activeTab === 'seguros' && (
           <div className="detail-card">
-            <h4>Seguros Médicos</h4>
+            <h4>{t('seguros_medicos')}</h4>
             {(paciente.seguros || []).length === 0 ? (
-              <p>Sin seguros registrados</p>
+              <p>{t('sin_seguros')}</p>
             ) : (
               <ul className="detail-list">
                 {paciente.seguros.map((seg) => (
@@ -175,14 +178,14 @@ export default function PacienteDetailPage() {
 
         {activeTab === 'consentimientos' && (
           <div className="detail-card">
-            <h4>Consentimientos</h4>
+            <h4>{t('consentimientos')}</h4>
             {(paciente.consentimientos || []).length === 0 ? (
-              <p>Sin consentimientos registrados</p>
+              <p>{t('sin_consentimientos')}</p>
             ) : (
               <ul className="detail-list">
                 {paciente.consentimientos.map((c) => (
                   <li key={c.id}>
-                    <strong>{c.tipo}</strong> {c.aceptado ? '✓ Aceptado' : '✗ Pendiente'} {c.fecha && `(${c.fecha})`}
+                    <strong>{c.tipo}</strong> {c.aceptado ? `✓ ${t('aceptado')}` : `✗ ${t('pendiente_firma')}`} {c.fecha && `(${c.fecha})`}
                   </li>
                 ))}
               </ul>
@@ -192,10 +195,10 @@ export default function PacienteDetailPage() {
 
         {activeTab === 'historia' && (
           <div className="detail-card">
-            <h4>Historia Clínica</h4>
-            <p>Accede a la historia clínica completa y consultas del cliente.</p>
+            <h4>{t('historia_clinica')}</h4>
+            <p>{t('acceso_historia')}</p>
             <button className="btn btn--primary" onClick={() => navigate(`/pacientes/${id}/historia`)}>
-              <FileText size={18} /> Ver Historia Clínica
+              <FileText size={18} /> {t('ver_historia')}
             </button>
           </div>
         )}

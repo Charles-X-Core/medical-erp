@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, X, DollarSign, Stethoscope, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const TRATAMIENTOS_CATALOGO = [
   { id: 'stem-cells', nombre: 'Células Madre Pristinas Autólogas', categoria: 'Medicina Regenerativa Celular' },
@@ -27,14 +28,17 @@ const TRATAMIENTOS_CATALOGO = [
 ];
 
 export default function PasoTratamientos({ formData, updateFormData }) {
+  const { t } = useTranslation('patients');
+  const { t: tC } = useTranslation('clinical');
+  const { t: tCommon } = useTranslation('common');
   const { tratamientos } = formData;
   const [searchTerm, setSearchTerm] = useState('');
   const [showCatalogo, setShowCatalogo] = useState(false);
 
   const filteredTratamientos = TRATAMIENTOS_CATALOGO.filter(
-    (t) =>
-      t.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+    (trat) =>
+      trat.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trat.categoria.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const addTratamientoFromCatalog = (tratamiento) => {
@@ -75,30 +79,30 @@ export default function PasoTratamientos({ formData, updateFormData }) {
   };
 
   const calcularTotal = () => {
-    return tratamientos.reduce((sum, t) => sum + (parseFloat(t.costoTotal) || 0), 0);
+    return tratamientos.reduce((sum, tr) => sum + (parseFloat(tr.costoTotal) || 0), 0);
   };
 
   return (
     <div className="wizard-step">
       <h2 className="wizard-step__title">
         <Stethoscope size={20} />
-        Tratamientos
+        {tC('tratamientos')}
       </h2>
 
       <div className="wizard-actions">
         <button className="wizard-btn wizard-btn--primary" onClick={() => setShowCatalogo(!showCatalogo)}>
           <Plus size={16} />
-          Catálogo de Tratamientos
+          {tC('catalogo_tratamientos')}
         </button>
         <button className="wizard-btn wizard-btn--secondary" onClick={addTratamientoCustom}>
           <Plus size={16} />
-          Tratamiento Personalizado
+          {t('nuevo_tratamiento')}
         </button>
       </div>
 
       {showCatalogo && (
         <div className="wizard-card wizard-card--highlight">
-          <h3 className="wizard-card__subtitle">Seleccionar Tratamiento</h3>
+          <h3 className="wizard-card__subtitle">{tC('seleccionar_tratamiento')}</h3>
           <div className="wizard-field">
             <div style={{ position: 'relative' }}>
               <Search size={16} style={{ position: 'absolute', left: 12, top: 10, color: 'rgba(255,255,255,0.4)' }} />
@@ -107,26 +111,26 @@ export default function PasoTratamientos({ formData, updateFormData }) {
                 style={{ paddingLeft: 36 }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar tratamiento..."
+                placeholder={tCommon('search') + '...'}
               />
             </div>
           </div>
           <div className="wizard-catalogo-list">
-            {filteredTratamientos.map((t) => (
+            {filteredTratamientos.map((trat) => (
               <button
-                key={t.id}
+                key={trat.id}
                 className="wizard-catalogo-item"
-                onClick={() => addTratamientoFromCatalog(t)}
+                onClick={() => addTratamientoFromCatalog(trat)}
               >
                 <div>
-                  <span className="wizard-catalogo-item__nombre">{t.nombre}</span>
-                  <span className="wizard-catalogo-item__categoria">{t.categoria}</span>
+                  <span className="wizard-catalogo-item__nombre">{trat.nombre}</span>
+                  <span className="wizard-catalogo-item__categoria">{trat.categoria}</span>
                 </div>
                 <Plus size={16} />
               </button>
             ))}
             {filteredTratamientos.length === 0 && (
-              <p className="wizard-text--muted">No se encontraron tratamientos</p>
+              <p className="wizard-text--muted">{tC('no_tratamientos')}</p>
             )}
           </div>
         </div>
@@ -136,7 +140,7 @@ export default function PasoTratamientos({ formData, updateFormData }) {
         <div key={index} className="wizard-card">
           <div className="wizard-card__header">
             <h3 className="wizard-card__subtitle">
-              Tratamiento {index + 1}
+              {tC('tratamiento')} {index + 1}
             </h3>
             <button className="wizard-btn-icon" onClick={() => removeTratamiento(index)}>
               <X size={16} />
@@ -145,18 +149,18 @@ export default function PasoTratamientos({ formData, updateFormData }) {
 
           <div className="wizard-grid wizard-grid--1">
             <div className="wizard-field">
-              <label>Procedimiento Realizado *</label>
+              <label>{tC('procedimiento_realizado')} *</label>
               <input
                 className="wizard-input"
                 value={tratamiento.procedimientoRealizado}
                 onChange={(e) => updateTratamiento(index, 'procedimientoRealizado', e.target.value)}
-                placeholder="Nombre del tratamiento"
+                placeholder={tC('nombre_tratamiento_placeholder')}
               />
             </div>
 
             <div className="wizard-grid wizard-grid--3">
               <div className="wizard-field">
-                <label><DollarSign size={14} /> Costo Total *</label>
+                <label><DollarSign size={14} /> {tC('costo_total')} *</label>
                 <input
                   className="wizard-input"
                   type="number"
@@ -168,23 +172,23 @@ export default function PasoTratamientos({ formData, updateFormData }) {
                 />
               </div>
               <div className="wizard-field">
-                <label>Estado</label>
+                <label>{tC('estado')}</label>
                 <select
                   className="wizard-select"
                   value={tratamiento.estado}
                   onChange={(e) => updateTratamiento(index, 'estado', e.target.value)}
                 >
-                  <option value="realizado">Realizado</option>
-                  <option value="planificado">Planificado</option>
+                  <option value="realizado">{tC('realizado')}</option>
+                  <option value="planificado">{tC('planificado')}</option>
                 </select>
               </div>
               <div className="wizard-field">
-                <label>Notas</label>
+                <label>{tCommon('notes')}</label>
                 <input
                   className="wizard-input"
                   value={tratamiento.notas}
                   onChange={(e) => updateTratamiento(index, 'notas', e.target.value)}
-                  placeholder="Observaciones"
+                  placeholder={t('observaciones_placeholder')}
                 />
               </div>
             </div>
@@ -194,7 +198,7 @@ export default function PasoTratamientos({ formData, updateFormData }) {
 
       {tratamientos.length > 0 && (
         <div className="wizard-total">
-          <span>Costo Total:</span>
+          <span>{tC('costo_total')}:</span>
           <span className="wizard-total__amount">
             ${calcularTotal().toFixed(2)}
           </span>
@@ -204,7 +208,7 @@ export default function PasoTratamientos({ formData, updateFormData }) {
       {tratamientos.length === 0 && (
         <div className="wizard-empty">
           <Stethoscope size={32} />
-          <p>No se han agregado tratamientos</p>
+          <p>{tC('sin_tratamientos')}</p>
         </div>
       )}
     </div>
