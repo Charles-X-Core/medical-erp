@@ -91,5 +91,13 @@
   "mark_read": "Marcar como leídas",
   "session_expired": "Sesión expirada",
   "sin_doc": "Sin documento",
-  "minutos": "minutos"
+  "minutos": "minutos",
+  "buscar": "Buscar",
+  "limpiar": "Limpiar",
+  "anterior": "Anterior",
+  "siguiente": "Siguiente",
+  "de": "de",
+  "guardando": "Guardando...",
+  "editar": "Editar",
+  "eliminar": "Eliminar"
 }
