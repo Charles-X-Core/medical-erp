@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Upload, FileSpreadsheet, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { pacienteService } from '../../services/pacienteService';
 
 export default function ExcelImport({ onResult }) {
+  const { t } = useTranslation('patients');
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -59,8 +61,8 @@ export default function ExcelImport({ onResult }) {
         ) : (
           <div className="import-panel__upload-placeholder">
             <Upload size={32} />
-            <span>Haz clic o arrastra un archivo Excel aquí</span>
-            <span className="import-panel__upload-hint">Formatos: .xlsx, .xls</span>
+            <span>{t('excel_upload_text')}</span>
+            <span className="import-panel__upload-hint">{t('excel_upload_hint')}</span>
           </div>
         )}
       </div>
@@ -68,7 +70,7 @@ export default function ExcelImport({ onResult }) {
       {file && (
         <div className="import-panel__file-detail">
           <FileSpreadsheet size={16} />
-          <span>Archivo listo para importar: <strong>{file.name}</strong></span>
+          <span>{t('file_ready')} <strong>{file.name}</strong></span>
         </div>
       )}
 
@@ -76,9 +78,9 @@ export default function ExcelImport({ onResult }) {
         <div className={`import-panel__result ${result.errores > 0 ? 'import-panel__result--error' : 'import-panel__result--success'}`}>
           {result.errores > 0 ? <AlertTriangle size={20} /> : <CheckCircle size={20} />}
           <div>
-            <strong>{result.importados} importados</strong>
-            {result.saltados > 0 && <span> · {result.saltados} saltados</span>}
-            {result.errores > 0 && <span> · {result.errores} errores</span>}
+            <strong>{t('import_count', { count: result.importados })}</strong>
+            {result.saltados > 0 && <span> · {t('skipped_count', { count: result.saltados })}</span>}
+            {result.errores > 0 && <span> · {t('error_count', { count: result.errores })}</span>}
           </div>
         </div>
       )}
@@ -87,38 +89,38 @@ export default function ExcelImport({ onResult }) {
         {file && (
           <>
             <button className="import-panel__btn import-panel__btn--secondary" onClick={handleReset} disabled={loading}>
-              Limpiar
+              {t('clear')}
             </button>
             <button className="import-panel__btn import-panel__btn--primary" onClick={handleImport} disabled={loading}>
               {loading ? <Loader2 size={18} className="import-panel__spinner" /> : <Upload size={18} />}
-              Importar
+              {t('import')}
             </button>
           </>
         )}
       </div>
 
       <div className="import-panel__format-help">
-        <h4>Formato esperado del Excel</h4>
-        <p>El archivo Excel debe tener la primera fila como encabezados. Hoja 1 será procesada. Columnas disponibles:</p>
+        <h4>{t('format_expected_excel')}</h4>
+        <p>{t('excel_format_desc')}</p>
         <div className="import-panel__columns">
-          <span className="import-panel__col import-panel__col--required">nombre completo*</span>
-          <span className="import-panel__col">correo electronico</span>
-          <span className="import-panel__col">fecha nacimiento</span>
-          <span className="import-panel__col">sexo</span>
-          <span className="import-panel__col">telefono</span>
-          <span className="import-panel__col">direccion</span>
-          <span className="import-panel__col">ciudad/estado</span>
-          <span className="import-panel__col">ocupacion</span>
-          <span className="import-panel__col">contacto de emergencia</span>
-          <span className="import-panel__col">alergias</span>
-          <span className="import-panel__col">antecedentes medicos</span>
-          <span className="import-panel__col">tipo de tratamiento</span>
-          <span className="import-panel__col">sesiones</span>
-          <span className="import-panel__col">costo</span>
-          <span className="import-panel__col">observaciones</span>
+          <span className="import-panel__col import-panel__col--required">{t('col_full_name')}</span>
+          <span className="import-panel__col">{t('col_email')}</span>
+          <span className="import-panel__col">{t('col_birth_date')}</span>
+          <span className="import-panel__col">{t('col_sex')}</span>
+          <span className="import-panel__col">{t('col_phone')}</span>
+          <span className="import-panel__col">{t('col_address')}</span>
+          <span className="import-panel__col">{t('col_city_state')}</span>
+          <span className="import-panel__col">{t('col_occupation')}</span>
+          <span className="import-panel__col">{t('col_emergency_contact')}</span>
+          <span className="import-panel__col">{t('col_allergies')}</span>
+          <span className="import-panel__col">{t('col_medical_history')}</span>
+          <span className="import-panel__col">{t('col_treatment_type')}</span>
+          <span className="import-panel__col">{t('col_sessions')}</span>
+          <span className="import-panel__col">{t('col_cost')}</span>
+          <span className="import-panel__col">{t('col_observations')}</span>
         </div>
         <p className="import-panel__format-note">
-          Los clientes duplicados (mismo email) serán saltados. Si no se proporciona licencia de conducir, se generará automáticamente como IMP-XXXX.
+          {t('duplicate_note')}
         </p>
       </div>
     </div>

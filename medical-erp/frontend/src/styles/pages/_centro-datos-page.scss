@@ -14,6 +14,7 @@ $cd-text-inverse: $light-text-inverse;
 $cd-text-secondary: $text-secondary;
 $cd-text-muted: $text-muted;
 $cd-border: $border-color;
+$cd-border-strong: $light-border-strong;
 $cd-success: $success;
 $cd-success-light: $light-success-light;
 $cd-error: $error;
@@ -270,48 +271,87 @@ $cd-shadow-lg: $shadow-lg;
 .manual-form {
   &__stepper {
     display: flex;
-    gap: $space-2;
+    gap: 0;
     margin-bottom: $space-6;
     overflow-x: auto;
     padding-bottom: $space-2;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: $cd-border;
+    }
   }
 
   &__step {
-    @include flex-center;
+    display: flex;
+    align-items: center;
     gap: $space-3;
     padding: $space-3 $space-4;
     border-radius: $radius-md;
-    background: $cd-surface;
+    background: transparent;
     cursor: default;
     min-width: 180px;
     flex-shrink: 0;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
+    position: relative;
+    border: 1px solid transparent;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: transparent;
+      border-radius: 2px 2px 0 0;
+      transition: background 0.2s ease;
+    }
 
     &--active {
       background: $cd-accent-light;
-      border: 1px solid $cd-accent-border;
+      border-color: $cd-accent-border;
+
+      &::after {
+        background: $cd-accent;
+      }
     }
 
     &--completed {
       cursor: pointer;
-      &:hover { background: $cd-card-hover; }
+
+      &:hover {
+        background: $cd-card-hover;
+      }
+
+      &::after {
+        background: $cd-success;
+      }
     }
   }
 
   &__step-number {
     @include flex-center;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: $cd-card-hover;
     color: $cd-text-secondary;
-    font-size: $fs-xs;
+    font-size: $fs-sm;
     font-weight: $fw-bold;
     flex-shrink: 0;
+    transition: all 0.2s ease;
 
     .manual-form__step--active & {
       background: $cd-accent;
       color: $cd-text-inverse;
+      box-shadow: 0 0 0 3px rgba($cd-accent, 0.2);
     }
 
     .manual-form__step--completed & {
@@ -375,10 +415,14 @@ $cd-shadow-lg: $shadow-lg;
       border-radius: $radius-md;
       font-size: $fs-sm;
       color: $cd-text-primary;
-      background: $cd-surface;
-      transition: border-color 0.15s ease;
+      background: $cd-card;
+      transition: all 0.15s ease;
       width: 100%;
       box-sizing: border-box;
+
+      &:hover {
+        border-color: $cd-border-strong;
+      }
 
       &:focus {
         outline: none;
@@ -405,6 +449,7 @@ $cd-shadow-lg: $shadow-lg;
 
   &__consentimiento-card {
     background: $cd-surface;
+    border: 1px solid $cd-border;
     border-radius: $radius-md;
     padding: $space-5;
 
@@ -431,6 +476,10 @@ $cd-shadow-lg: $shadow-lg;
         color: $cd-text-primary;
         margin-bottom: $space-2;
         line-height: 1.5;
+
+        strong {
+          color: $cd-accent;
+        }
       }
     }
   }
@@ -439,6 +488,10 @@ $cd-shadow-lg: $shadow-lg;
     font-style: italic;
     font-size: $fs-xs;
     color: $cd-text-muted;
+    padding: $space-3;
+    background: $cd-accent-light;
+    border-radius: $radius-sm;
+    border-left: 3px solid $cd-accent;
   }
 
   // ---- Footer ----
@@ -462,6 +515,7 @@ $cd-shadow-lg: $shadow-lg;
     border-radius: $radius-md;
     font-size: $fs-sm;
     margin-top: $space-4;
+    border: 1px solid rgba($cd-error, 0.2);
   }
 
   // ---- Buttons ----
@@ -479,14 +533,15 @@ $cd-shadow-lg: $shadow-lg;
     &--primary {
       background: $cd-accent;
       color: $cd-text-inverse;
-      &:hover { background: $cd-accent-hover; }
-      &:disabled { opacity: 0.5; cursor: not-allowed; }
+      &:hover { background: $cd-accent-hover; box-shadow: 0 2px 8px rgba($cd-accent, 0.3); }
+      &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
     }
 
     &--secondary {
       background: $cd-surface;
       color: $cd-text-primary;
-      &:hover { background: $cd-card-hover; }
+      border: 1px solid $cd-border;
+      &:hover { background: $cd-card-hover; border-color: $cd-border-strong; }
       &:disabled { opacity: 0.5; cursor: not-allowed; }
     }
   }
@@ -511,6 +566,11 @@ $cd-shadow-lg: $shadow-lg;
       font-size: $fs-sm;
       color: $cd-text-secondary;
       margin: 0 0 $space-6;
+
+      strong {
+        color: $cd-accent;
+        font-family: 'SFMono-Regular', Consolas, monospace;
+      }
     }
   }
 
@@ -546,10 +606,17 @@ $cd-shadow-lg: $shadow-lg;
     cursor: pointer;
     transition: all 0.2s ease;
     margin-bottom: $space-4;
+    background: $cd-card;
 
     &:hover {
       border-color: $cd-accent;
       background: $cd-accent-light;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba($cd-accent, 0.1);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 
@@ -588,11 +655,16 @@ $cd-shadow-lg: $shadow-lg;
     @include flex-center;
     gap: $space-2;
     padding: $space-3 $space-4;
-    background: $cd-surface;
+    background: $cd-accent-light;
+    border: 1px solid $cd-accent-border;
     border-radius: $radius-md;
     font-size: $fs-sm;
-    color: $cd-text-primary;
+    color: $cd-accent;
     margin-bottom: $space-4;
+
+    strong {
+      color: $cd-text-primary;
+    }
   }
 
   // ---- Preview table ----
@@ -604,6 +676,8 @@ $cd-shadow-lg: $shadow-lg;
       font-size: $fs-sm;
       font-weight: $fw-semibold;
       color: $cd-text-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
   }
 
@@ -631,6 +705,8 @@ $cd-shadow-lg: $shadow-lg;
       color: $cd-text-secondary;
       position: sticky;
       top: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
 
     td {
@@ -654,11 +730,13 @@ $cd-shadow-lg: $shadow-lg;
     &--success {
       background: $cd-success-light;
       color: #166534;
+      border: 1px solid rgba($cd-success, 0.2);
     }
 
     &--error {
       background: $cd-error-light;
       color: #991b1b;
+      border: 1px solid rgba($cd-error, 0.2);
     }
   }
 
@@ -684,14 +762,15 @@ $cd-shadow-lg: $shadow-lg;
     &--primary {
       background: $cd-accent;
       color: $cd-text-inverse;
-      &:hover { background: $cd-accent-hover; }
-      &:disabled { opacity: 0.5; cursor: not-allowed; }
+      &:hover { background: $cd-accent-hover; box-shadow: 0 2px 8px rgba($cd-accent, 0.3); }
+      &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
     }
 
     &--secondary {
       background: $cd-surface;
       color: $cd-text-primary;
-      &:hover { background: $cd-card-hover; }
+      border: 1px solid $cd-border;
+      &:hover { background: $cd-card-hover; border-color: $cd-border-strong; }
       &:disabled { opacity: 0.5; cursor: not-allowed; }
     }
   }
@@ -703,8 +782,9 @@ $cd-shadow-lg: $shadow-lg;
   // ---- Format help ----
   &__format-help {
     background: $cd-surface;
+    border: 1px solid $cd-border;
     border-radius: $radius-md;
-    padding: $space-4;
+    padding: $space-5;
 
     h4 {
       margin: 0 0 $space-2;
@@ -726,6 +806,9 @@ $cd-shadow-lg: $shadow-lg;
     flex-wrap: wrap;
     gap: $space-2;
     margin-bottom: $space-3;
+    padding: $space-3;
+    background: $cd-card;
+    border-radius: $radius-sm;
   }
 
   &__col {
@@ -736,6 +819,11 @@ $cd-shadow-lg: $shadow-lg;
     font-size: $fs-xs;
     font-family: 'SFMono-Regular', Consolas, monospace;
     color: $cd-text-primary;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: $cd-border-strong;
+    }
 
     &--required {
       border-color: $cd-accent;
@@ -748,6 +836,10 @@ $cd-shadow-lg: $shadow-lg;
   &__format-note {
     font-style: italic;
     color: $cd-text-muted;
+    padding: $space-3;
+    background: $cd-card;
+    border-radius: $radius-sm;
+    border-left: 3px solid $cd-accent;
   }
 }
 

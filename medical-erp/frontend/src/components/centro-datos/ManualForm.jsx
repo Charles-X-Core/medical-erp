@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Save, Loader2, Check } from 'lucide-react';
 import { pacienteService } from '../../services/pacienteService';
-import { useAuth } from '../../hooks/useAuth';
-import { getPrimaryRole } from '../../utils/roleUtils';
 
 const emptyData = {
   // Step 1 - Datos personales
@@ -33,21 +32,14 @@ const emptyData = {
   objetivoTratamiento: '',
 };
 
-const steps = [
-  { label: 'Datos Personales', description: 'Información básica del cliente' },
-  { label: 'Motivo de Consulta', description: 'Motivo y antecedentes' },
-  { label: 'Tratamiento', description: 'Tipo y configuración del tratamiento' },
-  { label: 'Consentimiento', description: 'Revisión de consentimientos' },
-];
-
 const sexoOptions = ['M', 'F'];
-const sexoLabels = { M: 'Masculino', F: 'Femenino' };
-const estadoCivilOptions = ['Soltero(a)', 'Casado(a)', 'Divorciado(a)', 'Viudo(a)', 'Unión libre'];
+const sexoLabelsKey = { M: 'masculino', F: 'femenino' };
+const estadoCivilOptionsKey = ['soltero', 'casado', 'divorciado', 'viudo', 'union_libre'];
 
 export default function ManualForm() {
+  const { t } = useTranslation('patients');
+  const { t: tc } = useTranslation('common');
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const primaryRole = getPrimaryRole(user);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState({ ...emptyData });
@@ -55,6 +47,21 @@ export default function ManualForm() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [createdPacienteId, setCreatedPacienteId] = useState(null);
+
+  const steps = [
+    { label: t('personal_data'), description: t('personal_data_desc') },
+    { label: t('consultation_reason'), description: t('consultation_reason_desc') },
+    { label: t('treatment'), description: t('treatment_desc') },
+    { label: t('consent'), description: t('consent_desc') },
+  ];
+
+  const estadoCivilLabels = {
+    soltero: t('soltero'),
+    casado: t('casado'),
+    divorciado: t('divorciado'),
+    viudo: t('viudo'),
+    union_libre: t('union_libre'),
+  };
 
   const update = (field, value) => setData((prev) => ({ ...prev, [field]: value }));
 
@@ -90,6 +97,11 @@ export default function ManualForm() {
         parentescoEmergencia: data.parentescoEmergencia || null,
         alergias: data.alergias || null,
         antecedentesPersonales: data.antecedentesPersonales || null,
+        // Treatment data
+        tipoTratamiento: data.tipoTratamiento || null,
+        sesionesPlaneadas: data.sesionesPlaneadas || null,
+        costoEstimado: data.costoEstimado || null,
+        objetivoTratamiento: data.objetivoTratamiento || null,
       };
 
       const res = await pacienteService.create(pacienteData);
@@ -99,7 +111,7 @@ export default function ManualForm() {
         setSaved(true);
       }
     } catch (e) {
-      setError(e.message || 'Error al guardar');
+      setError(e.message || t('error_saving'));
     } finally {
       setSaving(false);
     }
@@ -111,8 +123,8 @@ export default function ManualForm() {
         <div className="manual-form__success-icon">
           <Check size={48} />
         </div>
-        <h3>Cliente creado correctamente</h3>
-        <p>ID de licencia: <strong>{createdPacienteId ? `IMP-${String(createdPacienteId).padStart(4, '0')}` : 'N/A'}</strong></p>
+        <h3>{t('client_created')}</h3>
+        <p>{t('license_id')}: <strong>{createdPacienteId ? `IMP-${String(createdPacienteId).padStart(4, '0')}` : 'N/A'}</strong></p>
         <div className="manual-form__success-actions">
           <button className="manual-form__btn manual-form__btn--primary" onClick={() => {
             setData({ ...emptyData });
@@ -120,10 +132,10 @@ export default function ManualForm() {
             setCreatedPacienteId(null);
             setCurrentStep(0);
           }}>
-            Registrar otro cliente
+            {t('register_another')}
           </button>
           <button className="manual-form__btn manual-form__btn--secondary" onClick={() => navigate('/inicio')}>
-            Volver al inicio
+            {t('back_to_home')}
           </button>
         </div>
       </div>
@@ -152,70 +164,70 @@ export default function ManualForm() {
         {currentStep === 0 && (
           <div className="manual-form__grid manual-form__grid--2">
             <div className="manual-form__field">
-              <label>Nombres *</label>
-              <input type="text" value={data.nombres} onChange={(e) => update('nombres', e.target.value)} placeholder="Nombres completos" />
+              <label>{t('names')}</label>
+              <input type="text" value={data.nombres} onChange={(e) => update('nombres', e.target.value)} placeholder={t('full_names')} />
             </div>
             <div className="manual-form__field">
-              <label>Apellido Paterno *</label>
-              <input type="text" value={data.apellidoPaterno} onChange={(e) => update('apellidoPaterno', e.target.value)} placeholder="Apellido paterno" />
+              <label>{t('paternal_surname')}</label>
+              <input type="text" value={data.apellidoPaterno} onChange={(e) => update('apellidoPaterno', e.target.value)} placeholder={t('paternal_surname_placeholder')} />
             </div>
             <div className="manual-form__field">
-              <label>Apellido Materno</label>
-              <input type="text" value={data.apellidoMaterno} onChange={(e) => update('apellidoMaterno', e.target.value)} placeholder="Apellido materno" />
+              <label>{t('maternal_surname')}</label>
+              <input type="text" value={data.apellidoMaterno} onChange={(e) => update('apellidoMaterno', e.target.value)} placeholder={t('maternal_surname_placeholder')} />
             </div>
             <div className="manual-form__field">
-              <label>Fecha de Nacimiento</label>
+              <label>{t('birth_date')}</label>
               <input type="date" value={data.fechaNacimiento} onChange={(e) => update('fechaNacimiento', e.target.value)} />
             </div>
             <div className="manual-form__field">
-              <label>Sexo</label>
+              <label>{t('sex')}</label>
               <select value={data.sexo} onChange={(e) => update('sexo', e.target.value)}>
-                <option value="">Seleccionar</option>
+                <option value="">{t('select_option')}</option>
                 {sexoOptions.map((s) => (
-                  <option key={s} value={s}>{sexoLabels[s]}</option>
+                  <option key={s} value={s}>{t(sexoLabelsKey[s])}</option>
                 ))}
               </select>
             </div>
             <div className="manual-form__field">
-              <label>Estado Civil</label>
+              <label>{t('marital_status')}</label>
               <select value={data.estadoCivil} onChange={(e) => update('estadoCivil', e.target.value)}>
-                <option value="">Seleccionar</option>
-                {estadoCivilOptions.map((ec) => (
-                  <option key={ec} value={ec}>{ec}</option>
+                <option value="">{t('select_option')}</option>
+                {estadoCivilOptionsKey.map((ec) => (
+                  <option key={ec} value={ec}>{estadoCivilLabels[ec]}</option>
                 ))}
               </select>
             </div>
             <div className="manual-form__field">
-              <label>Teléfono</label>
-              <input type="tel" value={data.telefono} onChange={(e) => update('telefono', e.target.value)} placeholder="Teléfono" />
+              <label>{t('phone')}</label>
+              <input type="tel" value={data.telefono} onChange={(e) => update('telefono', e.target.value)} placeholder={t('phone')} />
             </div>
             <div className="manual-form__field">
-              <label>Correo Electrónico</label>
-              <input type="email" value={data.email} onChange={(e) => update('email', e.target.value)} placeholder="email@ejemplo.com" />
+              <label>{t('email')}</label>
+              <input type="email" value={data.email} onChange={(e) => update('email', e.target.value)} placeholder={t('email_placeholder')} />
             </div>
             <div className="manual-form__field manual-form__field--full">
-              <label>Dirección</label>
-              <input type="text" value={data.direccion} onChange={(e) => update('direccion', e.target.value)} placeholder="Dirección completa" />
+              <label>{t('address')}</label>
+              <input type="text" value={data.direccion} onChange={(e) => update('direccion', e.target.value)} placeholder={t('address_placeholder')} />
             </div>
             <div className="manual-form__field">
-              <label>Ciudad / Estado</label>
-              <input type="text" value={data.ciudadEstado} onChange={(e) => update('ciudadEstado', e.target.value)} placeholder="Ciudad, Estado" />
+              <label>{t('city_state')}</label>
+              <input type="text" value={data.ciudadEstado} onChange={(e) => update('ciudadEstado', e.target.value)} placeholder={t('city_state_placeholder')} />
             </div>
             <div className="manual-form__field">
-              <label>Ocupación</label>
-              <input type="text" value={data.ocupacion} onChange={(e) => update('ocupacion', e.target.value)} placeholder="Ocupación" />
+              <label>{t('occupation')}</label>
+              <input type="text" value={data.ocupacion} onChange={(e) => update('ocupacion', e.target.value)} placeholder={t('occupation')} />
             </div>
             <div className="manual-form__field">
-              <label>Contacto de Emergencia</label>
-              <input type="text" value={data.contactoEmergencia} onChange={(e) => update('contactoEmergencia', e.target.value)} placeholder="Nombre del contacto" />
+              <label>{t('emergency_contact')}</label>
+              <input type="text" value={data.contactoEmergencia} onChange={(e) => update('contactoEmergencia', e.target.value)} placeholder={t('emergency_contact_placeholder')} />
             </div>
             <div className="manual-form__field">
-              <label>Tel. Emergencia</label>
-              <input type="tel" value={data.telefonoEmergencia} onChange={(e) => update('telefonoEmergencia', e.target.value)} placeholder="Teléfono de emergencia" />
+              <label>{t('emergency_phone')}</label>
+              <input type="tel" value={data.telefonoEmergencia} onChange={(e) => update('telefonoEmergencia', e.target.value)} placeholder={t('emergency_phone_placeholder')} />
             </div>
             <div className="manual-form__field">
-              <label>Parentesco</label>
-              <input type="text" value={data.parentescoEmergencia} onChange={(e) => update('parentescoEmergencia', e.target.value)} placeholder="Parentesco" />
+              <label>{t('relationship')}</label>
+              <input type="text" value={data.parentescoEmergencia} onChange={(e) => update('parentescoEmergencia', e.target.value)} placeholder={t('relationship_placeholder')} />
             </div>
           </div>
         )}
@@ -223,20 +235,20 @@ export default function ManualForm() {
         {currentStep === 1 && (
           <div className="manual-form__grid manual-form__grid--2">
             <div className="manual-form__field manual-form__field--full">
-              <label>Motivo de Consulta *</label>
-              <textarea value={data.motivoConsulta} onChange={(e) => update('motivoConsulta', e.target.value)} rows={3} placeholder="Describir el motivo de la consulta..." />
+              <label>{t('consultation_reason_label')}</label>
+              <textarea value={data.motivoConsulta} onChange={(e) => update('motivoConsulta', e.target.value)} rows={3} placeholder={t('consultation_reason_placeholder')} />
             </div>
             <div className="manual-form__field manual-form__field--full">
-              <label>Observaciones</label>
-              <textarea value={data.observaciones} onChange={(e) => update('observaciones', e.target.value)} rows={3} placeholder="Observaciones adicionales..." />
+              <label>{t('observations')}</label>
+              <textarea value={data.observaciones} onChange={(e) => update('observaciones', e.target.value)} rows={3} placeholder={t('observations_placeholder')} />
             </div>
             <div className="manual-form__field manual-form__field--full">
-              <label>Alergias</label>
-              <textarea value={data.alergias} onChange={(e) => update('alergias', e.target.value)} rows={2} placeholder="Describir alergias conocidas..." />
+              <label>{t('allergies_label')}</label>
+              <textarea value={data.alergias} onChange={(e) => update('alergias', e.target.value)} rows={2} placeholder={t('allergies_placeholder')} />
             </div>
             <div className="manual-form__field manual-form__field--full">
-              <label>Antecedentes Personales</label>
-              <textarea value={data.antecedentesPersonales} onChange={(e) => update('antecedentesPersonales', e.target.value)} rows={3} placeholder="Antecedentes médicos relevantes..." />
+              <label>{t('personal_background')}</label>
+              <textarea value={data.antecedentesPersonales} onChange={(e) => update('antecedentesPersonales', e.target.value)} rows={3} placeholder={t('personal_background_placeholder')} />
             </div>
           </div>
         )}
@@ -244,20 +256,20 @@ export default function ManualForm() {
         {currentStep === 2 && (
           <div className="manual-form__grid manual-form__grid--2">
             <div className="manual-form__field">
-              <label>Tipo de Tratamiento *</label>
-              <input type="text" value={data.tipoTratamiento} onChange={(e) => update('tipoTratamiento', e.target.value)} placeholder="Ej: Quiropráctico, Naturopatía" />
+              <label>{t('treatment_type')}</label>
+              <input type="text" value={data.tipoTratamiento} onChange={(e) => update('tipoTratamiento', e.target.value)} placeholder={t('treatment_type_placeholder')} />
             </div>
             <div className="manual-form__field">
-              <label>Sesiones Planeadas</label>
+              <label>{t('planned_sessions')}</label>
               <input type="number" min="1" max="100" value={data.sesionesPlaneadas} onChange={(e) => update('sesionesPlaneadas', parseInt(e.target.value) || 1)} />
             </div>
             <div className="manual-form__field">
-              <label>Costo Estimado ($)</label>
-              <input type="number" min="0" step="0.01" value={data.costoEstimado} onChange={(e) => update('costoEstimado', e.target.value)} placeholder="0.00" />
+              <label>{t('estimated_cost')}</label>
+              <input type="number" min="0" step="0.01" value={data.costoEstimado} onChange={(e) => update('costoEstimado', e.target.value)} placeholder={t('cost_placeholder')} />
             </div>
             <div className="manual-form__field manual-form__field--full">
-              <label>Objetivo del Tratamiento</label>
-              <textarea value={data.objetivoTratamiento} onChange={(e) => update('objetivoTratamiento', e.target.value)} rows={3} placeholder="Describir el objetivo del tratamiento..." />
+              <label>{t('treatment_objective')}</label>
+              <textarea value={data.objetivoTratamiento} onChange={(e) => update('objetivoTratamiento', e.target.value)} rows={3} placeholder={t('treatment_objective_placeholder')} />
             </div>
           </div>
         )}
@@ -265,16 +277,16 @@ export default function ManualForm() {
         {currentStep === 3 && (
           <div className="manual-form__consentimiento-info">
             <div className="manual-form__consentimiento-card">
-              <h4>Consentimientos</h4>
-              <p>Los consentimientos se generarán automáticamente cuando se inicie la primera sesión de atención del cliente.</p>
-              <p>Tipos de consentimiento disponibles:</p>
+              <h4>{t('consent_title')}</h4>
+              <p>{t('consent_desc_text')}</p>
+              <p>{t('consent_types')}</p>
               <ul>
-                <li><strong>TRATAMIENTO</strong> — Autorización del tratamiento propuesto</li>
-                <li><strong>PRIVACIDAD</strong> — Aviso de privacidad y manejo de datos</li>
-                <li><strong>INFORMADO</strong> — Consentimiento informado para procedimientos</li>
+                <li><strong>TRATAMIENTO</strong> — {t('consent_treatment')}</li>
+                <li><strong>PRIVACIDAD</strong> — {t('consent_privacy')}</li>
+                <li><strong>INFORMADO</strong> — {t('consent_informed')}</li>
               </ul>
               <p className="manual-form__consentimiento-note">
-                Los consentimientos se pueden firmar digitalmente desde la vista del cliente en el kiosco o tablet.
+                {t('consent_note')}
               </p>
             </div>
           </div>
@@ -289,7 +301,7 @@ export default function ManualForm() {
           disabled={!canPrev() || saving}
           onClick={() => setCurrentStep((s) => s - 1)}
         >
-          <ChevronLeft size={18} /> Anterior
+          <ChevronLeft size={18} /> {t('prev')}
         </button>
         <div className="manual-form__footer-right">
           {currentStep < steps.length - 1 ? (
@@ -298,7 +310,7 @@ export default function ManualForm() {
               disabled={!canNext()}
               onClick={() => setCurrentStep((s) => s + 1)}
             >
-              Siguiente <ChevronRight size={18} />
+              {t('next')} <ChevronRight size={18} />
             </button>
           ) : (
             <button
@@ -307,7 +319,7 @@ export default function ManualForm() {
               onClick={handleSave}
             >
               {saving ? <Loader2 size={18} className="manual-form__spinner" /> : <Save size={18} />}
-              Guardar Cliente
+              {t('save_client')}
             </button>
           )}
         </div>
