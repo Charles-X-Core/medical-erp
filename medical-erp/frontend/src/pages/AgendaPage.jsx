@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CalendarDays, ChevronLeft, ChevronRight, Loader2, Clock, Users,
   AlertTriangle, LayoutGrid, List, Settings, Plus, Trash2, Save,
@@ -26,9 +27,18 @@ const SLOT_DURACION = 30;
 const PX_PER_MIN_WEEKLY = 2;
 const PX_PER_MIN_DAILY = 2.67;
 const DIAS_LABORALES = [1, 2, 3, 4, 5, 6, 0];
-const DIAS_LABELS = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
-const DIAS_LABELS_FULL = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
-const MESES_LABELS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+function getDiasLabels(t) {
+  return [t('dia_label_dom'), t('dia_label_lun'), t('dia_label_mar'), t('dia_label_mie'), t('dia_label_jue'), t('dia_label_vie'), t('dia_label_sab')];
+}
+
+function getDiasLabelsFull(t) {
+  return [t('day_sunday'), t('day_monday'), t('day_tuesday'), t('day_wednesday'), t('day_thursday'), t('day_friday'), t('day_saturday')];
+}
+
+function getMesesLabels(t) {
+  return [t('month_enero'), t('month_febrero'), t('month_marzo'), t('month_abril'), t('month_mayo'), t('month_junio'), t('month_julio'), t('month_agosto'), t('month_septiembre'), t('month_octubre'), t('month_noviembre'), t('month_diciembre')];
+}
 
 function getStartOfWeek(date) {
   const d = new Date(date);
@@ -74,8 +84,8 @@ function getSlotBorder(estado) {
   return map[estado] || 'none';
 }
 
-function getSlotLabel(estado) {
-  const map = { DISPONIBLE: 'Disponible', OCUPADO: 'Ocupado', BLOQUEADO: 'Bloqueado', EN_BUFFER: 'Buffer', INSUFICIENTE: 'Insuficiente' };
+function getSlotLabel(estado, t) {
+  const map = { DISPONIBLE: t('disponible'), OCUPADO: t('ocupado_label'), BLOQUEADO: t('bloqueado_label'), EN_BUFFER: t('buffer_label'), INSUFICIENTE: t('insuficiente_label') };
   return map[estado] || estado;
 }
 
@@ -84,8 +94,8 @@ function getSlotLabelColor(estado) {
   return map[estado] || '#6B7D95';
 }
 
-function getEstadoLabel(estado) {
-  const map = { solicitada: 'Solicitada', pendiente: 'Pendiente', programada: 'Programada', confirmada: 'Confirmada', asistio: 'Asistio', llegada: 'Llegó', completada: 'Completada', cancelada: 'Cancelada', reprogramada: 'Reprogramada', no_show: 'No Asistio' };
+function getEstadoLabel(estado, t) {
+  const map = { solicitada: t('solicitada'), pendiente: t('pendiente'), programada: t('programada'), confirmada: t('confirmada'), asistio: t('asistio'), llegada: t('status_llegada'), completada: t('completada'), cancelada: t('cancelada'), reprogramada: t('reprogramada'), no_show: t('no_asistio') };
   return map[estado] || estado;
 }
 
@@ -191,6 +201,7 @@ function DroppableCell({ dateKey, hour, children }) {
 
 // --- Notifications Panel (dropdown) ---
 function NotificationsPanel() {
+  const { t } = useTranslation('agenda');
   const [notificaciones, setNotificaciones] = useState([]);
   const [conteo, setConteo] = useState(0);
   const [open, setOpen] = useState(false);
@@ -221,16 +232,16 @@ function NotificationsPanel() {
       {open && (
         <div className="notificaciones-panel__dropdown">
           <div className="notificaciones-panel__header">
-            <span>Notificaciones</span>
+            <span>{t('notificaciones')}</span>
             {conteo > 0 && (
               <button className="notificaciones-panel__mark-all" onClick={handleMarcarTodas}>
-                <CheckCheck size={14} /> Marcar todas leidas
+                <CheckCheck size={14} /> {t('marcar_todas_leidas')}
               </button>
             )}
           </div>
           <div className="notificaciones-panel__list">
             {notificaciones.length === 0 ? (
-              <div className="notificaciones-panel__empty">Sin notificaciones nuevas</div>
+              <div className="notificaciones-panel__empty">{t('sin_notificaciones')}</div>
             ) : (
               notificaciones.map((n) => (
                 <div key={n.id} className="notificaciones-panel__item">
@@ -252,6 +263,7 @@ function NotificationsPanel() {
 
 // --- Config Tab ---
 function ConfigTab({ agendaId, usuarioId }) {
+  const { t } = useTranslation('agenda');
   const [activeConfigTab, setActiveConfigTab] = useState('disponibilidad');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -262,6 +274,8 @@ function ConfigTab({ agendaId, usuarioId }) {
   const [newBloqueo, setNewBloqueo] = useState({ fechaInicio: '', horaInicio: '08:00', fechaFin: '', horaFin: '09:00', motivo: '' });
   const [expandedBloqueo, setExpandedBloqueo] = useState(null);
   const [newTipo, setNewTipo] = useState({ nombre: '', duracionMinutos: 30, bufferMinutos: 0, prioridadDefault: 'NORMAL', requiereTratamiento: false, descripcion: '' });
+
+  const DIAS_LABELS_SHORT = useMemo(() => getDiasLabels(t), [t]);
 
   useEffect(() => {
     const load = async () => {
@@ -286,18 +300,16 @@ function ConfigTab({ agendaId, usuarioId }) {
   const handleSaveDisponibilidades = async () => {
     setSaving(true); setMsg({ type: '', text: '' });
     try {
-      // Normalize time format: ensure "HH:mm" (no seconds)
       const normalized = disponibilidades.map((d) => ({
         diaSemana: d.diaSemana,
         horaInicio: String(d.horaInicio).substring(0, 5),
         horaFin: String(d.horaFin).substring(0, 5),
       }));
 
-      // Frontend validation: check for invalid times and overlaps
       for (const d of normalized) {
         if (d.horaInicio >= d.horaFin) {
-          const diaLabel = ['Dom','Lun','Mar','Mie','Jue','Vie','Sat'][d.diaSemana];
-          setMsg({ type: 'error', text: `En ${diaLabel}: la hora fin (${d.horaFin}) debe ser posterior a la hora inicio (${d.horaInicio})` });
+          const diaLabel = DIAS_LABELS_SHORT[d.diaSemana];
+          setMsg({ type: 'error', text: `${t('en_dia', { dia: diaLabel })} ${t('hora_fin_posterior', { horaInicio: d.horaInicio, horaFin: d.horaFin })}` });
           setSaving(false);
           return;
         }
@@ -306,8 +318,8 @@ function ConfigTab({ agendaId, usuarioId }) {
         for (let j = i + 1; j < normalized.length; j++) {
           if (normalized[i].diaSemana === normalized[j].diaSemana) {
             if (normalized[i].horaInicio < normalized[j].horaFin && normalized[j].horaInicio < normalized[i].horaFin) {
-              const diaLabel = ['Dom','Lun','Mar','Mie','Jue','Vie','Sat'][normalized[i].diaSemana];
-              setMsg({ type: 'error', text: `En ${diaLabel}: los horarios se superponen` });
+              const diaLabel = DIAS_LABELS_SHORT[normalized[i].diaSemana];
+              setMsg({ type: 'error', text: `${t('en_dia', { dia: diaLabel })} ${t('horas_superponen')}` });
               setSaving(false);
               return;
             }
@@ -316,9 +328,9 @@ function ConfigTab({ agendaId, usuarioId }) {
       }
 
       const res = await agendaService.updateDisponibilidades(agendaId, normalized);
-      if (res.success) setMsg({ type: 'success', text: 'Disponibilidades guardadas' });
-      else setMsg({ type: 'error', text: res.message || 'Error al guardar' });
-    } catch { setMsg({ type: 'error', text: 'Error de conexion' }); }
+      if (res.success) setMsg({ type: 'success', text: t('disponibilidades_guardadas') });
+      else setMsg({ type: 'error', text: res.message || t('error_guardar_slot') });
+    } catch { setMsg({ type: 'error', text: t('error_conexion') }); }
     setSaving(false);
   };
 
@@ -367,17 +379,17 @@ function ConfigTab({ agendaId, usuarioId }) {
 
   const handleDeleteTipo = async (id) => {
     await agendaService.eliminarTipoCita(id);
-    setTiposCita(tiposCita.filter((t) => t.id !== id));
+    setTiposCita(tiposCita.filter((tipo) => tipo.id !== id));
   };
 
-  if (loading) return <div className="agenda-page__loading"><Loader2 size={24} className="spinner" /><p>Cargando configuracion...</p></div>;
+  if (loading) return <div className="agenda-page__loading"><Loader2 size={24} className="spinner" /><p>{t('cargando_config')}</p></div>;
 
   return (
     <div className="agenda-config">
       <div className="agenda-config__tabs">
-        <button className={`agenda-config__tab ${activeConfigTab === 'disponibilidad' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('disponibilidad')}>Mi Disponibilidad</button>
-        <button className={`agenda-config__tab ${activeConfigTab === 'bloqueos' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('bloqueos')}>Mis Bloqueos</button>
-        <button className={`agenda-config__tab ${activeConfigTab === 'tipos' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('tipos')}>Mis Tipos de Cita</button>
+        <button className={`agenda-config__tab ${activeConfigTab === 'disponibilidad' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('disponibilidad')}>{t('mi_disponibilidad')}</button>
+        <button className={`agenda-config__tab ${activeConfigTab === 'bloqueos' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('bloqueos')}>{t('mis_bloqueos')}</button>
+        <button className={`agenda-config__tab ${activeConfigTab === 'tipos' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('tipos')}>{t('mis_tipos_cita')}</button>
       </div>
 
       {msg.text && <div className={`agenda-config__msg agenda-config__msg--${msg.type}`}>{msg.text}</div>}
@@ -385,53 +397,56 @@ function ConfigTab({ agendaId, usuarioId }) {
       {activeConfigTab === 'disponibilidad' && (
         <div className="agenda-config__section">
           <div className="agenda-config__section-header">
-            <h3>Horario Semanal</h3>
+            <h3>{t('horario_semanal')}</h3>
             <button className="agenda-config__save-btn" onClick={handleSaveDisponibilidades} disabled={saving}>
-              <Save size={16} /> {saving ? 'Guardando...' : 'Guardar'}
+              <Save size={16} /> {saving ? t('guardando') : t('guardar')}
             </button>
           </div>
           <div className="agenda-config__grid">
-            {DIAS_LABORALES.map((dia) => (
-              <div key={dia} className="agenda-config__day">
-                <div className="agenda-config__day-header">{DIAS_LABELS_FULL[dia]}</div>
-                <div className="agenda-config__day-slots">
-                  {disponibilidades.filter((d) => d.diaSemana === dia).map((slot, idx) => {
-                    const globalIdx = disponibilidades.indexOf(slot);
-                    return (
-                      <div key={idx} className="agenda-config__slot-row">
-                        <input type="time" value={slot.horaInicio} onChange={(e) => updateSlot(globalIdx, 'horaInicio', e.target.value)} className="agenda-config__time-input" />
-                        <span>-</span>
-                        <input type="time" value={slot.horaFin} onChange={(e) => updateSlot(globalIdx, 'horaFin', e.target.value)} className="agenda-config__time-input" />
-                        <button className="agenda-config__slot-remove" onClick={() => removeSlot(globalIdx)}><Trash2 size={14} /></button>
-                      </div>
-                    );
-                  })}
-                  {disponibilidades.filter((d) => d.diaSemana === dia).length === 0 && (
-                    <span className="agenda-config__day-empty">Sin horario</span>
-                  )}
-                  <button className="agenda-config__add-btn" onClick={() => addSlot(dia)}><Plus size={14} /> Agregar</button>
+            {DIAS_LABORALES.map((dia) => {
+              const DIAS_LABELS_FULL = getDiasLabelsFull(t);
+              return (
+                <div key={dia} className="agenda-config__day">
+                  <div className="agenda-config__day-header">{DIAS_LABELS_FULL[dia]}</div>
+                  <div className="agenda-config__day-slots">
+                    {disponibilidades.filter((d) => d.diaSemana === dia).map((slot, idx) => {
+                      const globalIdx = disponibilidades.indexOf(slot);
+                      return (
+                        <div key={idx} className="agenda-config__slot-row">
+                          <input type="time" value={slot.horaInicio} onChange={(e) => updateSlot(globalIdx, 'horaInicio', e.target.value)} className="agenda-config__time-input" />
+                          <span>-</span>
+                          <input type="time" value={slot.horaFin} onChange={(e) => updateSlot(globalIdx, 'horaFin', e.target.value)} className="agenda-config__time-input" />
+                          <button className="agenda-config__slot-remove" onClick={() => removeSlot(globalIdx)}><Trash2 size={14} /></button>
+                        </div>
+                      );
+                    })}
+                    {disponibilidades.filter((d) => d.diaSemana === dia).length === 0 && (
+                      <span className="agenda-config__day-empty">{t('sin_horario')}</span>
+                    )}
+                    <button className="agenda-config__add-btn" onClick={() => addSlot(dia)}><Plus size={14} /> {t('agregar')}</button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
       {activeConfigTab === 'bloqueos' && (
         <div className="agenda-config__section">
-          <h3>Bloqueos de Tiempo</h3>
+          <h3>{t('bloqueos_tiempo')}</h3>
           <div className="agenda-config__bloqueo-form">
             <div className="agenda-config__bloqueo-fields">
-              <div className="agenda-config__field"><label>Inicio</label><input type="date" value={newBloqueo.fechaInicio} onChange={(e) => setNewBloqueo({ ...newBloqueo, fechaInicio: e.target.value })} className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>Hora</label><input type="time" value={newBloqueo.horaInicio} onChange={(e) => setNewBloqueo({ ...newBloqueo, horaInicio: e.target.value })} className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>Fin</label><input type="date" value={newBloqueo.fechaFin} onChange={(e) => setNewBloqueo({ ...newBloqueo, fechaFin: e.target.value })} className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>Hora</label><input type="time" value={newBloqueo.horaFin} onChange={(e) => setNewBloqueo({ ...newBloqueo, horaFin: e.target.value })} className="agenda-config__input" /></div>
+              <div className="agenda-config__field"><label>{t('inicio')}</label><input type="date" value={newBloqueo.fechaInicio} onChange={(e) => setNewBloqueo({ ...newBloqueo, fechaInicio: e.target.value })} className="agenda-config__input" /></div>
+              <div className="agenda-config__field"><label>{t('hora')}</label><input type="time" value={newBloqueo.horaInicio} onChange={(e) => setNewBloqueo({ ...newBloqueo, horaInicio: e.target.value })} className="agenda-config__input" /></div>
+              <div className="agenda-config__field"><label>{t('fin')}</label><input type="date" value={newBloqueo.fechaFin} onChange={(e) => setNewBloqueo({ ...newBloqueo, fechaFin: e.target.value })} className="agenda-config__input" /></div>
+              <div className="agenda-config__field"><label>{t('hora')}</label><input type="time" value={newBloqueo.horaFin} onChange={(e) => setNewBloqueo({ ...newBloqueo, horaFin: e.target.value })} className="agenda-config__input" /></div>
             </div>
             <div className="agenda-config__field" style={{ gridColumn: '1 / -1' }}>
-              <label>Motivo</label>
-              <input type="text" value={newBloqueo.motivo} onChange={(e) => setNewBloqueo({ ...newBloqueo, motivo: e.target.value })} placeholder="Ej: Almuerzo, Reunion..." className="agenda-config__input" />
+              <label>{t('motivo')}</label>
+              <input type="text" value={newBloqueo.motivo} onChange={(e) => setNewBloqueo({ ...newBloqueo, motivo: e.target.value })} placeholder={t('ej_almuerzo')} className="agenda-config__input" />
             </div>
-            <button className="agenda-config__save-btn" onClick={handleCreateBloqueo}><Plus size={16} /> Agregar Bloqueo</button>
+            <button className="agenda-config__save-btn" onClick={handleCreateBloqueo}><Plus size={16} /> {t('agregar_bloqueo')}</button>
           </div>
           <div className="agenda-config__bloqueos-list">
             {bloqueos.map((b) => (
@@ -439,48 +454,48 @@ function ConfigTab({ agendaId, usuarioId }) {
                 <div className="agenda-config__bloqueo-header" onClick={() => setExpandedBloqueo(expandedBloqueo === b.id ? null : b.id)}>
                   <span>{b.fechaInicio?.replace('T', ' ')} - {b.fechaFin?.replace('T', ' ')}</span>
                   <div className="agenda-config__bloqueo-actions">
-                    <span className="agenda-config__bloqueo-motivo">{b.motivo || 'Sin motivo'}</span>
+                    <span className="agenda-config__bloqueo-motivo">{b.motivo || t('sin_motivo')}</span>
                     <button className="agenda-config__slot-remove" onClick={(e) => { e.stopPropagation(); handleDeleteBloqueo(b.id); }}><Trash2 size={14} /></button>
                     {expandedBloqueo === b.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                   </div>
                 </div>
               </div>
             ))}
-            {bloqueos.length === 0 && <p className="agenda-config__empty-text">Sin bloqueos registrados</p>}
+            {bloqueos.length === 0 && <p className="agenda-config__empty-text">{t('sin_bloqueos_registrados')}</p>}
           </div>
         </div>
       )}
 
       {activeConfigTab === 'tipos' && (
         <div className="agenda-config__section">
-          <h3>Mis Tipos de Cita</h3>
+          <h3>{t('mis_tipos_cita')}</h3>
           <div className="agenda-config__bloqueo-form">
             <div className="agenda-config__bloqueo-fields">
-              <div className="agenda-config__field"><label>Nombre</label><input type="text" value={newTipo.nombre} onChange={(e) => setNewTipo({ ...newTipo, nombre: e.target.value })} placeholder="Ej: Consulta General" className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>Duracion (min)</label><input type="number" value={newTipo.duracionMinutos} onChange={(e) => setNewTipo({ ...newTipo, duracionMinutos: parseInt(e.target.value) || 30 })} min="15" max="480" className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>Buffer (min)</label><input type="number" value={newTipo.bufferMinutos} onChange={(e) => setNewTipo({ ...newTipo, bufferMinutos: parseInt(e.target.value) || 0 })} min="0" max="60" className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>Prioridad</label>
+              <div className="agenda-config__field"><label>{t('nombre')}</label><input type="text" value={newTipo.nombre} onChange={(e) => setNewTipo({ ...newTipo, nombre: e.target.value })} placeholder={t('ej_consulta_general')} className="agenda-config__input" /></div>
+              <div className="agenda-config__field"><label>{t('duracion_min')}</label><input type="number" value={newTipo.duracionMinutos} onChange={(e) => setNewTipo({ ...newTipo, duracionMinutos: parseInt(e.target.value) || 30 })} min="15" max="480" className="agenda-config__input" /></div>
+              <div className="agenda-config__field"><label>{t('buffer_min')}</label><input type="number" value={newTipo.bufferMinutos} onChange={(e) => setNewTipo({ ...newTipo, bufferMinutos: parseInt(e.target.value) || 0 })} min="0" max="60" className="agenda-config__input" /></div>
+              <div className="agenda-config__field"><label>{t('prioridad')}</label>
                 <select value={newTipo.prioridadDefault} onChange={(e) => setNewTipo({ ...newTipo, prioridadDefault: e.target.value })} className="agenda-config__input">
-                  <option value="NORMAL">Normal</option>
-                  <option value="ALTA">Alta</option>
-                  <option value="URGENTE">Urgente</option>
+                  <option value="NORMAL">{t('normal')}</option>
+                  <option value="ALTA">{t('alta')}</option>
+                  <option value="URGENTE">{t('urgente')}</option>
                 </select>
               </div>
             </div>
             <div className="agenda-config__field" style={{ gridColumn: '1 / -1' }}>
-              <label>Descripcion</label>
-              <input type="text" value={newTipo.descripcion} onChange={(e) => setNewTipo({ ...newTipo, descripcion: e.target.value })} placeholder="Descripcion breve..." className="agenda-config__input" />
+              <label>{t('descripcion')}</label>
+              <input type="text" value={newTipo.descripcion} onChange={(e) => setNewTipo({ ...newTipo, descripcion: e.target.value })} placeholder={t('descripcion_placeholder')} className="agenda-config__input" />
             </div>
-            <button className="agenda-config__save-btn" onClick={handleCreateTipo}><Plus size={16} /> Crear Tipo</button>
+            <button className="agenda-config__save-btn" onClick={handleCreateTipo}><Plus size={16} /> {t('crear_tipo')}</button>
           </div>
           <div className="agenda-config__bloqueos-list">
-            {tiposCita.map((t) => (
-              <div key={t.id} className="agenda-config__bloqueo-card">
+            {tiposCita.map((tipo) => (
+              <div key={tipo.id} className="agenda-config__bloqueo-card">
                 <div className="agenda-config__bloqueo-header">
-                  <span>{t.nombre} - {t.duracionMinutos}min {t.bufferMinutos > 0 ? `+ ${t.bufferMinutos}min buffer` : ''}</span>
+                  <span>{tipo.nombre} - {tipo.duracionMinutos}min {tipo.bufferMinutos > 0 ? `+ ${tipo.bufferMinutos}min ${t('buffer_min_label')}` : ''}</span>
                   <div className="agenda-config__bloqueo-actions">
-                    <span className="agenda-config__bloqueo-motivo">{t.prioridadDefault || 'Normal'}</span>
-                    <button className="agenda-config__slot-remove" onClick={() => handleDeleteTipo(t.id)}><Trash2 size={14} /></button>
+                    <span className="agenda-config__bloqueo-motivo">{tipo.prioridadDefault || t('normal')}</span>
+                    <button className="agenda-config__slot-remove" onClick={() => handleDeleteTipo(tipo.id)}><Trash2 size={14} /></button>
                   </div>
                 </div>
               </div>
@@ -494,6 +509,7 @@ function ConfigTab({ agendaId, usuarioId }) {
 
 // --- Reajuste Modal ---
 function ReajusteModal({ cita, conflictos, fecha, horaActual, todasLasCitas, onConfirm, onCancel }) {
+  const { t } = useTranslation('agenda');
   const [horaSeleccionada, setHoraSeleccionada] = useState(horaActual);
 
   const latestConflictEnd = useMemo(() => {
@@ -541,17 +557,21 @@ function ReajusteModal({ cita, conflictos, fecha, horaActual, todasLasCitas, onC
   const finM = finMin % 60;
   const horaFinStr = `${String(finH).padStart(2, '0')}:${String(finM).padStart(2, '0')}`;
 
+  const conflictLabel = conflictos.length === 1
+    ? t('conflicto_cita', { count: conflictos.length })
+    : t('conflicto_citas', { count: conflictos.length });
+
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal-content reajuste-modal" onClick={e => e.stopPropagation()}>
         <div className="reajuste-modal__header">
-          <h3><AlertCircle size={20} /> Ajustar Horario</h3>
+          <h3><AlertCircle size={20} /> {t('ajustar_horario')}</h3>
           <button className="reajuste-modal__close" onClick={onCancel}><X size={20} /></button>
         </div>
         <div className="reajuste-modal__body">
           <div className="reajuste-modal__conflict-info">
             <AlertTriangle size={16} />
-            <span>Hay conflicto con {conflictos.length} cita{conflictos.length > 1 ? 's' : ''}:</span>
+            <span>{conflictLabel}</span>
           </div>
           {conflictos.map(c => (
             <div key={c.id} className="reajuste-modal__conflict-item">
@@ -564,11 +584,11 @@ function ReajusteModal({ cita, conflictos, fecha, horaActual, todasLasCitas, onC
             </div>
           ))}
           <div className="reajuste-modal__field">
-            <label><Clock size={14} /> Nueva hora para {cita.pacienteNombre}</label>
+            <label><Clock size={14} /> {t('nueva_hora_para', { nombre: cita.pacienteNombre })}</label>
             {horas.length === 0 ? (
               <div className="reajuste-modal__slots-empty">
                 <AlertCircle size={16} />
-                <span>No hay horarios disponibles en esta celda</span>
+                <span>{t('sin_horarios_disp_celda')}</span>
               </div>
             ) : (
               <select value={horaSeleccionada} onChange={e => setHoraSeleccionada(e.target.value)}>
@@ -583,13 +603,13 @@ function ReajusteModal({ cita, conflictos, fecha, horaActual, todasLasCitas, onC
           </div>
         </div>
         <div className="reajuste-modal__footer">
-          <button className="btn btn--ghost" onClick={onCancel}>Cancelar</button>
+          <button className="btn btn--ghost" onClick={onCancel}>{t('cancel')}</button>
           <button
             className="btn btn--primary"
             onClick={() => onConfirm(horaSeleccionada)}
             disabled={horas.length === 0}
           >
-            Confirmar Horario
+            {t('confirmar_horario')}
           </button>
         </div>
       </div>
@@ -599,6 +619,7 @@ function ReajusteModal({ cita, conflictos, fecha, horaActual, todasLasCitas, onC
 
 // --- Main AgendaPage ---
 export default function AgendaPage() {
+  const { t } = useTranslation('agenda');
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -620,6 +641,10 @@ export default function AgendaPage() {
   const hours = useMemo(() => generateHours(), []);
   const daySlots = useMemo(() => generateDaySlots(), []);
 
+  const DIAS_LABELS = useMemo(() => getDiasLabels(t), [t]);
+  const DIAS_LABELS_FULL = useMemo(() => getDiasLabelsFull(t), [t]);
+  const MESES_LABELS = useMemo(() => getMesesLabels(t), [t]);
+
   const weekStart = useMemo(() => getStartOfWeek(currentDate), [currentDate]);
   const weekEnd = useMemo(() => {
     const d = new Date(weekStart);
@@ -637,14 +662,15 @@ export default function AgendaPage() {
   const weekLabel = useMemo(() => {
     const start = weekDays[0]; const end = weekDays[4];
     const sm = MESES_LABELS[start.getMonth()]; const em = MESES_LABELS[end.getMonth()];
-    if (start.getMonth() === end.getMonth()) return `${start.getDate()} - ${end.getDate()} de ${sm} ${start.getFullYear()}`;
+    const de = t('de');
+    if (start.getMonth() === end.getMonth()) return `${start.getDate()} - ${end.getDate()} ${de} ${sm} ${start.getFullYear()}`;
     return `${start.getDate()} ${sm} - ${end.getDate()} ${em} ${start.getFullYear()}`;
-  }, [weekDays]);
+  }, [weekDays, MESES_LABELS, t]);
 
   const dayLabel = useMemo(() => {
     const d = currentDate;
-    return `${DIAS_LABELS[d.getDay()]} ${d.getDate()} de ${MESES_LABELS[d.getMonth()]} ${d.getFullYear()}`;
-  }, [currentDate]);
+    return `${DIAS_LABELS[d.getDay()]} ${d.getDate()} ${t('de')} ${MESES_LABELS[d.getMonth()]} ${d.getFullYear()}`;
+  }, [currentDate, DIAS_LABELS, MESES_LABELS, t]);
 
   const loadWeek = useCallback(async () => {
     try {
@@ -656,9 +682,9 @@ export default function AgendaPage() {
       const allCitas = citasRes.filter((r) => r.success).flatMap((r) => r.data?.content || r.data || []);
       setCitas(allCitas);
       if (slotsRes.success) setWeekSlots(slotsRes.data || []);
-    } catch { setError('Error al cargar la agenda'); }
+    } catch { setError(t('error_agenda')); }
     finally { setLoading(false); }
-  }, [weekDays, weekStart, weekEnd, user?.id]);
+  }, [weekDays, weekStart, weekEnd, user?.id, t]);
 
   const loadSlots = useCallback(async () => {
     try {
@@ -729,7 +755,7 @@ export default function AgendaPage() {
 
     const now = new Date();
     const today = now.toISOString().split('T')[0];
-    if (newDateKey < today) { setError('No se puede mover una cita a una fecha pasada'); return; }
+    if (newDateKey < today) { setError(t('fecha_pasada_label')); return; }
 
     const duracion = cita.duracionMinutos || 30;
     const newStartMin = parseTime(newHora);
@@ -753,11 +779,11 @@ export default function AgendaPage() {
       await agendaService.updateCita(cita.id, {
         pacienteId: cita.pacienteId, usuarioId: cita.usuarioId,
         fecha: newDateKey, hora: newHora + ':00',
-        duracionMinutos: duracion, motivo: cita.motivo || 'Reprogramada',
+        duracionMinutos: duracion, motivo: cita.motivo || t('reprogramada'),
         tipoCitaId: cita.tipoCitaId, prioridad: cita.prioridad, notas: cita.notas,
       });
       loadWeek();
-    } catch { setError('Error al mover cita'); }
+    } catch { setError(t('error_mover')); }
   };
 
   const handleResizeCita = async (cita, nuevaDuracion) => {
@@ -774,7 +800,7 @@ export default function AgendaPage() {
         notas: cita.notas,
       });
       loadWeek();
-    } catch { setError('Error al cambiar duración'); }
+    } catch { setError(t('error_duracion')); }
   };
 
   const handleReajusteConfirm = async (nuevaHora) => {
@@ -784,7 +810,7 @@ export default function AgendaPage() {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     if (nuevaFecha < today) {
-      setError('No se puede mover una cita a una fecha pasada');
+      setError(t('fecha_pasada_label'));
       return;
     }
 
@@ -795,14 +821,14 @@ export default function AgendaPage() {
         fecha: nuevaFecha,
         hora: nuevaHora + ':00',
         duracionMinutos: cita.duracionMinutos || 30,
-        motivo: cita.motivo || 'Reprogramada',
+        motivo: cita.motivo || t('reprogramada'),
         tipoCitaId: cita.tipoCitaId,
         prioridad: cita.prioridad,
         notas: cita.notas,
       });
       setReajusteData(null);
       loadWeek();
-    } catch { setError('Error al reprogramar cita'); }
+    } catch { setError(t('error_reprogramar')); }
   };
 
   const handleCitaClick = (cita) => {
@@ -836,15 +862,15 @@ export default function AgendaPage() {
               <button
                 className="agenda-view-toggle__btn"
                 onClick={() => setShowScheduler(true)}
-                title="Agendar Cita"
+                title={t('agendar_cita')}
               >
                 <Plus size={16} />
               </button>
             )}
             <div className="agenda-view-toggle">
-              <button className={`agenda-view-toggle__btn ${view === 'semanal' ? 'agenda-view-toggle__btn--active' : ''}`} onClick={() => setView('semanal')} title="Vista semanal"><LayoutGrid size={16} /></button>
-              <button className={`agenda-view-toggle__btn ${view === 'diaria' ? 'agenda-view-toggle__btn--active' : ''}`} onClick={() => setView('diaria')} title="Vista diaria"><List size={16} /></button>
-              <button className={`agenda-view-toggle__btn ${view === 'config' ? 'agenda-view-toggle__btn--active' : ''}`} onClick={() => setView('config')} title="Configuracion"><Settings size={16} /></button>
+              <button className={`agenda-view-toggle__btn ${view === 'semanal' ? 'agenda-view-toggle__btn--active' : ''}`} onClick={() => setView('semanal')} title={t('vista_semanal')}><LayoutGrid size={16} /></button>
+              <button className={`agenda-view-toggle__btn ${view === 'diaria' ? 'agenda-view-toggle__btn--active' : ''}`} onClick={() => setView('diaria')} title={t('vista_diaria')}><List size={16} /></button>
+              <button className={`agenda-view-toggle__btn ${view === 'config' ? 'agenda-view-toggle__btn--active' : ''}`} onClick={() => setView('config')} title={t('configuracion')}><Settings size={16} /></button>
             </div>
           </div>
         </div>
@@ -857,7 +883,7 @@ export default function AgendaPage() {
                 weekStart={weekStart}
               />
               <button className="agenda-nav__btn" onClick={view === 'semanal' ? goToPrevWeek : goToPrevDay}><ChevronLeft size={18} /></button>
-              <button className="agenda-nav__today" onClick={goToToday}>Hoy</button>
+              <button className="agenda-nav__today" onClick={goToToday}>{t('today')}</button>
               <button className="agenda-nav__btn" onClick={view === 'semanal' ? goToNextWeek : goToNextDay}><ChevronRight size={18} /></button>
               <QuickFilters onFilter={(f) => {
                 if (f.id === 'hoy') { goToToday(); return; }
@@ -874,13 +900,13 @@ export default function AgendaPage() {
       {/* Legend */}
       {view !== 'config' && (
         <div className="agenda-legend">
-          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#F59E0B' }} /> Solicitada</span>
-          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#3B82F6' }} /> Pendiente</span>
-          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#06B6D4' }} /> Programada</span>
-          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#22C55E' }} /> Confirmada</span>
-          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#22C55E', opacity: 0.3 }} /> Disponible</span>
-          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#EF4444', opacity: 0.3 }} /> Ocupado</span>
-          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#6B7D95', opacity: 0.3 }} /> Bloqueado</span>
+          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#F59E0B' }} /> {t('solicitada')}</span>
+          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#3B82F6' }} /> {t('pendiente')}</span>
+          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#06B6D4' }} /> {t('programada')}</span>
+          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#22C55E' }} /> {t('confirmada')}</span>
+          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#22C55E', opacity: 0.3 }} /> {t('disponible')}</span>
+          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#EF4444', opacity: 0.3 }} /> {t('ocupado_label')}</span>
+          <span className="agenda-legend__item"><span className="agenda-legend__dot" style={{ background: '#6B7D95', opacity: 0.3 }} /> {t('bloqueado_label')}</span>
         </div>
       )}
 
@@ -926,7 +952,7 @@ export default function AgendaPage() {
                         <DroppableCell key={dateKey} dateKey={dateKey} hour={hour}>
                           {slotData && (
                             <div className="agenda-week__slot-bg" style={{ backgroundColor: getSlotBg(slotData.estado), border: getSlotBorder(slotData.estado) }}>
-                              <span className="agenda-week__slot-label" style={{ color: getSlotLabelColor(slotData.estado) }}>{getSlotLabel(slotData.estado)}</span>
+                              <span className="agenda-week__slot-label" style={{ color: getSlotLabelColor(slotData.estado) }}>{getSlotLabel(slotData.estado, t)}</span>
                             </div>
                           )}
                           {layouted.map((cita, idx) => (
@@ -981,7 +1007,7 @@ export default function AgendaPage() {
                     <div className="agenda-day__slot-content">
                       {slotData && !slotCita && (
                         <div className="agenda-day__slot-bg" style={{ backgroundColor: getSlotBg(slotData.estado), border: getSlotBorder(slotData.estado) }}>
-                          <span className="agenda-day__slot-label" style={{ color: getSlotLabelColor(slotData.estado) }}>{getSlotLabel(slotData.estado)}</span>
+                          <span className="agenda-day__slot-label" style={{ color: getSlotLabelColor(slotData.estado) }}>{getSlotLabel(slotData.estado, t)}</span>
                           {slotData.descripcion && <span className="agenda-day__slot-desc">{slotData.descripcion}</span>}
                         </div>
                       )}
@@ -993,7 +1019,7 @@ export default function AgendaPage() {
                         >
                           <div className="agenda-day__cita-header">
                             <span className="agenda-day__cita-time">{formatTime(slotCita.hora)}</span>
-                            <span className="agenda-day__cita-estado" style={{ color: getCitaColor(slotCita.estado), backgroundColor: getCitaBg(slotCita.estado) }}>{getEstadoLabel(slotCita.estado)}</span>
+                            <span className="agenda-day__cita-estado" style={{ color: getCitaColor(slotCita.estado), backgroundColor: getCitaBg(slotCita.estado) }}>{getEstadoLabel(slotCita.estado, t)}</span>
                           </div>
                           <div className="agenda-day__cita-body">
                             <span className="agenda-day__cita-name">{slotCita.pacienteNombre}</span>
@@ -1012,7 +1038,7 @@ export default function AgendaPage() {
 
         {/* Empty state */}
         {!loading && citas.length === 0 && view === 'semanal' && (
-          <div className="agenda-page__empty"><CalendarDays size={48} /><h3>Sin citas esta semana</h3><p>La agenda de la semana esta libre.</p></div>
+          <div className="agenda-page__empty"><CalendarDays size={48} /><h3>{t('sin_citas_semana')}</h3><p>{t('agenda_libre_semana')}</p></div>
         )}
         </div>
       </div>
