@@ -93,7 +93,7 @@ export default function TabConsentimientos({ pacienteId }) {
     <div className="tab-consentimientos">
       <div className="tab-consentimientos__header">
         <h3>{t('consentimientos')}</h3>
-        <span className="tab-consentimientos__count">{consentimientos.length} registro(s)</span>
+        <span className="tab-consentimientos__count">{t('registros_count', { count: consentimientos.length })}</span>
       </div>
 
       {consentimientos.length === 0 ? (
@@ -152,7 +152,7 @@ export default function TabConsentimientos({ pacienteId }) {
                       </div>
                       {consent.version && (
                         <div className="consent-card__detail-row">
-                          <span className="consent-card__detail-label">Versión</span>
+                          <span className="consent-card__detail-label">{t('version')}</span>
                           <span className="consent-card__detail-value">{consent.version}</span>
                         </div>
                       )}

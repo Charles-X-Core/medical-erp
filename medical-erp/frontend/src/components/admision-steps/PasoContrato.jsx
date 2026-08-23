@@ -1,11 +1,14 @@
 import { Send, CheckCircle, Shield, Tablet, Eye, Loader, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { contratoPwaService } from '../../services/contratoPwaService';
 import HtmlDocViewer from '../common/HtmlDocViewer';
 
 const POLL_INTERVAL = 3000;
 
 export default function PasoContrato({ pacienteId, pacienteNombre, membresias, onMembresiasChange, contratoFirmado, onContratoFirmado }) {
+  const { t } = useTranslation('patients');
+  const { t: tContract } = useTranslation('contracts');
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [token, setToken] = useState('');
@@ -83,7 +86,7 @@ export default function PasoContrato({ pacienteId, pacienteNombre, membresias, o
           if (pollErrorsRef.current >= 3) {
             clearInterval(pollingRef.current);
             setPolling(false);
-            setPollingError('Error de conexion con el servidor. Intente enviar de nuevo.');
+            setPollingError(tContract('error_conexion_servidor'));
           }
         }
       }, POLL_INTERVAL);
@@ -103,7 +106,7 @@ export default function PasoContrato({ pacienteId, pacienteNombre, membresias, o
   const viewerOverlay = polling ? (
     <>
       <Loader size={24} className="html-doc-viewer__spin" />
-      <span>Esperando firma en tablet...</span>
+      <span>{tContract('esperando_firma_tablet')}</span>
       <div className="html-doc-viewer__waiting">
         <div className="html-doc-viewer__waiting-dot" />
         <div className="html-doc-viewer__waiting-dot" />
@@ -114,17 +117,17 @@ export default function PasoContrato({ pacienteId, pacienteNombre, membresias, o
 
   const viewerActions = !alreadySigned && !polling ? (
     <button className="wizard-step__btn-firma" onClick={handleEnviarTablet} disabled={sending}>
-      <Tablet size={18} /> {sending ? 'Enviando...' : 'Enviar a tablet para firma'}
+      <Tablet size={18} /> {sending ? tContract('enviando') : tContract('enviar_tablet_firma')}
     </button>
   ) : null;
 
   const viewerFooter = alreadySigned ? (
     <div className="wizard-step__contrato-firma-enviado">
       <CheckCircle size={20} className="wizard-step__firma-check" />
-      <span>Contrato firmado exitosamente</span>
+      <span>{tContract('contrato_firmado_exito')}</span>
       {sessionId && (
         <button className="wizard-step__btn-pdf" onClick={handleVerPDF}>
-          <Eye size={16} /> Ver PDF firmado
+          <Eye size={16} /> {tContract('ver_pdf_firmado')}
         </button>
       )}
     </div>
@@ -132,7 +135,7 @@ export default function PasoContrato({ pacienteId, pacienteNombre, membresias, o
     <div className="wizard-step__contrato-firma-pendiente" style={{ color: '#dc2626' }}>
       <p><AlertCircle size={16} /> {pollingError}</p>
       <button className="wizard-step__btn-firma" onClick={handleEnviarTablet}>
-        <Tablet size={18} /> Reenviar a tablet
+        <Tablet size={18} /> {tContract('reenviar_tablet')}
       </button>
     </div>
   ) : null;
@@ -141,17 +144,17 @@ export default function PasoContrato({ pacienteId, pacienteNombre, membresias, o
     <div className="wizard-step">
       <div className="wizard-step__header">
         <Shield size={24} />
-        <h3>Contrato de Membresia</h3>
-        <p>Optimal Health NOW - Membresia de por vida</p>
+        <h3>{tContract('contrato_membresia')}</h3>
+        <p>{tContract('optimal_health_now')}</p>
       </div>
 
       {yaTieneMembresia && membresiaActiva && (
         <div className="wizard-step__contrato-estado">
           <Shield size={20} />
           <div className="wizard-step__contrato-estado-info">
-            <span className="wizard-step__contrato-estado-tipo">Membresia Vitalicia</span>
+            <span className="wizard-step__contrato-estado-tipo">{tContract('membresia_vitalicia')}</span>
             <span className="wizard-step__contrato-estado-detalle">
-              Inicio: {membresiaActiva.fechaInicio} · Costo: $10.00
+              {tContract('inicio')}: {membresiaActiva.fechaInicio} · {tContract('costo')}: $10.00
             </span>
           </div>
           <CheckCircle size={18} className="wizard-step__contrato-estado-check" />
@@ -161,15 +164,15 @@ export default function PasoContrato({ pacienteId, pacienteNombre, membresias, o
       {loading && (
         <div className="wizard-step__preview-loading">
           <Loader size={20} className="wizard-step__spin" />
-          <span>Cargando contrato...</span>
+          <span>{tContract('cargando_contrato')}</span>
         </div>
       )}
 
       {!loading && previewHtml && (
         <HtmlDocViewer
-          title="Contrato de Membresia - Optimal Health NOW"
+          title={tContract('contrato_membresia_ohm')}
           htmlContent={previewHtml}
-          badge={alreadySigned ? 'Firmado' : null}
+          badge={alreadySigned ? tContract('firmado') : null}
           maxHeight="520px"
           overlay={viewerOverlay}
           actions={viewerActions}
@@ -180,7 +183,7 @@ export default function PasoContrato({ pacienteId, pacienteNombre, membresias, o
       {!loading && !previewHtml && (
         <div className="wizard-step__preview-loading">
           <AlertCircle size={20} />
-          <span>No se pudo cargar el contrato</span>
+          <span>{tContract('no_se_pudo_cargar_contrato')}</span>
         </div>
       )}
     </div>

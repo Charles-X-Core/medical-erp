@@ -1,25 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Calendar, Activity, CheckCircle, Clock, TrendingUp, AlertTriangle, Play, Pause, XCircle, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { tratamientoService } from '../../services/tratamientoService';
 
 const EVENT_CONFIG = {
-  CREACION: { icon: Play, color: '#3B82F6', label: 'Tratamiento creado' },
-  CAMBIO_ESTADO: { icon: Activity, color: '#8B5CF6', label: 'Cambio de estado' },
-  CAMBIO_SESIONES_PLANEADAS: { icon: TrendingUp, color: '#F59E0B', label: 'Sesiones actualizadas' },
-  AMPLIACION_PLAN: { icon: TrendingUp, color: '#F59E0B', label: 'Plan ampliado' },
-  REGISTRO_SESION: { icon: CheckCircle, color: '#22C55E', label: 'Sesión completada' },
-  OBSERVACION_CLINICA: { icon: FileText, color: '#3B82F6', label: 'Observación clínica' },
-  CAMBIO_OBJETIVO: { icon: Target, color: '#F59E0B', label: 'Objetivo actualizado' },
-  default: { icon: Clock, color: '#94A3B8', label: 'Evento' },
+  CREACION: { icon: Play, color: '#3B82F6' },
+  CAMBIO_ESTADO: { icon: Activity, color: '#8B5CF6' },
+  CAMBIO_SESIONES_PLANEADAS: { icon: TrendingUp, color: '#F59E0B' },
+  AMPLIACION_PLAN: { icon: TrendingUp, color: '#F59E0B' },
+  REGISTRO_SESION: { icon: CheckCircle, color: '#22C55E' },
+  OBSERVACION_CLINICA: { icon: FileText, color: '#3B82F6' },
+  CAMBIO_OBJETIVO: { icon: Target, color: '#F59E0B' },
+  default: { icon: Clock, color: '#94A3B8' },
 };
 
 const ESTADO_CONFIG = {
-  PENDIENTE: { label: 'Pendiente', color: '#F59E0B', bg: '#FFFBEB' },
-  PROGRAMADO: { label: 'Programado', color: '#3B82F6', bg: '#EFF6FF' },
-  EN_CURSO: { label: 'En Curso', color: '#22C55E', bg: '#F0FDF4' },
-  PAUSADO: { label: 'Pausado', color: '#F59E0B', bg: '#FFFBEB' },
-  FINALIZADO: { label: 'Finalizado', color: '#6B7D95', bg: '#E2E8F0' },
-  CANCELADO: { label: 'Cancelado', color: '#EF4444', bg: '#FEF2F2' },
+  PENDIENTE: { color: '#F59E0B', bg: '#FFFBEB' },
+  PROGRAMADO: { color: '#3B82F6', bg: '#EFF6FF' },
+  EN_CURSO: { color: '#22C55E', bg: '#F0FDF4' },
+  PAUSADO: { color: '#F59E0B', bg: '#FFFBEB' },
+  FINALIZADO: { color: '#6B7D95', bg: '#E2E8F0' },
+  CANCELADO: { color: '#EF4444', bg: '#FEF2F2' },
 };
 
 function Target(props) {
@@ -31,6 +32,10 @@ function Target(props) {
 }
 
 export default function TratamientoTimeline({ tratamientoId }) {
+  const { t } = useTranslation('patients');
+  const { t: tDashboard } = useTranslation('dashboard');
+  const { t: tCommon } = useTranslation('common');
+
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -81,17 +86,17 @@ export default function TratamientoTimeline({ tratamientoId }) {
   };
 
   const getEventLabel = (evento) => {
-    const config = getEventConfig(evento);
-    if (evento.tipoCambio === 'CAMBIO_ESTADO') {
-      return `${evento.valorAnterior || '?'} → ${evento.valorNuevo || '?'}`;
-    }
-    if (evento.tipoCambio === 'CAMBIO_SESIONES_PLANEADAS') {
-      return `${evento.valorAnterior || '?'} → ${evento.valorNuevo || '?'} sesiones`;
-    }
+    if (evento.tipoCambio === 'CREACION') return t('evento_tratamiento_creado');
+    if (evento.tipoCambio === 'CAMBIO_ESTADO') return `${evento.valorAnterior || '?'} → ${evento.valorNuevo || '?'}`;
+    if (evento.tipoCambio === 'CAMBIO_SESIONES_PLANEADAS') return `${evento.valorAnterior || '?'} → ${evento.valorNuevo || '?'} ${t('sesiones_label')}`;
+    if (evento.tipoCambio === 'AMPLIACION_PLAN') return t('evento_plan_ampliado');
+    if (evento.tipoCambio === 'REGISTRO_SESION') return t('evento_sesion_completada');
+    if (evento.tipoCambio === 'OBSERVACION_CLINICA') return t('evento_observacion_clinica');
+    if (evento.tipoCambio === 'CAMBIO_OBJETIVO') return t('evento_objetivo_actualizado');
     if (evento.campoModificado) {
       return `${evento.campoModificado}: ${evento.valorNuevo || ''}`;
     }
-    return config.label;
+    return t('evento_default');
   };
 
   if (loading) {
@@ -99,7 +104,7 @@ export default function TratamientoTimeline({ tratamientoId }) {
       <div className="tratamiento-timeline">
         <div className="tratamiento-timeline__loading">
           <Loader2 size={16} className="spinner" />
-          <span>Cargando historial...</span>
+          <span>{t('cargando_historial')}</span>
         </div>
       </div>
     );
@@ -110,7 +115,7 @@ export default function TratamientoTimeline({ tratamientoId }) {
       <div className="tratamiento-timeline">
         <div className="tratamiento-timeline__empty">
           <Clock size={16} />
-          <span>Sin eventos registrados</span>
+          <span>{t('sin_eventos_registrados')}</span>
         </div>
       </div>
     );
@@ -120,7 +125,7 @@ export default function TratamientoTimeline({ tratamientoId }) {
     <div className="tratamiento-timeline">
       <div className="tratamiento-timeline__header">
         <Activity size={14} />
-        <span>Seguimiento del Tratamiento ({eventos.length})</span>
+        <span>{t('seguimiento_tratamiento', { count: eventos.length })}</span>
       </div>
       <div className="tratamiento-timeline__list">
         {eventos.map((evento, i) => {
@@ -152,7 +157,7 @@ export default function TratamientoTimeline({ tratamientoId }) {
                 )}
                 {evento.usuarioNombre && (
                   <span className="tratamiento-timeline__user">
-                    por {evento.usuarioNombre}
+                    {tCommon('por')} {evento.usuarioNombre}
                   </span>
                 )}
               </div>

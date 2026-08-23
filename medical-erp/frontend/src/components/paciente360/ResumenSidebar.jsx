@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileText, CheckCircle, AlertTriangle, Clock, Shield } from 'lucide-react';
 import { pacienteConsentimientoService } from '../../services/pacienteSubServices';
 
@@ -13,6 +14,7 @@ function formatFecha(fecha) {
 // ============================================
 
 export default function ResumenSidebar({ pacienteId, onFirmarContrato, contratoFirmado }) {
+  const { t } = useTranslation('patients');
   const [consentimientos, setConsentimientos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,28 +56,28 @@ export default function ResumenSidebar({ pacienteId, onFirmarContrato, contratoF
       {/* Consentimiento Status */}
       <div className="resumen-sidebar__section">
         <h3 className="resumen-sidebar__title">
-          <FileText size={14} /> Consentimiento de Admisión
+          <FileText size={14} /> {t('consentimiento_admision')}
         </h3>
         {loading && contratoFirmado !== true ? (
-          <div className="resumen-sidebar__loading">Cargando...</div>
+          <div className="resumen-sidebar__loading">{t('loading', { ns: 'common' })}</div>
         ) : consentimientoFirmado ? (
           <div className="resumen-sidebar__status resumen-sidebar__status--ok">
             <CheckCircle size={16} />
-            <span>Consentimiento firmado</span>
+            <span>{t('consentimiento_firmado')}</span>
           </div>
         ) : (
           <div className="resumen-sidebar__status resumen-sidebar__status--warning">
             <AlertTriangle size={16} />
-            <span>Sin consentimiento firmado</span>
+            <span>{t('sin_consentimiento_firmado')}</span>
           </div>
         )}
         {!consentimientoFirmado && (
           <div className="resumen-sidebar__alert">
             <AlertTriangle size={12} />
-            <span>Sin consentimiento de admisión firmado</span>
+            <span>{t('sin_consentimiento_admision_firmado')}</span>
             {onFirmarContrato && (
               <button className="resumen-sidebar__btn-firmar" onClick={onFirmarContrato}>
-                <Shield size={12} /> Firmar
+                <Shield size={12} /> {t('firmar')}
               </button>
             )}
           </div>
@@ -85,10 +87,10 @@ export default function ResumenSidebar({ pacienteId, onFirmarContrato, contratoF
       {/* Acciones del Paciente */}
       <div className="resumen-sidebar__section">
         <h3 className="resumen-sidebar__title">
-          <Clock size={14} /> Acciones Recientes
+          <Clock size={14} /> {t('acciones_recientes')}
         </h3>
         {loading ? (
-          <div className="resumen-sidebar__loading">Cargando...</div>
+          <div className="resumen-sidebar__loading">{t('loading', { ns: 'common' })}</div>
         ) : consentimientos.length > 0 ? (
           <div className="resumen-sidebar__list">
             {consentimientos.slice(0, 5).map((c) => (
@@ -96,10 +98,10 @@ export default function ResumenSidebar({ pacienteId, onFirmarContrato, contratoF
                 <div className={`resumen-sidebar__dot ${c.firmaFecha ? 'resumen-sidebar__dot--done' : 'resumen-sidebar__dot--pending'}`} />
                 <div className="resumen-sidebar__item-info">
                   <span className="resumen-sidebar__item-label">
-                    {c.tipo || c.templateNombre || 'Consentimiento'}
+                    {c.tipo || c.templateNombre || t('consentimientos')}
                   </span>
                   <span className="resumen-sidebar__item-date">
-                    {c.firmaFecha ? formatFecha(c.firmaFecha) : 'Pendiente'}
+                    {c.firmaFecha ? formatFecha(c.firmaFecha) : t('pendiente')}
                   </span>
                 </div>
               </div>
@@ -108,7 +110,7 @@ export default function ResumenSidebar({ pacienteId, onFirmarContrato, contratoF
         ) : (
           <div className="resumen-sidebar__empty">
             <FileText size={16} />
-            <p>Sin acciones registradas</p>
+            <p>{t('sin_acciones_registradas')}</p>
           </div>
         )}
       </div>
@@ -116,16 +118,16 @@ export default function ResumenSidebar({ pacienteId, onFirmarContrato, contratoF
       {/* Resumen Rápido */}
       <div className="resumen-sidebar__section">
         <h3 className="resumen-sidebar__title">
-          <CheckCircle size={14} /> Estado
+          <CheckCircle size={14} /> {t('estado')}
         </h3>
         <div className="resumen-sidebar__stats">
           <div className="resumen-sidebar__stat">
             <span className="resumen-sidebar__stat-value">{consentimientoFirmado ? Math.max(consentimientosFirmados.length, 1) : consentimientosFirmados.length}</span>
-            <span className="resumen-sidebar__stat-label">Firmados</span>
+            <span className="resumen-sidebar__stat-label">{t('firmados')}</span>
           </div>
           <div className="resumen-sidebar__stat">
             <span className="resumen-sidebar__stat-value">{consentimientoFirmado ? 0 : consentimientosPendientes.length}</span>
-            <span className="resumen-sidebar__stat-label">Pendientes</span>
+            <span className="resumen-sidebar__stat-label">{t('pendientes')}</span>
           </div>
         </div>
       </div>

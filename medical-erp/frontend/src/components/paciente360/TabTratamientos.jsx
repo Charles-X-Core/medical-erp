@@ -43,10 +43,10 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
   const getEstadoBadge = (estado) => {
     const ESTADO_CONFIG = {
       PENDIENTE: { label: t('pending', { ns: 'common' }), icon: Clock, color: '#F59E0B', bg: '#FFFBEB' },
-      PROGRAMADO: { label: t('programado', { ns: 'patients' }), icon: Calendar, color: '#3B82F6', bg: '#EFF6FF' },
+      PROGRAMADO: { label: t('programado'), icon: Calendar, color: '#3B82F6', bg: '#EFF6FF' },
       EN_CURSO: { label: t('active', { ns: 'common' }), icon: Activity, color: '#22C55E', bg: '#F0FDF4' },
-      PAUSADO: { label: t('pausado', { ns: 'patients' }), icon: Pause, color: '#F59E0B', bg: '#FFFBEB' },
-      FINALIZADO: { label: t('finalizado', { ns: 'patients' }), icon: CheckCircle, color: '#6B7D95', bg: '#E2E8F0' },
+      PAUSADO: { label: t('pausado'), icon: Pause, color: '#F59E0B', bg: '#FFFBEB' },
+      FINALIZADO: { label: t('finalizado'), icon: CheckCircle, color: '#6B7D95', bg: '#E2E8F0' },
       CANCELADO: { label: t('cancelled', { ns: 'common' }), icon: XCircle, color: '#EF4444', bg: '#FEF2F2' },
     };
     const config = ESTADO_CONFIG[estado] || ESTADO_CONFIG.PENDIENTE;
@@ -61,19 +61,19 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
     );
   };
 
-  const getProgressPercent = (t) => {
-    if (!t.sesionesPlaneadas || t.sesionesPlaneadas === 0) return 0;
-    return Math.min(100, Math.round(((t.sesionesRealizadas || 0) / t.sesionesPlaneadas) * 100));
+  const getProgressPercent = (tr) => {
+    if (!tr.sesionesPlaneadas || tr.sesionesPlaneadas === 0) return 0;
+    return Math.min(100, Math.round(((tr.sesionesRealizadas || 0) / tr.sesionesPlaneadas) * 100));
   };
 
   const filtered = filterEstado === 'todos'
     ? tratamientos
-    : tratamientos.filter(t => t.estado === filterEstado);
+    : tratamientos.filter(tr => tr.estado === filterEstado);
 
-  const totalCosto = tratamientos.reduce((sum, t) => sum + (parseFloat(t.costoTotal) || 0), 0);
-  const activos = tratamientos.filter(t => t.estado === 'EN_CURSO').length;
-  const pendientes = tratamientos.filter(t => t.estado === 'PENDIENTE' || t.estado === 'PROGRAMADO').length;
-  const completados = tratamientos.filter(t => t.estado === 'FINALIZADO').length;
+  const totalCosto = tratamientos.reduce((sum, tr) => sum + (parseFloat(tr.costoTotal) || 0), 0);
+  const activos = tratamientos.filter(tr => tr.estado === 'EN_CURSO').length;
+  const pendientes = tratamientos.filter(tr => tr.estado === 'PENDIENTE' || tr.estado === 'PROGRAMADO').length;
+  const completados = tratamientos.filter(tr => tr.estado === 'FINALIZADO').length;
 
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -91,7 +91,7 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
   }
 
   const FILTERS = [
-    { key: 'todos', label: t('all', { ns: 'common' }) },
+    { key: 'todos', label: t('all_filter') },
     { key: 'PENDIENTE', label: t('pending', { ns: 'common' }) },
     { key: 'PROGRAMADO', label: t('programado') },
     { key: 'EN_CURSO', label: t('active', { ns: 'common' }) },
@@ -106,7 +106,7 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
           {FILTERS.map(f => {
             const count = f.key === 'todos'
               ? tratamientos.length
-              : tratamientos.filter(t => t.estado === f.key).length;
+              : tratamientos.filter(tr => tr.estado === f.key).length;
             return (
               <button
                 key={f.key}
@@ -154,25 +154,25 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
         </div>
       ) : (
         <div className="tab-tratamientos__list">
-          {filtered.map((t) => {
-            const isExpanded = expandedId === t.id;
-            const progress = getProgressPercent(t);
+          {filtered.map((tr) => {
+            const isExpanded = expandedId === tr.id;
+            const progress = getProgressPercent(tr);
             return (
               <div
-                key={t.id}
+                key={tr.id}
                 className={`tratamiento-card ${isExpanded ? 'tratamiento-card--expanded' : ''}`}
               >
-                <div className="tratamiento-card__header" onClick={() => toggleExpand(t.id)}>
+                <div className="tratamiento-card__header" onClick={() => toggleExpand(tr.id)}>
                   <div className="tratamiento-card__title">
                     <Activity size={16} />
-                    <span>{getTreatmentLabel(t.tipoTratamiento)}</span>
+                    <span>{getTreatmentLabel(tr.tipoTratamiento)}</span>
                   </div>
                   <div className="tratamiento-card__header-right">
                     <div className="tratamiento-card__badges">
-                      {getEstadoBadge(t.estado)}
-                      {t.costoTotal > 0 && (
+                      {getEstadoBadge(tr.estado)}
+                      {tr.costoTotal > 0 && (
                         <span className="tratamiento-badge tratamiento-badge--costo">
-                          {formatCurrency(t.costoTotal)}
+                          {formatCurrency(tr.costoTotal)}
                         </span>
                       )}
                     </div>
@@ -183,35 +183,35 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
                 </div>
 
                 <div className="tratamiento-card__body">
-                  {t.objetivo && (
+                  {tr.objetivo && (
                     <div className="tratamiento-field">
                       <Target size={14} />
-                      <span>{t.objetivo}</span>
+                      <span>{tr.objetivo}</span>
                     </div>
                   )}
 
                   <div className="tratamiento-card__meta">
-                    {t.fechaInicio && (
+                    {tr.fechaInicio && (
                       <div className="tratamiento-meta-item">
                         <Calendar size={13} />
-                        <span>{t('inicio_label_2')} {formatDate(t.fechaInicio)}</span>
+                        <span>{t('inicio_label_2')} {formatDate(tr.fechaInicio)}</span>
                       </div>
                     )}
-                    {t.fechaFin && (
+                    {tr.fechaFin && (
                       <div className="tratamiento-meta-item">
                         <CheckCircle size={13} />
-                        <span>{t('fecha_fin')}: {formatDate(t.fechaFin)}</span>
+                        <span>{t('fecha_fin')}: {formatDate(tr.fechaFin)}</span>
                       </div>
                     )}
-                    {t.sesionesPlaneadas > 0 && (
+                    {tr.sesionesPlaneadas > 0 && (
                       <div className="tratamiento-meta-item">
                         <Activity size={13} />
-                        <span>{t('sesion')}: {t.sesionesRealizadas || 0}/{t.sesionesPlaneadas}</span>
+                        <span>{t('sesion')}: {tr.sesionesRealizadas || 0}/{tr.sesionesPlaneadas}</span>
                       </div>
                     )}
                   </div>
 
-                  {t.sesionesPlaneadas > 0 && (
+                  {tr.sesionesPlaneadas > 0 && (
                     <div className="tratamiento-card__progress">
                       <div className="tratamiento-progress-bar">
                         <div
@@ -229,49 +229,49 @@ export default function TabTratamientos({ pacienteId, historiaId }) {
 
                 {isExpanded && (
                   <div className="tratamiento-card__detail">
-                    {t.diagnosticoInicial && (
+                    {tr.diagnosticoInicial && (
                       <div className="tratamiento-detail-section">
                         <span className="tratamiento-detail-label">{t('diagnostico')}</span>
-                        <p className="tratamiento-detail-text">{t.diagnosticoInicial}</p>
+                        <p className="tratamiento-detail-text">{tr.diagnosticoInicial}</p>
                       </div>
                     )}
 
-                    {t.observaciones && (
+                    {tr.observaciones && (
                       <div className="tratamiento-detail-section">
                         <span className="tratamiento-detail-label">{t('observations', { ns: 'common' })}</span>
-                        <p className="tratamiento-detail-text">{t.observaciones}</p>
+                        <p className="tratamiento-detail-text">{tr.observaciones}</p>
                       </div>
                     )}
 
-                    {t.resultadoFinal && (
+                    {tr.resultadoFinal && (
                       <div className="tratamiento-detail-section">
-                        <span className="tratamiento-detail-label">{t('resultado_final', { ns: 'patients' })}</span>
-                        <p className="tratamiento-detail-text">{t.resultadoFinal}</p>
+                        <span className="tratamiento-detail-label">{t('resultado_final')}</span>
+                        <p className="tratamiento-detail-text">{tr.resultadoFinal}</p>
                       </div>
                     )}
 
-                    {t.motivoPausa && (
+                    {tr.motivoPausa && (
                       <div className="tratamiento-detail-section">
                         <span className="tratamiento-detail-label">{t('motivo_pausa')}</span>
-                        <p className="tratamiento-detail-text">{t.motivoPausa}</p>
+                        <p className="tratamiento-detail-text">{tr.motivoPausa}</p>
                       </div>
                     )}
 
-                    {t.motivoCancelacion && (
+                    {tr.motivoCancelacion && (
                       <div className="tratamiento-detail-section">
                         <span className="tratamiento-detail-label">{t('motivo_cancelacion')}</span>
-                        <p className="tratamiento-detail-text">{t.motivoCancelacion}</p>
+                        <p className="tratamiento-detail-text">{tr.motivoCancelacion}</p>
                       </div>
                     )}
 
-                    {t.costoEstimado > 0 && (
+                    {tr.costoEstimado > 0 && (
                       <div className="tratamiento-detail-section">
                         <span className="tratamiento-detail-label">{t('costo_total')}</span>
-                        <p className="tratamiento-detail-text">{formatCurrency(t.costoEstimado)}</p>
+                        <p className="tratamiento-detail-text">{formatCurrency(tr.costoEstimado)}</p>
                       </div>
                     )}
 
-                    <TratamientoTimeline tratamientoId={t.id} />
+                    <TratamientoTimeline tratamientoId={tr.id} />
                   </div>
                 )}
               </div>

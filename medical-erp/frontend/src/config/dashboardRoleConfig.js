@@ -1,41 +1,41 @@
 // ============================================
-// Dashboard Role Config — qué ve cada rol
+// Dashboard Role Config — returns translation keys
 // ============================================
 
 export const dashboardRoleConfig = {
   doctora: {
-    title: 'Panel de la Doctora',
-    subtitle: 'Resumen clínico del día',
+    titleKey: 'doctora_panel',
+    subtitleKey: 'doctora_subtitle',
     hero: {
-      emptyTitle: 'No hay clientes en cola',
-      emptySubtitle: 'La agenda de hoy está al día',
-      ctaLabel: 'Ver agenda',
+      emptyTitleKey: 'hero_no_clients',
+      emptySubtitleKey: 'hero_admin_subtitle',
+      ctaLabelKey: 'hero_view_agenda',
       ctaRoute: '/agenda',
     },
     sections: {
-      citasHoy: { show: true, label: 'Mis Citas' },
-      tratamientos: { show: true, label: 'Mis Tratamientos' },
-      alertas: { show: true, label: 'Mis Alertas' },
-      proximas: { show: true, label: 'Mis Próximas Citas' },
-      cola: { show: true, label: 'Clientes en Cola' },
+      citasHoy: { show: true, labelKey: 'section_my_appointments' },
+      tratamientos: { show: true, labelKey: 'section_my_treatments' },
+      alertas: { show: true, labelKey: 'section_my_alerts' },
+      proximas: { show: true, labelKey: 'section_my_upcoming' },
+      cola: { show: true, labelKey: 'section_clients_queue' },
       notificaciones: { show: false },
     },
   },
   admin: {
-    title: 'Centro de Administración',
-    subtitle: 'Resumen general de la clínica',
+    titleKey: 'admin_panel',
+    subtitleKey: 'admin_subtitle',
     hero: {
-      emptyTitle: 'Sin actividad reciente',
-      emptySubtitle: 'Todo operando con normalidad',
-      ctaLabel: 'Ver agenda',
+      emptyTitleKey: 'hero_admin_no_activity',
+      emptySubtitleKey: 'hero_admin_subtitle',
+      ctaLabelKey: 'hero_view_agenda',
       ctaRoute: '/agenda',
     },
     sections: {
-      citasHoy: { show: true, label: 'Citas de Hoy' },
-      tratamientos: { show: true, label: 'Tratamientos activos' },
-      alertas: { show: true, label: 'Alertas' },
-      proximas: { show: true, label: 'Próximas Citas' },
-      cola: { show: true, label: 'Clientes en Cola' },
+      citasHoy: { show: true, labelKey: 'section_appointments_today' },
+      tratamientos: { show: true, labelKey: 'section_active_treatments' },
+      alertas: { show: true, labelKey: 'section_alerts' },
+      proximas: { show: true, labelKey: 'section_upcoming' },
+      cola: { show: true, labelKey: 'section_clients_queue' },
       notificaciones: { show: false },
     },
   },

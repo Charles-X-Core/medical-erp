@@ -29,11 +29,11 @@ export default function WorkspaceHeader({ paciente, onEdit, onMoreActions, extra
         <div className="workspace__patient-meta">
           {sexoLabel && (
             <span className="workspace__patient-badge workspace__patient-badge--gender">
-              {sexoLabel} {edad ? `${edad} ${t('years', { ns: 'patients' })}` : ''}
+              {sexoLabel} {edad ? `${edad} ${t('years')}` : ''}
             </span>
           )}
           {!sexoLabel && edad && (
-            <span>{edad} {t('years', { ns: 'patients' })}</span>
+            <span>{edad} {t('years')}</span>
           )}
           {paciente.licenciaConducir && (
             <span>ID: {paciente.licenciaConducir}</span>

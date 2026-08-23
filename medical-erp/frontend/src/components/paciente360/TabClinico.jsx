@@ -28,7 +28,7 @@ function VitalBadge({ label, value, unit, icon: Icon, warning }) {
 }
 
 export default function TabClinico({ pacienteId, historiaId }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('patients');
   const navigate = useNavigate();
   const [consultas, setConsultas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -117,7 +117,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
             className={`btn btn--ghost btn--sm ${showFilters ? 'active' : ''}`}
             onClick={() => setShowFilters(!showFilters)}
           >
-            <Filter size={16} /> {t('filter', { ns: 'patients' })}
+            <Filter size={16} /> {t('filter')}
           </button>
           <div className="filter-input">
             <Search size={16} />
@@ -134,7 +134,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
       {showFilters && (
         <div className="tab-clinico__date-filters">
           <div className="date-filter">
-            <label>{t('desde', { ns: 'patients' })}:</label>
+            <label>{t('desde')}:</label>
             <input
               type="date"
               value={fechaDesde}
@@ -142,7 +142,7 @@ export default function TabClinico({ pacienteId, historiaId }) {
             />
           </div>
           <div className="date-filter">
-            <label>{t('hasta', { ns: 'patients' })}:</label>
+            <label>{t('hasta')}:</label>
             <input
               type="date"
               value={fechaHasta}

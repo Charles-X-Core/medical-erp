@@ -30,9 +30,9 @@ export default function TabArchivos({ pacienteId }) {
   };
 
   const TYPE_FILTERS = [
-    { id: '', label: t('all_filter', { ns: 'patients' }) },
-    { id: 'antes', label: t('antes', { ns: 'patients' }) },
-    { id: 'despues', label: t('despues', { ns: 'patients' }) },
+    { id: '', label: t('all_filter') },
+    { id: 'antes', label: t('antes') },
+    { id: 'despues', label: t('despues') },
     { id: 'otro', label: t('otro') },
   ];
 

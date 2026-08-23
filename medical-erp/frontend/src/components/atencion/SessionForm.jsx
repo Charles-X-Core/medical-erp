@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Save, Camera, CheckCircle, Loader2, MoreHorizontal, X, Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { TREATMENT_CATEGORIES, getTreatmentLabel } from '../../config/attentionTypes';
 
 // ============================================
@@ -13,6 +14,11 @@ import { TREATMENT_CATEGORIES, getTreatmentLabel } from '../../config/attentionT
 // ============================================
 
 export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onPausar, onReanudar, onCancelar, onAmpliar }) {
+  const { t } = useTranslation('patients');
+  const { t: tClinical } = useTranslation('clinical');
+  const { t: tCommon } = useTranslation('common');
+  const { t: tDashboard } = useTranslation('dashboard');
+
   const [evolucion, setEvolucion] = useState('');
   const [observaciones, setObservaciones] = useState('');
   const [costoSesion, setCostoSesion] = useState('');
@@ -140,30 +146,30 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
         <div className="session-form__completed-banner">
           <CheckCircle size={20} />
           <div className="session-form__completed-info">
-            <strong>Todas las sesiones completadas</strong>
-            <span>{totalSesiones} de {totalSesiones} sesiones realizadas</span>
+            <strong>{t('todas_sesiones_completadas')}</strong>
+            <span>{t('sesiones_realizadas_de', { current: totalSesiones, total: totalSesiones })}</span>
           </div>
         </div>
 
         <div className="session-form__section session-form__section--finalize">
           <h4 className="session-form__section-title">
-            <CheckCircle size={14} /> Finalizar Tratamiento
+            <CheckCircle size={14} /> {t('finalizar_tratamiento')}
           </h4>
           {!showFinalizeOptions ? (
             <button
               className="btn btn--primary"
               onClick={() => setShowFinalizeOptions(true)}
             >
-              <CheckCircle size={16} /> Finalizar Tratamiento
+              <CheckCircle size={16} /> {t('finalizar_tratamiento')}
             </button>
           ) : (
             <>
               <div className="session-form__fields">
                 <div className="session-form__field">
-                  <label className="session-form__label">Resultado final *</label>
+                  <label className="session-form__label">{tClinical('resultado_final')}</label>
                   <textarea
                     className="session-form__textarea"
-                    placeholder="Resultado del tratamiento..."
+                    placeholder={tClinical('resultado_del_tratamiento_placeholder')}
                     value={resultadoFinal}
                     onChange={(e) => setResultadoFinal(e.target.value)}
                   />
@@ -175,13 +181,13 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
                       checked={quiereOtroTratamiento}
                       onChange={(e) => setQuiereOtroTratamiento(e.target.checked)}
                     />
-                    <span>El cliente desea iniciar otro tratamiento</span>
+                    <span>{t('cliente_desea_otro_tratamiento')}</span>
                   </label>
                 </div>
               </div>
               <div className="session-form__actions">
                 <button className="btn btn--secondary" onClick={() => setShowFinalizeOptions(false)}>
-                  Cancelar
+                  {tCommon('cancel')}
                 </button>
                 <button
                   className="btn btn--primary"
@@ -189,7 +195,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
                   disabled={saving || !resultadoFinal.trim()}
                 >
                   {saving ? <Loader2 size={16} className="spinner" /> : <CheckCircle size={16} />}
-                  {quiereOtroTratamiento ? 'Finalizar y Nuevo Tratamiento' : 'Finalizar Tratamiento'}
+                  {quiereOtroTratamiento ? t('finalizar_y_nuevo_tratamiento') : t('finalizar_tratamiento')}
                 </button>
               </div>
             </>
@@ -206,8 +212,8 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
         <div className="session-form__progress">
           <div className="session-form__progress-header">
             <span className="session-form__progress-label">
-              {isFirstSession ? 'Sesión 1' : `Sesión ${sesionActual}`} de {totalSesiones}
-              {sesionesRestantes > 0 && <span className="session-form__progress-remaining"> · {sesionesRestantes} restante{sesionesRestantes !== 1 ? 's' : ''}</span>}
+              {isFirstSession ? t('sesion_numero', { number: 1 }) : t('sesion_numero', { number: sesionActual })} {t('de_total', { total: totalSesiones })}
+              {sesionesRestantes > 0 && <span className="session-form__progress-remaining"> · {t('restantes', { count: sesionesRestantes })}</span>}
             </span>
             <span className="session-form__progress-pct">
               {Math.round(progreso * 100)}%
@@ -225,16 +231,16 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
       {/* NEW TREATMENT: Full creation form */}
       {isNew && (
         <div className="session-form__section">
-          <h4 className="session-form__section-title">Nuevo Tratamiento</h4>
+          <h4 className="session-form__section-title">{t('nuevo_tratamiento')}</h4>
           <div className="session-form__fields">
             <div className="session-form__field">
-              <label className="session-form__label">Tipo de tratamiento *</label>
+              <label className="session-form__label">{t('tipo_tratamiento')} *</label>
               <select
                 className="session-form__select"
                 value={tipoTratamiento}
                 onChange={(e) => setTipoTratamiento(e.target.value)}
               >
-                <option value="">Seleccionar tratamiento...</option>
+                <option value="">{t('seleccionar_tratamiento')}</option>
                 {TREATMENT_CATEGORIES.map((cat) => (
                   <optgroup key={cat.id} label={cat.label}>
                     {cat.treatments.map((t) => (
@@ -246,18 +252,18 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
             </div>
             <div className="session-form__row">
               <div className="session-form__field">
-                <label className="session-form__label">Sesiones *</label>
+                <label className="session-form__label">{t('sesiones')} *</label>
                 <input
                   type="number"
                   className="session-form__input"
-                  placeholder="Ej: 4"
+                  placeholder={t('ejemplo_4')}
                   min="1"
                   value={sesionesPlaneadas}
                   onChange={(e) => setSesionesPlaneadas(e.target.value)}
                 />
               </div>
               <div className="session-form__field">
-                <label className="session-form__label">Costo por sesión</label>
+                <label className="session-form__label">{t('costo_por_sesion')}</label>
                 <input
                   type="number"
                   className="session-form__input"
@@ -276,47 +282,47 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
       {isSessionMode && (
         <div className="session-form__section">
           <h4 className="session-form__section-title">
-            {isFirstSession ? 'Sesión 1' : isLastSession ? 'Última Sesión' : `Sesión ${sesionActual}`}
+            {isFirstSession ? t('sesion_numero', { number: 1 }) : isLastSession ? t('ultima_sesion') : t('sesion_numero', { number: sesionActual })}
           </h4>
           <div className="session-form__fields">
             <div className="session-form__field">
-              <label className="session-form__label">Tipo de tratamiento</label>
+              <label className="session-form__label">{t('tipo_tratamiento')}</label>
               <div className="session-form__input session-form__input--readonly">
                 {getTreatmentLabel(tratamiento?.tipoTratamiento) || '—'}
               </div>
             </div>
             {costoPromedio && (
               <div className="session-form__field">
-                <label className="session-form__label">Costo promedio</label>
+                <label className="session-form__label">{t('costo_promedio')}</label>
                 <div className="session-form__input session-form__input--readonly">
                   S/ {costoPromedio}
                 </div>
               </div>
             )}
             <div className="session-form__field">
-              <label className="session-form__label">Evolución *</label>
+              <label className="session-form__label">{tClinical('evolucion')} *</label>
               <textarea
                 className="session-form__textarea"
-                placeholder="Describa la evolución del cliente..."
+                placeholder={tClinical('describa_evolucion_placeholder')}
                 value={evolucion}
                 onChange={(e) => setEvolucion(e.target.value)}
               />
             </div>
             <div className="session-form__field">
-              <label className="session-form__label">Observaciones</label>
+              <label className="session-form__label">{tClinical('observaciones')}</label>
               <textarea
                 className="session-form__textarea"
-                placeholder="Observaciones de la sesión..."
+                placeholder={tClinical('observaciones_sesion_placeholder')}
                 value={observaciones}
                 onChange={(e) => setObservaciones(e.target.value)}
               />
             </div>
             <div className="session-form__field">
-              <label className="session-form__label">Costo de esta sesión</label>
+              <label className="session-form__label">{t('costo_esta_sesion')}</label>
               <input
                 type="number"
                 className="session-form__input"
-                placeholder={costoPromedio ? `Promedio: S/ ${costoPromedio}` : 'S/ 0.00'}
+                placeholder={costoPromedio ? t('promedio_sesion', { promedio: costoPromedio }) : 'S/ 0.00'}
                 step="0.01"
                 value={costoSesion}
                 onChange={(e) => setCostoSesion(e.target.value)}
@@ -329,14 +335,14 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
       {/* Photo upload */}
       <div className="session-form__section">
         <h4 className="session-form__section-title">
-          <Camera size={14} /> Registro Fotográfico
+          <Camera size={14} /> {tClinical('registro_fotografico')}
         </h4>
         <div className="session-form__photo">
           {foto ? (
             <div className="session-form__photo-preview">
-              <img src={URL.createObjectURL(foto)} alt="Foto sesión" />
+              <img src={URL.createObjectURL(foto)} alt={tClinical('foto_sesion')} />
               <button className="btn btn--ghost btn--sm" onClick={() => setFoto(null)}>
-                Cambiar
+                {tCommon('cambiar')}
               </button>
             </div>
           ) : (
@@ -344,9 +350,9 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
               <input type="file" accept="image/*" hidden onChange={(e) => setFoto(e.target.files[0])} />
               <Camera size={24} />
               <span>
-                {isNew ? 'Foto antes del tratamiento' :
-                 isLastSession ? 'Foto final' :
-                 'Foto de evolución'}
+                {isNew ? tClinical('foto_antes_tratamiento') :
+                 isLastSession ? tClinical('foto_final') :
+                 tClinical('foto_evolucion')}
               </span>
             </label>
           )}
@@ -361,7 +367,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
             <button
               className="session-form__menu-btn"
               onClick={() => setShowMenu(!showMenu)}
-              title="Más opciones"
+              title={tCommon('mas_opciones')}
             >
               <MoreHorizontal size={18} />
             </button>
@@ -370,70 +376,70 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
                 {!menuAction ? (
                   <>
                     <button className="session-form__menu-item" onClick={() => setMenuAction('pausar')}>
-                      ⏸ Pausar Tratamiento
+                      ⏸ {t('pausar_tratamiento')}
                     </button>
                     <button className="session-form__menu-item" onClick={() => setMenuAction('ampliar')}>
-                      📋 Ampliar Plan
+                      📋 {t('ampliar_plan')}
                     </button>
                     <button className="session-form__menu-item session-form__menu-item--danger" onClick={() => setMenuAction('cancelar')}>
-                      ❌ Cancelar Tratamiento
+                      ❌ {t('cancelar_tratamiento')}
                     </button>
                   </>
                 ) : menuAction === 'pausar' ? (
                   <>
                     <div className="session-form__menu-header">
                       <button className="session-form__menu-back" onClick={() => setMenuAction(null)}>←</button>
-                      <span>Pausar Tratamiento</span>
+                      <span>{t('pausar_tratamiento')}</span>
                       <button className="session-form__menu-close" onClick={() => { setShowMenu(false); setMenuAction(null); }}><X size={14} /></button>
                     </div>
                     <input
                       className="session-form__menu-input"
-                      placeholder="Motivo de pausa (opcional)"
+                      placeholder={t('motivo_pausa_opcional')}
                       value={menuMotivo}
                       onChange={(e) => setMenuMotivo(e.target.value)}
                     />
                     <button className="btn btn--primary btn--sm session-form__menu-confirm" onClick={handleMenuAction} disabled={saving}>
-                      {saving ? <Loader2 size={14} className="spinner" /> : '⏸ Pausar'}
+                      {saving ? <Loader2 size={14} className="spinner" /> : `⏸ ${t('pausar')}`}
                     </button>
                   </>
                 ) : menuAction === 'cancelar' ? (
                   <>
                     <div className="session-form__menu-header">
                       <button className="session-form__menu-back" onClick={() => setMenuAction(null)}>←</button>
-                      <span>Cancelar Tratamiento</span>
+                      <span>{t('cancelar_tratamiento')}</span>
                       <button className="session-form__menu-close" onClick={() => { setShowMenu(false); setMenuAction(null); }}><X size={14} /></button>
                     </div>
                     <input
                       className="session-form__menu-input"
-                      placeholder="Motivo de cancelación *"
+                      placeholder={t('motivo_cancelacion')}
                       value={menuMotivo}
                       onChange={(e) => setMenuMotivo(e.target.value)}
                     />
                     <button className="btn btn--danger btn--sm session-form__menu-confirm" onClick={handleMenuAction} disabled={saving || !menuMotivo.trim()}>
-                      {saving ? <Loader2 size={14} className="spinner" /> : '❌ Cancelar'}
+                      {saving ? <Loader2 size={14} className="spinner" /> : `❌ ${t('cancelar')}`}
                     </button>
                   </>
                 ) : menuAction === 'ampliar' ? (
                   <>
                     <div className="session-form__menu-header">
                       <button className="session-form__menu-back" onClick={() => setMenuAction(null)}>←</button>
-                      <span>Ampliar Plan</span>
+                      <span>{t('ampliar_plan')}</span>
                       <button className="session-form__menu-close" onClick={() => { setShowMenu(false); setMenuAction(null); }}><X size={14} /></button>
                     </div>
                     <div className="session-form__menu-field">
-                      <label>Nuevas sesiones totales</label>
+                      <label>{t('nuevas_sesiones_totales')}</label>
                       <input
                         type="number"
                         className="session-form__menu-input"
                         min={totalSesiones + 1}
                         value={menuAmpliarCount || ''}
                         onChange={(e) => setMenuAmpliarCount(parseInt(e.target.value) || 0)}
-                        placeholder={`Actual: ${totalSesiones}`}
+                        placeholder={t('actual_sesiones', { actual: totalSesiones })}
                       />
                     </div>
                     <input
                       className="session-form__menu-input"
-                      placeholder="Motivo (opcional)"
+                      placeholder={t('motivo_opcional')}
                       value={menuMotivo}
                       onChange={(e) => setMenuMotivo(e.target.value)}
                     />
@@ -442,7 +448,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
                       onClick={handleMenuAction}
                       disabled={saving || !menuAmpliarCount || menuAmpliarCount <= totalSesiones}
                     >
-                      {saving ? <Loader2 size={14} className="spinner" /> : '📋 Ampliar'}
+                      {saving ? <Loader2 size={14} className="spinner" /> : `📋 ${t('ampliar')}`}
                     </button>
                   </>
                 ) : null}
@@ -461,7 +467,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
             disabled={saving || !tipoTratamiento}
           >
             {saving ? <Loader2 size={16} className="spinner" /> : <Save size={16} />}
-            Crear Tratamiento
+            {t('crear_tratamiento')}
           </button>
         ) : isSessionMode ? (
           <>
@@ -471,7 +477,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
               disabled={saving}
             >
               {saving ? <Loader2 size={16} className="spinner" /> : <Calendar size={16} />}
-              Guardar y Agendar
+              {t('guardar_y_agendar')}
             </button>
             {(isLastSession || sesionesRestantes <= 1) && (
               <button
@@ -480,7 +486,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
                 disabled={saving}
               >
                 {saving ? <Loader2 size={16} className="spinner" /> : <CheckCircle size={16} />}
-                Guardar y Finalizar
+                {t('guardar_y_finalizar')}
               </button>
             )}
           </>

@@ -50,13 +50,13 @@ export default function TabTimeline({ pacienteId }) {
     const diffWeeks = Math.floor(diffDays / 7);
     const diffMonths = Math.floor(diffDays / 30);
 
-    if (diffMin < 1) return t('ahora_mismo', { ns: 'patients' });
-    if (diffMin < 60) return `${t('hace', { ns: 'patients' })} ${diffMin} min`;
-    if (diffHrs < 24) return `${t('hace', { ns: 'patients' })} ${diffHrs}h`;
+    if (diffMin < 1) return t('ahora_mismo');
+    if (diffMin < 60) return `${t('hace')} ${diffMin} min`;
+    if (diffHrs < 24) return `${t('hace')} ${diffHrs}h`;
     if (diffDays === 1) return t('ayer');
-    if (diffDays < 7) return `${t('hace', { ns: 'patients' })} ${diffDays} ${t('dias', { ns: 'patients' })}`;
-    if (diffWeeks < 4) return `${t('hace', { ns: 'patients' })} ${diffWeeks} ${t('semanas', { ns: 'patients' })}`;
-    if (diffMonths < 12) return `${t('hace', { ns: 'patients' })} ${diffMonths} ${t('meses', { ns: 'patients' })}`;
+    if (diffDays < 7) return `${t('hace')} ${diffDays} ${t('dias')}`;
+    if (diffWeeks < 4) return `${t('hace')} ${diffWeeks} ${t('semanas')}`;
+    if (diffMonths < 12) return `${t('hace')} ${diffMonths} ${t('meses')}`;
     return formatFechaCorta(fecha);
   }
 
@@ -93,11 +93,11 @@ export default function TabTimeline({ pacienteId }) {
     return parts.join(' · ') || t('consulta_registrada');
   }
 
-  function getTratamientoDetail(t) {
+  function getTratamientoDetail(tr) {
     const parts = [];
-    if (t.procedimientoRealizado) parts.push(t.procedimientoRealizado);
-    if (t.costoTotal > 0) parts.push(`$${t.costoTotal.toFixed(2)}`);
-    if (t.estado) parts.push(t.estado.replace('_', ' ').toLowerCase());
+    if (tr.procedimientoRealizado) parts.push(tr.procedimientoRealizado);
+    if (tr.costoTotal > 0) parts.push(`$${tr.costoTotal.toFixed(2)}`);
+    if (tr.estado) parts.push(tr.estado.replace('_', ' ').toLowerCase());
     return parts.join(' · ') || t('tratamiento_creado');
   }
 
@@ -106,9 +106,9 @@ export default function TabTimeline({ pacienteId }) {
       REALIZADO: { label: t('sesion_completada'), variant: 'active' },
       PLANIFICADO: { label: t('plan_ampliado'), variant: 'pending' },
       EN_CURSO: { label: t('active', { ns: 'common' }), variant: 'active' },
-      FINALIZADO: { label: t('finalizado', { ns: 'patients' }), variant: 'active' },
+      FINALIZADO: { label: t('finalizado'), variant: 'active' },
       CANCELADO: { label: t('cancelled', { ns: 'common' }), variant: 'muted' },
-      PAUSADO: { label: t('pausado', { ns: 'patients' }), variant: 'pending' },
+      PAUSADO: { label: t('pausado'), variant: 'pending' },
     };
     return map[estado] || { label: estado?.replace('_', ' ') || '', variant: 'pending' };
   }
@@ -116,8 +116,8 @@ export default function TabTimeline({ pacienteId }) {
   function getCitaBadge(estado) {
     const map = {
       pendiente: { label: t('pending', { ns: 'common' }), variant: 'pending' },
-      confirmada: { label: t('confirmada', { ns: 'patients' }), variant: 'active' },
-      asistio: { label: t('asistio', { ns: 'patients' }), variant: 'active' },
+      confirmada: { label: t('confirmada'), variant: 'active' },
+      asistio: { label: t('asistio'), variant: 'active' },
       completada: { label: t('completed', { ns: 'common' }), variant: 'active' },
       cancelada: { label: t('cancelled', { ns: 'common' }), variant: 'muted' },
     };
@@ -160,14 +160,14 @@ export default function TabTimeline({ pacienteId }) {
         const list = Array.isArray(tratamientosRes.value.data)
           ? tratamientosRes.value.data
           : [];
-        list.forEach((t) => {
-          const badge = getTratamientoBadge(t.estado);
+        list.forEach((tr) => {
+          const badge = getTratamientoBadge(tr.estado);
           all.push({
-            id: `tratamiento-${t.id}`,
+            id: `tratamiento-${tr.id}`,
             type: 'tratamiento',
-            fecha: t.createdAt,
+            fecha: tr.createdAt,
             label: t('tratamiento'),
-            detail: getTratamientoDetail(t),
+            detail: getTratamientoDetail(tr),
             badge,
           });
         });
@@ -182,7 +182,7 @@ export default function TabTimeline({ pacienteId }) {
             id: `consent-${c.id}`,
             type: 'consentimiento',
             fecha: c.fecha || c.createdAt,
-            label: `${t('consentimientos')}: ${c.tipo || 'Trámite'}`,
+            label: `${t('consentimientos')}: ${c.tipo || t('tramite')}`,
             detail: c.aceptado ? t('aceptado_label') : t('pendiente_aceptacion'),
             badge: {
               label: c.aceptado ? t('aceptado_label') : t('pending', { ns: 'common' }),

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Stethoscope, CheckCircle, AlertCircle, Loader2, Plus, ArrowLeft, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import SessionForm from './SessionForm';
 import CitaSchedulerModal from '../agenda/CitaSchedulerModal';
 import { TREATMENT_CATEGORIES, getTreatmentLabel } from '../../config/attentionTypes';
@@ -17,18 +18,6 @@ function getEstadoClass(estado) {
     case 'PAUSADO': return 'tratamiento-badge--pausado';
     case 'CANCELADO': return 'tratamiento-badge--cancelado';
     default: return '';
-  }
-}
-
-function getEstadoLabel(estado) {
-  switch (estado) {
-    case 'EN_CURSO': return 'Activo';
-    case 'PROGRAMADO': return 'Programado';
-    case 'FINALIZADO': return 'Finalizado';
-    case 'PAUSADO': return 'Pausado';
-    case 'PENDIENTE': return 'Pendiente';
-    case 'CANCELADO': return 'Cancelado';
-    default: return estado;
   }
 }
 
@@ -52,6 +41,11 @@ export default function SesionTratamientoView({
   onAmpliar,
   onBack,
 }) {
+  const { t } = useTranslation('patients');
+  const { t: tClinical } = useTranslation('clinical');
+  const { t: tCommon } = useTranslation('common');
+  const { t: tDashboard } = useTranslation('dashboard');
+
   const [selectedTratamiento, setSelectedTratamiento] = useState(null);
   const [creatingNew, setCreatingNew] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
@@ -91,6 +85,18 @@ export default function SesionTratamientoView({
 
   const sessionMode = workingTratamiento ? getSessionMode() : 'new';
 
+  const getEstadoLabel = (estado) => {
+    switch (estado) {
+      case 'EN_CURSO': return tDashboard('panel_status_en_curso');
+      case 'PROGRAMADO': return tDashboard('panel_status_programado');
+      case 'FINALIZADO': return tDashboard('panel_status_finalizado');
+      case 'PAUSADO': return tDashboard('panel_status_pausado');
+      case 'PENDIENTE': return tDashboard('panel_status_pendiente');
+      case 'CANCELADO': return tDashboard('panel_status_cancelado');
+      default: return estado;
+    }
+  };
+
   const handleStartCreate = () => {
     setCreatingNew(true);
     setSelectedTratamiento(null);
@@ -115,11 +121,11 @@ export default function SesionTratamientoView({
         tipoTratamiento: formTipo,
         sesionesPlaneadas: formSesiones,
         costoEstimado: formCosto || null,
-        objetivo: formObjetivo || 'Tratamiento indicado por consulta',
+        objetivo: formObjetivo || t('tratamiento_indicado_por_consulta'),
       });
       setCreatingNew(false);
     } catch (err) {
-      setError(err.message || 'Error al crear tratamiento');
+      setError(err.message || t('error_crear_tratamiento'));
     } finally {
       setSaving(false);
     }
@@ -135,7 +141,7 @@ export default function SesionTratamientoView({
       }
     } catch (err) {
       console.error('Error saving session:', err);
-      setError(err.message || 'Error al guardar la sesión');
+      setError(err.message || t('error_guardar_sesion'));
     } finally {
       setSaving(false);
     }
@@ -159,28 +165,28 @@ export default function SesionTratamientoView({
       {/* Treatment list */}
       <div className="sesion-tratamiento__list">
         <h3 className="sesion-tratamiento__list-title">
-          <Stethoscope size={16} /> Tratamientos de {paciente?.nombres}
+          <Stethoscope size={16} /> {t('tratamientos_de', { nombre: paciente?.nombres })}
         </h3>
 
         {activeTreatments.length === 0 && finishedTreatments.length === 0 ? (
           <div className="sesion-tratamiento__empty">
             <AlertCircle size={20} />
-            <p>Sin tratamientos registrados</p>
-            <span>Seleccione "Nuevo Tratamiento" para comenzar</span>
+            <p>{t('sin_tratamientos_registrados')}</p>
+            <span>{t('seleccione_nuevo_para_comenzar')}</span>
           </div>
         ) : (
           <>
             {/* Active treatments */}
-            {activeTreatments.map((t) => {
-              const sesiones = t.sesionesRealizadas || 0;
-              const total = t.sesionesPlaneadas || 0;
+            {activeTreatments.map((treat) => {
+              const sesiones = treat.sesionesRealizadas || 0;
+              const total = treat.sesionesPlaneadas || 0;
               const progreso = total > 0 ? sesiones / total : 0;
-              const isSelected = workingTratamiento?.id === t.id && !creatingNew;
-              const isBlocked = tratamientosBloqueados.has(t.id);
+              const isSelected = workingTratamiento?.id === treat.id && !creatingNew;
+              const isBlocked = tratamientosBloqueados.has(treat.id);
 
               return (
                 <div
-                  key={t.id}
+                  key={treat.id}
                   className={[
                     'sesion-tratamiento__item',
                     isSelected ? 'sesion-tratamiento__item--selected' : '',
@@ -188,22 +194,22 @@ export default function SesionTratamientoView({
                   ].filter(Boolean).join(' ')}
                   onClick={() => {
                     if (isBlocked) return;
-                    setSelectedTratamiento(t);
+                    setSelectedTratamiento(treat);
                     setCreatingNew(false);
                   }}
                 >
                   <div className="sesion-tratamiento__item-header">
                     <span className="sesion-tratamiento__item-name">
-                      {getTreatmentLabel(t.tipoTratamiento)}
+                      {getTreatmentLabel(treat.tipoTratamiento)}
                     </span>
                     <div className="sesion-tratamiento__item-badges">
                       {isBlocked && (
                         <span className="tratamiento-badge tratamiento-badge--pendiente">
-                          <Clock size={12} /> Pendiente confirmación
+                          <Clock size={12} /> {t('pendiente_confirmacion')}
                         </span>
                       )}
-                      <span className={`tratamiento-badge ${getEstadoClass(t.estado)}`}>
-                        {getEstadoLabel(t.estado)}
+                      <span className={`tratamiento-badge ${getEstadoClass(treat.estado)}`}>
+                        {getEstadoLabel(treat.estado)}
                       </span>
                     </div>
                   </div>
@@ -215,17 +221,17 @@ export default function SesionTratamientoView({
                       />
                     </div>
                     <span className="sesion-tratamiento__progress-text">
-                      {sesiones}/{total} sesiones
+                      {sesiones}/{total} {t('sesiones_label')}
                     </span>
                   </div>
-                  {t.fechaInicio && (
+                  {treat.fechaInicio && (
                     <span className="sesion-tratamiento__item-date">
-                      Inicio: {formatDate(t.fechaInicio)}
+                      {t('inicio')}: {formatDate(treat.fechaInicio)}
                     </span>
                   )}
                   {isBlocked && (
                     <span className="sesion-tratamiento__item-blocked-hint">
-                      La cita está siendo coordinada
+                      {t('cita_siendo_coordinada')}
                     </span>
                   )}
                 </div>
@@ -235,20 +241,20 @@ export default function SesionTratamientoView({
             {/* Finished treatments */}
             {finishedTreatments.length > 0 && (
               <div className="sesion-tratamiento__finished">
-                <span className="sesion-tratamiento__finished-label">Finalizados</span>
-                {finishedTreatments.map((t) => (
-                  <div key={t.id} className="sesion-tratamiento__item sesion-tratamiento__item--finished">
+                <span className="sesion-tratamiento__finished-label">{t('finalizados')}</span>
+                {finishedTreatments.map((treat) => (
+                  <div key={treat.id} className="sesion-tratamiento__item sesion-tratamiento__item--finished">
                     <div className="sesion-tratamiento__item-header">
                       <span className="sesion-tratamiento__item-name">
-                        {getTreatmentLabel(t.tipoTratamiento)}
+                        {getTreatmentLabel(treat.tipoTratamiento)}
                       </span>
-                      <span className={`tratamiento-badge ${getEstadoClass(t.estado)}`}>
-                        {getEstadoLabel(t.estado)}
+                      <span className={`tratamiento-badge ${getEstadoClass(treat.estado)}`}>
+                        {getEstadoLabel(treat.estado)}
                       </span>
                     </div>
-                    {t.fechaFin && (
+                    {treat.fechaFin && (
                       <span className="sesion-tratamiento__item-date">
-                        Finalizado: {formatDate(t.fechaFin)}
+                        {t('finalizado')}: {formatDate(treat.fechaFin)}
                       </span>
                     )}
                   </div>
@@ -263,7 +269,7 @@ export default function SesionTratamientoView({
           className="btn btn--primary sesion-tratamiento__new-btn"
           onClick={handleStartCreate}
         >
-          <Plus size={16} /> Nuevo Tratamiento
+          <Plus size={16} /> {t('nuevo_tratamiento')}
         </button>
       </div>
 
@@ -281,17 +287,17 @@ export default function SesionTratamientoView({
                 >
                   <ArrowLeft size={14} />
                 </button>
-                Nuevo Tratamiento
+                {t('nuevo_tratamiento')}
               </h4>
               <div className="session-form__fields">
                 <div className="session-form__field">
-                  <label className="session-form__label">Tipo de tratamiento *</label>
+                  <label className="session-form__label">{t('tipo_tratamiento')} *</label>
                   <select
                     className="session-form__select"
                     value={formTipo}
                     onChange={(e) => setFormTipo(e.target.value)}
                   >
-                    <option value="">Seleccionar tratamiento...</option>
+                    <option value="">{t('seleccionar_tratamiento')}</option>
                     {TREATMENT_CATEGORIES.map((cat) => (
                       <optgroup key={cat.id} label={cat.label}>
                         {cat.treatments.map((t) => (
@@ -302,18 +308,18 @@ export default function SesionTratamientoView({
                   </select>
                 </div>
                 <div className="session-form__field">
-                  <label className="session-form__label">Sesiones *</label>
+                  <label className="session-form__label">{t('sesiones')} *</label>
                   <input
                     type="number"
                     className="session-form__input"
-                    placeholder="Ej: 4"
+                    placeholder={t('ejemplo_4')}
                     min="1"
                     value={formSesiones}
                     onChange={(e) => setFormSesiones(parseInt(e.target.value) || 1)}
                   />
                 </div>
                 <div className="session-form__field">
-                  <label className="session-form__label">Costo por sesión</label>
+                  <label className="session-form__label">{t('costo_por_sesion')}</label>
                   <input
                     type="number"
                     className="session-form__input"
@@ -324,11 +330,11 @@ export default function SesionTratamientoView({
                   />
                 </div>
                 <div className="session-form__field">
-                  <label className="session-form__label">Objetivo</label>
+                  <label className="session-form__label">{t('objetivo')}</label>
                   <input
                     type="text"
                     className="session-form__input"
-                    placeholder="Objetivo del tratamiento"
+                    placeholder={t('objetivo_del_tratamiento')}
                     value={formObjetivo}
                     onChange={(e) => setFormObjetivo(e.target.value)}
                   />
@@ -342,7 +348,7 @@ export default function SesionTratamientoView({
             </div>
             <div className="session-form__actions">
               <button className="btn btn--secondary" onClick={handleCancelCreate}>
-                Cancelar
+                {tCommon('cancel')}
               </button>
               <button
                 className="btn btn--primary"
@@ -350,7 +356,7 @@ export default function SesionTratamientoView({
                 disabled={!formTipo || saving}
               >
                 {saving ? <Loader2 size={16} className="spinner" /> : <Plus size={16} />}
-                Crear e Iniciar
+                {t('crear_e_iniciar')}
               </button>
             </div>
           </div>
@@ -358,24 +364,24 @@ export default function SesionTratamientoView({
             isWorkingBlocked ? (
               <div className="sesion-tratamiento__form-blocked">
                 <Clock size={32} />
-                <h3>Esperando confirmación de fecha</h3>
-                <p>La fecha de la próxima sesión está siendo coordinada con el cliente.</p>
+                <h3>{t('esperando_confirmacion_fecha')}</h3>
+                <p>{t('fecha_coordinada_cliente')}</p>
                 <span className="sesion-tratamiento__form-blocked-hint">
-                  Una vez confirmada la fecha, podrá continuar con el tratamiento.
+                  {t('confirmada_fecha_continuar')}
                 </span>
               </div>
             ) : (
               <>
                 <div className="sesion-tratamiento__form-header">
                   <h3>
-                    {sessionMode === 'new' && 'Nuevo Tratamiento'}
-                    {sessionMode === 'first-session' && `Sesión 1 de ${workingTratamiento.sesionesPlaneadas || '?'}`}
-                    {sessionMode === 'continuing' && `Sesión ${(workingTratamiento.sesionesRealizadas || 0) + 1} de ${workingTratamiento.sesionesPlaneadas || '?'}`}
-                    {sessionMode === 'last' && `Última Sesión (${workingTratamiento.sesionesRealizadas || 0} de ${workingTratamiento.sesionesPlaneadas || '?'})`}
-                    {sessionMode === 'completed' && 'Tratamiento Completado'}
+                    {sessionMode === 'new' && t('nuevo_tratamiento')}
+                    {sessionMode === 'first-session' && t('sesion_de', { number: 1, total: workingTratamiento.sesionesPlaneadas || '?' })}
+                    {sessionMode === 'continuing' && t('sesion_de', { number: (workingTratamiento.sesionesRealizadas || 0) + 1, total: workingTratamiento.sesionesPlaneadas || '?' })}
+                    {sessionMode === 'last' && t('ultima_sesion_de', { current: workingTratamiento.sesionesRealizadas || 0, total: workingTratamiento.sesionesPlaneadas || '?' })}
+                    {sessionMode === 'completed' && t('tratamiento_completado')}
                   </h3>
                   <span className="sesion-tratamiento__form-subtitle">
-                    {getTreatmentLabel(workingTratamiento.tipoTratamiento) || 'Tratamiento'}
+                    {getTreatmentLabel(workingTratamiento.tipoTratamiento) || t('tratamiento')}
                   </span>
                 </div>
                 <SessionForm
@@ -393,7 +399,7 @@ export default function SesionTratamientoView({
           ) : (
           <div className="sesion-tratamiento__form-placeholder">
             <Stethoscope size={32} />
-            <p>Seleccione un tratamiento o cree uno nuevo</p>
+            <p>{t('seleccione_o_cree')}</p>
           </div>
         )}
       </div>

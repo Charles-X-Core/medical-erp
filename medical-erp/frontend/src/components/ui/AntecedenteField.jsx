@@ -1,10 +1,13 @@
+import { useTranslation } from 'react-i18next';
+
 export default function AntecedenteField({
   label,
   value,
   onChange,
-  placeholder = 'Detalles (opcional)',
+  placeholder,
   compact = false,
 }) {
+  const { t } = useTranslation('common');
   const isYes = value && value !== 'No' && value !== '';
   const isNo = value === 'No';
 
@@ -17,14 +20,14 @@ export default function AntecedenteField({
           className={`antecedente-btn ${isYes ? 'si-activo' : ''}`}
           onClick={() => onChange(isYes ? '' : 'Si')}
         >
-          Si
+          {t('yes')}
         </button>
         <button
           type="button"
           className={`antecedente-btn ${isNo ? 'no-activo' : ''}`}
           onClick={() => onChange(isNo ? '' : 'No')}
         >
-          No
+          {t('no')}
         </button>
       </div>
       {isYes && (
@@ -32,7 +35,7 @@ export default function AntecedenteField({
           className="antecedente-field__obs"
           value={value === 'Si' ? '' : value}
           onChange={(e) => onChange(e.target.value || 'Si')}
-          placeholder={placeholder}
+          placeholder={placeholder || t('details_optional')}
           rows={2}
         />
       )}

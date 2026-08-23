@@ -7,6 +7,7 @@ import {
   Pencil, Trash2, AlertCircle, Loader2, Eye, Stethoscope,
   CalendarClock, ArrowUpDown
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { getPrimaryRole } from '../utils/roleUtils';
 import { pacienteService } from '../services/pacienteService';
@@ -31,17 +32,10 @@ function extractList(data) {
   return [];
 }
 
-const WIZARD_STEPS = [
-  { id: 1, label: 'Identificacion', icon: User },
-  { id: 2, label: 'Datos', icon: Heart },
-  { id: 3, label: 'Contacto', icon: Phone },
-  { id: 4, label: 'Mediciones', icon: Ruler },
-  { id: 5, label: 'Contrato', icon: FileText },
-  { id: 6, label: 'Resumen', icon: CheckCircle },
-];
-
 export default function AdmisionPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation('patients');
+  const { t: tCommon } = useTranslation('common');
   const { user } = useAuth();
   const primaryRole = getPrimaryRole(user);
   const isEnfermera = primaryRole === 'enfermera';
@@ -92,14 +86,14 @@ export default function AdmisionPage() {
         setTotalPages(res.data?.totalPages || 1);
         setTotalElements(res.data?.totalElements || content.length);
       } else {
-        setError(res.message || 'Error al cargar clientes');
+        setError(res.message || t('error_cargar_clientes'));
       }
     } catch (err) {
-      setError(err.message || 'Error al cargar clientes');
+      setError(err.message || t('error_cargar_clientes'));
     } finally {
       setLoading(false);
     }
-  }, [page, query, sort]);
+  }, [page, query, sort, t]);
 
   useEffect(() => { if (view === 'list' && !showCitasHoy) loadPacientes(); }, [loadPacientes, view, showCitasHoy]);
 
@@ -206,14 +200,14 @@ export default function AdmisionPage() {
           destinoRol: 'enfermera',
           pacienteId: selectedPatient.id,
           tipo: 'FIRMAR_DOCUMENTO',
-          titulo: `Firma pendiente: ${formData.nombres} ${formData.apellidoPaterno}`,
-          descripcion: `El cliente ${formData.nombres} ${formData.apellidoPaterno} necesita firmar el contrato de membresia.`,
+          titulo: t('firma_pendiente_titulo', { nombres: formData.nombres, apellido: formData.apellidoPaterno }),
+          descripcion: t('firma_pendiente_descripcion', { nombres: formData.nombres, apellido: formData.apellidoPaterno }),
         }).catch(() => {});
       }
       setSaved(true);
       setTimeout(() => setView('acciones'), 1500);
     } catch (err) {
-      alert(err.message || 'Error al guardar');
+      alert(err.message || t('error_guardar'));
     } finally {
       setSaving(false);
     }
@@ -230,12 +224,12 @@ export default function AdmisionPage() {
   };
 
   const handleDelete = async (id, nombre) => {
-    if (!confirm(`¿Eliminar cliente ${nombre}?`)) return;
+    if (!confirm(t('confirmar_eliminar_cliente', { nombre }))) return;
     try {
       await pacienteService.delete(id);
       loadPacientes();
     } catch (err) {
-      setError(err.message || 'Error al eliminar cliente');
+      setError(err.message || t('error_eliminar_cliente'));
     }
   };
 
@@ -266,6 +260,15 @@ export default function AdmisionPage() {
       default: return 'admision-page__estado--default';
     }
   };
+
+  const WIZARD_STEPS = [
+    { id: 1, label: t('identificacion'), icon: User },
+    { id: 2, label: t('datos'), icon: Heart },
+    { id: 3, label: t('contacto'), icon: Phone },
+    { id: 4, label: t('mediciones'), icon: Ruler },
+    { id: 5, label: t('contrato'), icon: FileText },
+    { id: 6, label: t('resumen'), icon: CheckCircle },
+  ];
 
   // Vista: Panel de acciones post-admision
   if (view === 'acciones' && selectedPatient) {
@@ -299,9 +302,9 @@ export default function AdmisionPage() {
           <button className="admision-page__back" onClick={exitWizard}><ArrowLeft size={20} /></button>
           <div className="admision-page__wizard-info">
             <h2 className="admision-page__wizard-title">{fullName}</h2>
-            <span className="admision-page__wizard-id">{selectedPatient.licenciaConducir || 'Sin ID'}</span>
+            <span className="admision-page__wizard-id">{selectedPatient.licenciaConducir || t('sin_id')}</span>
           </div>
-          {saved && <span className="admision-page__saved-badge"><CheckCircle size={16} /> Guardado</span>}
+          {saved && <span className="admision-page__saved-badge"><CheckCircle size={16} /> {tCommon('guardado')}</span>}
         </div>
 
         <div className="admision-page__stepper">
@@ -348,16 +351,16 @@ export default function AdmisionPage() {
 
         <div className="admision-page__footer">
           <button className="admision-page__btn-prev" onClick={goBack} disabled={!canGoPrev()}>
-            <ArrowLeft size={18} /> Anterior
+            <ArrowLeft size={18} /> {tCommon('anterior')}
           </button>
-          <span className="admision-page__step-indicator">Paso {currentStep} de {WIZARD_STEPS.length}</span>
+          <span className="admision-page__step-indicator">{t('paso')} {currentStep} {tCommon('de')} {WIZARD_STEPS.length}</span>
           {isLastStep ? (
             <button className="admision-page__btn-save" onClick={handleSave} disabled={saving}>
-              <Save size={18} /> {saving ? 'Guardando...' : 'Confirmar Admision'}
+              <Save size={18} /> {saving ? tCommon('guardando') : t('confirmar_admision')}
             </button>
           ) : (
             <button className="admision-page__btn-next" onClick={goNext} disabled={!canGoNext()}>
-              Siguiente <ArrowRight size={18} />
+              {tCommon('siguiente')} <ArrowRight size={18} />
             </button>
           )}
         </div>
@@ -372,14 +375,14 @@ export default function AdmisionPage() {
         <div className="admision-page__title-group">
           <ClipboardCheck size={28} className="admision-page__icon" />
           <div>
-            <h2 className="admision-page__title">Admision</h2>
+            <h2 className="admision-page__title">{t('admision')}</h2>
             <p className="admision-page__subtitle">
-              {totalElements} {totalElements === 1 ? 'cliente registrado' : 'clientes registrados'}
+              {totalElements} {totalElements === 1 ? t('cliente_registrado') : t('clientes_registrados')}
             </p>
           </div>
         </div>
         <button className="admision-page__btn-create" onClick={() => handleOpenModal()}>
-          <Plus size={18} /> Nuevo Cliente
+          <Plus size={18} /> {t('nuevo_cliente')}
         </button>
       </div>
 
@@ -389,15 +392,15 @@ export default function AdmisionPage() {
           <input
             type="text"
             className="admision-page__search-field"
-            placeholder="Buscar por nombre, ID, email o telefono..."
+            placeholder={t('buscar_placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <button type="submit" className="admision-page__btn-secondary">Buscar</button>
+        <button type="submit" className="admision-page__btn-secondary">{tCommon('buscar')}</button>
         {query && (
           <button type="button" className="admision-page__btn-ghost" onClick={() => { setQuery(''); setPage(0); }}>
-            Limpiar
+            {tCommon('limpiar')}
           </button>
         )}
       </form>
@@ -405,10 +408,10 @@ export default function AdmisionPage() {
       <div className="admision-page__filters">
         <ArrowUpDown size={14} className="admision-page__filters-label" />
         {[
-          { value: 'id,desc', label: 'Recientes' },
-          { value: 'nombres,asc', label: 'A → Z' },
-          { value: 'nombres,desc', label: 'Z → A' },
-          { value: 'id,asc', label: 'Mas antiguos' },
+          { value: 'id,desc', label: t('recientes') },
+          { value: 'nombres,asc', label: t('a_z') },
+          { value: 'nombres,desc', label: t('z_a') },
+          { value: 'id,asc', label: t('mas_antiguos') },
         ].map((opt) => (
           <button
             key={opt.value}
@@ -422,7 +425,7 @@ export default function AdmisionPage() {
           className={`admision-page__filter-pill ${showCitasHoy ? 'admision-page__filter-pill--active admision-page__filter-pill--cita-hoy' : ''}`}
           onClick={() => { setShowCitasHoy(prev => !prev); setPage(0); }}
         >
-          <CalendarClock size={14} /> Citas Hoy
+          <CalendarClock size={14} /> {t('citas_hoy')}
         </button>
       </div>
 
@@ -434,14 +437,14 @@ export default function AdmisionPage() {
         {loading ? (
           <div className="admision-page__loading">
             <Loader2 size={32} className="spinner" />
-            <p>Cargando clientes...</p>
+            <p>{t('cargando_clientes')}</p>
           </div>
         ) : pacientes.length === 0 ? (
           <div className="admision-page__empty">
             <ClipboardCheck size={48} />
-            <p>No hay clientes registrados</p>
+            <p>{t('no_hay_clientes_registrados')}</p>
             <button className="admision-page__btn-create" onClick={() => handleOpenModal()}>
-              <Plus size={18} /> Registrar primer cliente
+              <Plus size={18} /> {t('registrar_primer_cliente')}
             </button>
           </div>
         ) : (
@@ -450,12 +453,12 @@ export default function AdmisionPage() {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Nombre</th>
-                  <th>ID Cliente</th>
-                  <th>Telefono</th>
-                  <th>Email</th>
-                  <th>Estado</th>
-                  <th className="admision-page__th-actions">Acciones</th>
+                  <th>{t('nombre')}</th>
+                  <th>{t('id_cliente')}</th>
+                  <th>{t('telefono')}</th>
+                  <th>{t('email')}</th>
+                  <th>{t('estado')}</th>
+                  <th className="admision-page__th-actions">{t('acciones')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -475,11 +478,11 @@ export default function AdmisionPage() {
                       <div className="admision-page__estado">
                         {citasHoyIds.has(p.id) && (
                           <span className="admision-page__cita-hoy">
-                            <CalendarClock size={12} /> Cita hoy
+                            <CalendarClock size={12} /> {t('cita_hoy')}
                           </span>
                         )}
                         <span className={`admision-page__estado-row ${getEstadoClass(p.estado)}`}>
-                          {p.estado || 'activo'}
+                          {p.estado || t('activo')}
                         </span>
                       </div>
                     </td>
@@ -487,7 +490,7 @@ export default function AdmisionPage() {
                       {isEnfermera ? (
                         <button
                           className="admision-page__action admision-page__action--primary"
-                          title="Iniciar admision"
+                          title={t('iniciar_admision')}
                           onClick={() => startWizard(p)}
                         >
                           <Stethoscope size={18} />
@@ -496,14 +499,14 @@ export default function AdmisionPage() {
                         <>
                           <button
                             className="admision-page__action"
-                            title="Centro del cliente"
+                            title={t('centro_cliente')}
                             onClick={() => navigate(`/pacientes/${p.id}/workspace`)}
                           >
                             <Eye size={18} />
                           </button>
                           <button
                             className="admision-page__action"
-                            title="Detalle"
+                            title={t('detalle')}
                             onClick={() => navigate(`/pacientes/${p.id}/detalle`)}
                           >
                             <ClipboardList size={18} />
@@ -512,7 +515,7 @@ export default function AdmisionPage() {
                       )}
                       <button
                         className="admision-page__action"
-                        title="Editar"
+                        title={tCommon('editar')}
                         onClick={() => handleOpenModal(p.id)}
                       >
                         <Pencil size={18} />
@@ -520,7 +523,7 @@ export default function AdmisionPage() {
                       {!isEnfermera && (
                         <button
                           className="admision-page__action admision-page__action--danger"
-                          title="Eliminar"
+                          title={tCommon('eliminar')}
                           onClick={() => handleDelete(p.id, `${p.nombres} ${p.apellidoPaterno}`)}
                         >
                           <Trash2 size={18} />
@@ -537,7 +540,7 @@ export default function AdmisionPage() {
                 <button className="admision-page__page-btn" disabled={page === 0} onClick={() => setPage(page - 1)}>
                   <ChevronLeft size={16} />
                 </button>
-                <span className="admision-page__page-info">Pagina {page + 1} de {totalPages}</span>
+                <span className="admision-page__page-info">{t('pagina')} {page + 1} {tCommon('de')} {totalPages}</span>
                 <button className="admision-page__page-btn" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
                   <ChevronRight size={16} />
                 </button>

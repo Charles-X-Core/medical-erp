@@ -1,10 +1,12 @@
 import { CreditCard, Calendar, Plus, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { membresiaService } from '../../services/membresiaService';
 
 const TIPOS = ['BASICA', 'PREMIUM', 'VIP', 'CORPORATIVA'];
 
 export default function PasoMembresia({ pacienteId, membresias, onMembresiasChange }) {
+  const { t } = useTranslation('patients');
   const [form, setForm] = useState({ tipo: 'BASICA', fechaInicio: '', fechaFin: '' });
   const [loading, setLoading] = useState(false);
 
@@ -35,29 +37,29 @@ export default function PasoMembresia({ pacienteId, membresias, onMembresiasChan
     <div className="wizard-step">
       <div className="wizard-step__header">
         <CreditCard size={24} />
-        <h3>Membresia</h3>
-        <p>Registro de membresia del cliente</p>
+        <h3>{t('membresia')}</h3>
+        <p>{t('registro_membresia_cliente')}</p>
       </div>
 
       <div className="wizard-step__membresia-form">
         <div className="wizard-step__form-grid wizard-step__form-grid--compact">
           <div className="wizard-step__field">
-            <label>Tipo</label>
+            <label>{t('tipo')}</label>
             <select value={form.tipo} onChange={e => setForm(prev => ({ ...prev, tipo: e.target.value }))}>
-              {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+              {TIPOS.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}
             </select>
           </div>
           <div className="wizard-step__field">
-            <label>Fecha Inicio</label>
+            <label>{t('fecha_inicio')}</label>
             <input type="date" value={form.fechaInicio} onChange={e => setForm(prev => ({ ...prev, fechaInicio: e.target.value }))} />
           </div>
           <div className="wizard-step__field">
-            <label>Fecha Fin</label>
+            <label>{t('fecha_fin')}</label>
             <input type="date" value={form.fechaFin} onChange={e => setForm(prev => ({ ...prev, fechaFin: e.target.value }))} />
           </div>
           <div className="wizard-step__field wizard-step__field--action">
             <button className="wizard-step__btn-add" onClick={handleAdd} disabled={loading}>
-              <Plus size={16} /> {loading ? 'Agregando...' : 'Agregar'}
+              <Plus size={16} /> {loading ? t('agregando') : t('agregar')}
             </button>
           </div>
         </div>
@@ -73,7 +75,7 @@ export default function PasoMembresia({ pacienteId, membresias, onMembresiasChan
                   <Calendar size={14} /> {m.fechaInicio} — {m.fechaFin}
                 </span>
                 <span className={`wizard-step__membresia-estado wizard-step__membresia-estado--${m.estado}`}>
-                  {m.vigente ? 'Vigente' : m.estado}
+                  {m.vigente ? t('vigente') : m.estado}
                 </span>
               </div>
               <button className="wizard-step__btn-delete" onClick={() => handleDelete(m.id)}>
@@ -87,7 +89,7 @@ export default function PasoMembresia({ pacienteId, membresias, onMembresiasChan
       {membresias.length === 0 && (
         <div className="wizard-step__empty">
           <CreditCard size={32} />
-          <p>Sin membresias registradas</p>
+          <p>{t('sin_membresias_registradas')}</p>
         </div>
       )}
     </div>

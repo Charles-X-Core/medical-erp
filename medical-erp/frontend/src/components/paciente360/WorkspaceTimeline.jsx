@@ -28,7 +28,7 @@ export default function WorkspaceTimeline({ pacienteId }) {
     const diffHrs = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMin < 1) return t('ahora', { ns: 'patients' });
+    if (diffMin < 1) return t('ahora');
     if (diffMin < 60) return `${diffMin}m`;
     if (diffHrs < 24) return `${diffHrs}h`;
     if (diffDays === 1) return t('ayer');
@@ -73,13 +73,13 @@ export default function WorkspaceTimeline({ pacienteId }) {
         const tratamientos = Array.isArray(tratamientosRes.value.data)
           ? tratamientosRes.value.data
           : [];
-        tratamientos.forEach((t) => {
+        tratamientos.forEach((tr) => {
           allEvents.push({
-            id: `tratamiento-${t.id}`,
+            id: `tratamiento-${tr.id}`,
             type: 'tratamiento',
-            fecha: t.createdAt,
+            fecha: tr.createdAt,
             label: t('tratamiento'),
-            detail: t.procedimientoRealizado || '',
+            detail: tr.procedimientoRealizado || '',
           });
         });
       }
@@ -93,7 +93,7 @@ export default function WorkspaceTimeline({ pacienteId }) {
             id: `consent-${c.id}`,
             type: 'consentimiento',
             fecha: c.fecha || c.createdAt,
-            label: `${t('consentimientos')}: ${c.tipo || 'Trámite'}`,
+            label: `${t('consentimientos')}: ${c.tipo || t('tramite')}`,
             detail: c.aceptado ? t('aceptado_label') : t('pendiente_aceptacion'),
           });
         });

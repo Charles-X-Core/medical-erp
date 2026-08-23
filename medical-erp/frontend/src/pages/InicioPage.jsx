@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -25,7 +25,24 @@ export default function InicioPage() {
   const { t } = useTranslation('dashboard');
 
   const primaryRole = getPrimaryRole(user);
-  const config = dashboardRoleConfig[primaryRole] || dashboardRoleConfig.doctora;
+  const rawConfig = dashboardRoleConfig[primaryRole] || dashboardRoleConfig.doctora;
+
+  const config = useMemo(() => ({
+    title: t(rawConfig.titleKey),
+    subtitle: t(rawConfig.subtitleKey),
+    hero: {
+      emptyTitle: t(rawConfig.hero.emptyTitleKey),
+      emptySubtitle: t(rawConfig.hero.emptySubtitleKey),
+      ctaLabel: t(rawConfig.hero.ctaLabelKey),
+      ctaRoute: rawConfig.hero.ctaRoute,
+    },
+    sections: Object.fromEntries(
+      Object.entries(rawConfig.sections).map(([key, val]) => [
+        key,
+        { ...val, label: val.labelKey ? t(val.labelKey) : val.label },
+      ])
+    ),
+  }), [rawConfig, t]);
 
   const loadData = useCallback(async () => {
     try {
@@ -92,7 +109,7 @@ export default function InicioPage() {
       {error && (
         <div className="dashboard-page__error">
           {error}
-          <button onClick={loadData}>{t('retry')}</button>
+          <button onClick={loadData}>{t('retry', { ns: 'common' })}</button>
         </div>
       )}
 

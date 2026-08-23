@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Save, Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // ============================================
 // AtencionForm — Motivo de Consulta (Step 1)
@@ -8,6 +9,10 @@ import { Save, Calendar } from 'lucide-react';
 // ============================================
 
 export default function AtencionForm({ paciente, onSave, onSchedule }) {
+  const { t: tClinical } = useTranslation('clinical');
+  const { t: tPatients } = useTranslation('patients');
+  const { t: tCommon } = useTranslation('common');
+
   const [motivo, setMotivo] = useState('');
   const [tiempoEnfermedad, setTiempoEnfermedad] = useState('');
   const [signosSintomas, setSignosSintomas] = useState('');
@@ -35,49 +40,49 @@ export default function AtencionForm({ paciente, onSave, onSchedule }) {
   return (
     <div className="atencion-form">
       <div className="atencion-form__section">
-        <h3 className="atencion-form__section-title">Motivo de Consulta</h3>
+        <h3 className="atencion-form__section-title">{tClinical('motivo_consulta')}</h3>
         <div className="atencion-form__fields">
           <div className="atencion-form__field">
-            <label className="atencion-form__label">Diagnóstico / Enfermedad *</label>
+            <label className="atencion-form__label">{tClinical('diagnostico_enfermedad')} *</label>
             <textarea
               className="atencion-form__textarea"
-              placeholder="Describa el diagnóstico o enfermedad..."
+              placeholder={tClinical('describa_diagnostico_placeholder')}
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
             />
           </div>
           <div className="atencion-form__field">
-            <label className="atencion-form__label">Dolores o síntomas</label>
+            <label className="atencion-form__label">{tClinical('dolores_sintomas')}</label>
             <textarea
               className="atencion-form__textarea"
-              placeholder="Síntomas con los que inicia..."
+              placeholder={tClinical('sintomas_placeholder')}
               value={tiempoEnfermedad}
               onChange={(e) => setTiempoEnfermedad(e.target.value)}
             />
           </div>
           <div className="atencion-form__field">
-            <label className="atencion-form__label">Antecedentes médicos</label>
+            <label className="atencion-form__label">{tClinical('antecedentes_medicos')}</label>
             <textarea
               className="atencion-form__textarea"
-              placeholder="Antecedentes relevantes..."
+              placeholder={tClinical('antecedentes_placeholder')}
               value={signosSintomas}
               onChange={(e) => setSignosSintomas(e.target.value)}
             />
           </div>
           <div className="atencion-form__field">
-            <label className="atencion-form__label">Examen clínico general</label>
+            <label className="atencion-form__label">{tClinical('examen_clinico_general')}</label>
             <textarea
               className="atencion-form__textarea"
-              placeholder="Hallazgos del examen..."
+              placeholder={tClinical('hallazgos_placeholder')}
               value={examenClinico}
               onChange={(e) => setExamenClinico(e.target.value)}
             />
           </div>
           <div className="atencion-form__field">
-            <label className="atencion-form__label">Diagnóstico definitivo</label>
+            <label className="atencion-form__label">{tClinical('diagnostico_definitivo')}</label>
             <textarea
               className="atencion-form__textarea"
-              placeholder="Diagnóstico definitivo..."
+              placeholder={tClinical('diagnostico_definitivo_placeholder')}
               value={diagnostico}
               onChange={(e) => setDiagnostico(e.target.value)}
             />
@@ -92,17 +97,17 @@ export default function AtencionForm({ paciente, onSave, onSchedule }) {
           disabled={saving}
         >
           <Calendar size={16} />
-          Agendar Cita
+          {tPatients('agendar_cita')}
         </button>
         <button
           className="btn btn--primary"
           onClick={handleSave}
           disabled={saving || !motivo.trim()}
         >
-          {saving ? 'Guardando...' : (
+          {saving ? tCommon('guardando') : (
             <>
               <Save size={16} />
-              Guardar Consulta
+              {tClinical('guardar_consulta')}
             </>
           )}
         </button>

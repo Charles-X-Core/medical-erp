@@ -17,22 +17,6 @@ function formatHora(hora) {
   return hora.substring(0, 5);
 }
 
-function calcularEdad(fechaNacimiento) {
-  if (!fechaNacimiento) return '-';
-  const hoy = new Date();
-  const nac = new Date(fechaNacimiento);
-  let edad = hoy.getFullYear() - nac.getFullYear();
-  const mes = hoy.getMonth() - nac.getMonth();
-  if (mes < 0 || (mes === 0 && hoy.getDate() < nac.getDate())) edad--;
-  return `${edad} años`;
-}
-
-function getSexoLabel(sexo) {
-  if (sexo === 'M') return 'Masculino';
-  if (sexo === 'F') return 'Femenino';
-  return '-';
-}
-
 export default function ResumenTab({ paciente, historia: historiaInicial, pacienteId }) {
   const { t } = useTranslation('patients');
   const [historia, setHistoria] = useState(historiaInicial);
@@ -59,7 +43,7 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
       if (tratRes.status === 'fulfilled' && tratRes.value?.data) {
         const list = Array.isArray(tratRes.value.data) ? tratRes.value.data : tratRes.value.data?.content || [];
         setTratamientosActivos(
-          list.filter((t) => t.estado !== 'FINALIZADO' && t.estado !== 'CANCELADO').slice(0, 3)
+          list.filter((tr) => tr.estado !== 'FINALIZADO' && tr.estado !== 'CANCELADO').slice(0, 3)
         );
       }
 
@@ -128,12 +112,28 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
     }
   };
 
+  const calcularEdad = (fechaNacimiento) => {
+    if (!fechaNacimiento) return '-';
+    const hoy = new Date();
+    const nac = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - nac.getFullYear();
+    const mes = hoy.getMonth() - nac.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nac.getDate())) edad--;
+    return t('edad_anios', { edad });
+  };
+
+  const getSexoLabel = (sexo) => {
+    if (sexo === 'M') return t('masculino');
+    if (sexo === 'F') return t('femenino');
+    return '-';
+  };
+
   const activeAntecedentes = getActiveAntecedentes(historia);
 
   const fichaFields = [
     { label: t('peso'), value: paciente.peso ? `${paciente.peso} kg` : '-' },
     { label: t('estatura'), value: paciente.estatura ? `${paciente.estatura} cm` : '-' },
-    { label: 'Edad', value: calcularEdad(paciente.fechaNacimiento) },
+    { label: t('edad'), value: calcularEdad(paciente.fechaNacimiento) },
     { label: t('gender'), value: getSexoLabel(paciente.sexo) },
     { label: t('estado_civil_short'), value: paciente.estadoCivil || '-' },
     { label: t('occupation'), value: paciente.ocupacion || '-' },
@@ -228,10 +228,10 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
             <p className="rsum__empty">{t('sin_historia_clinica')}</p>
           ) : (
             <div className="rsum__list">
-              {activeAntecedentes.map(({ key, label, value }) => (
+              {activeAntecedentes.map(({ key, labelKey, label, value }) => (
                 <div key={key} className="rsum__item">
                   <span className="rsum__dot" />
-                  <span className="rsum__item-label">{label}</span>
+                  <span className="rsum__item-label">{t(labelKey)}</span>
                   {value !== 'Si' && <span className="rsum__item-detail">{value}</span>}
                 </div>
               ))}
@@ -251,11 +251,11 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
             {tratamientosActivos.length === 0 ? (
               <p className="rsum__empty">{t('sin_tratamientos_registrados')}</p>
             ) : (
-              tratamientosActivos.map((t) => (
-                <div key={t.id} className="rsum__row">
-                  <span className="rsum__value">{t.procedimientoRealizado || t.tipoSesionTratamiento?.nombre || t('tratamiento')}</span>
-                  <span className={`rsum__badge rsum__badge--${t.estado === 'EN_CURSO' ? 'active' : 'pending'}`}>
-                    {t.estado?.replace('_', ' ')}
+              tratamientosActivos.map((tr) => (
+                <div key={tr.id} className="rsum__row">
+                  <span className="rsum__value">{tr.procedimientoRealizado || tr.tipoSesionTratamiento?.nombre || t('tratamiento')}</span>
+                  <span className={`rsum__badge rsum__badge--${tr.estado === 'EN_CURSO' ? 'active' : 'pending'}`}>
+                    {tr.estado?.replace('_', ' ')}
                   </span>
                 </div>
               ))

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Clock, AlertTriangle, CheckCircle, Timer } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 function formatTime(date) {
   const h = String(date.getHours()).padStart(2, '0');
@@ -26,6 +27,9 @@ function parseTimeToDate(timeStr, baseDate) {
 }
 
 export default function SmartTimerBar({ citaActiva, siguienteCita }) {
+  const { t: tClinical } = useTranslation('clinical');
+  const { t: tPatients } = useTranslation('patients');
+
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -61,16 +65,16 @@ export default function SmartTimerBar({ citaActiva, siguienteCita }) {
   const remainingMin = remainingMs !== null ? Math.floor(remainingMs / 60000) : null;
 
   let status = 'normal';
-  let statusLabel = 'Normal';
+  let statusLabel = tClinical('normal');
   let statusIcon = CheckCircle;
   if (remainingMin !== null) {
     if (remainingMin < 5) {
       status = 'urgent';
-      statusLabel = 'Urgente';
+      statusLabel = tClinical('urgente');
       statusIcon = AlertTriangle;
     } else if (remainingMin < 15) {
       status = 'warning';
-      statusLabel = 'Precaucion';
+      statusLabel = tClinical('precaucion');
       statusIcon = AlertTriangle;
     }
   }
@@ -82,7 +86,7 @@ export default function SmartTimerBar({ citaActiva, siguienteCita }) {
       <div className="smart-timer__section smart-timer__section--clock">
         <Clock size={16} />
         <span className="smart-timer__time">{formatTime(now)}</span>
-        <span className="smart-timer__label">Ahora</span>
+        <span className="smart-timer__label">{tClinical('ahora')}</span>
       </div>
 
       <div className="smart-timer__divider" />
@@ -90,7 +94,7 @@ export default function SmartTimerBar({ citaActiva, siguienteCita }) {
       <div className="smart-timer__section smart-timer__section--session">
         <Timer size={16} />
         <span className="smart-timer__time">{formatDuration(sessionDuration)}</span>
-        <span className="smart-timer__label">Sesion ({sessionStart})</span>
+        <span className="smart-timer__label">{tPatients('sesion')} ({sessionStart})</span>
       </div>
 
       {nextCitaTime && (
@@ -100,7 +104,7 @@ export default function SmartTimerBar({ citaActiva, siguienteCita }) {
             <StatusIcon size={16} />
             <span className="smart-timer__time">{nextCitaLabel}</span>
             <span className="smart-timer__label">
-              Siguiente cita — {remainingMs !== null ? formatDuration(remainingMs) : ''} restantes
+              {tPatients('siguiente_cita_restantes', { tiempo: remainingMs !== null ? formatDuration(remainingMs) : '' })}
             </span>
           </div>
         </>

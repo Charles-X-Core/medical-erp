@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Calendar, Clock, User, FileText, CheckCircle, AlertCircle, Loader2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import agendaService from '../../services/agendaService';
 
 function extractList(data) {
@@ -58,6 +59,8 @@ function formatDiaLargo(date) {
 }
 
 export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCreada }) {
+  const { t } = useTranslation('agenda');
+  const { t: tPatients } = useTranslation('patients');
   const [doctoras, setDoctoras] = useState([]);
   const [doctoraId, setDoctoraId] = useState('');
   const [doctoraName, setDoctoraName] = useState('');
@@ -80,7 +83,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
   const weekDates = getWeekDates(new Date(Date.now() + weekOffset * 7 * 24 * 60 * 60 * 1000));
 
   const tipoSeleccionado = useMemo(() => {
-    return tiposCita.find(t => t.id?.toString() === tipoCitaId?.toString()) || null;
+    return tiposCita.find(tipo => tipo.id?.toString() === tipoCitaId?.toString()) || null;
   }, [tiposCita, tipoCitaId]);
 
   const duracion = tipoSeleccionado?.duracionMinutos || 30;
@@ -124,7 +127,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
       if (list.length > 0) {
         setDoctoras(list);
         setDoctoraId(list[0].id?.toString() || '');
-        setDoctoraName(list[0].nombre || `Doctora #${list[0].id}`);
+        setDoctoraName(list[0].nombre || t('doctora_number', { id: list[0].id }));
       }
     } catch {
       setDoctoras([]);
@@ -148,8 +151,8 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
       const tieneCitasPrevias = citas.length > 0;
       if (!tieneCitasPrevias) {
         const tipos = extractList(await agendaService.getTiposCita());
-        const primeraVisita = tipos.find(t => t.nombre?.toLowerCase().includes('primera'));
-        const consultaGeneral = tipos.find(t => t.nombre?.toLowerCase().includes('consulta general'));
+        const primeraVisita = tipos.find(tipo => tipo.nombre?.toLowerCase().includes('primera'));
+        const consultaGeneral = tipos.find(tipo => tipo.nombre?.toLowerCase().includes('consulta general'));
         const sugerido = primeraVisita || consultaGeneral;
         if (sugerido) {
           setTipoCitaId(sugerido.id?.toString() || '');
@@ -208,7 +211,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
         hora: fullTime(slotSeleccionado.inicio),
         duracionMinutos: duracion,
         tipoCitaId: tipoCitaId || undefined,
-        motivo: notas || tipoSeleccionado?.nombre || 'Consulta',
+        motivo: notas || tipoSeleccionado?.nombre || t('consulta'),
         notas: notas || undefined,
         prioridad: 'NORMAL',
       });
@@ -218,7 +221,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
         onClose();
       }, 1500);
     } catch (err) {
-      setError(err.message || 'Error al crear la cita');
+      setError(err.message || t('error_crear_cita'));
     } finally {
       setSending(false);
     }
@@ -232,7 +235,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content agendar-v2" onClick={e => e.stopPropagation()}>
         <div className="agendar-v2__header">
-          <h3><Calendar size={20} /> Agendar Cita</h3>
+          <h3><Calendar size={20} /> {t('agendar_cita')}</h3>
           <button className="agendar-v2__close" onClick={onClose}><X size={20} /></button>
         </div>
 
@@ -240,8 +243,8 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
           {exito ? (
             <div className="agendar-v2__exito">
               <CheckCircle size={48} />
-              <h4>Cita agendada correctamente</h4>
-              <p>{fullName} — {diaSeleccionado} {slotSeleccionado ? `a las ${normalizeTime(slotSeleccionado.inicio)}` : ''}</p>
+              <h4>{t('cita_agendada_correctamente')}</h4>
+              <p>{fullName} — {diaSeleccionado} {slotSeleccionado ? `${t('a_las')} ${normalizeTime(slotSeleccionado.inicio)}` : ''}</p>
             </div>
           ) : (
             <>
@@ -252,14 +255,14 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
 
               {doctoras.length > 1 && (
                 <div className="agendar-v2__field">
-                  <label>Doctora</label>
+                  <label>{t('doctora')}</label>
                   <select value={doctoraId} onChange={e => {
                     const d = doctoras.find(x => x.id?.toString() === e.target.value);
                     setDoctoraId(e.target.value);
                     setDoctoraName(d?.nombre || '');
                   }}>
                     {doctoras.map(d => (
-                      <option key={d.id} value={d.id}>{d.nombre || `Doctora #${d.id}`}</option>
+                      <option key={d.id} value={d.id}>{d.nombre || t('doctora_number', { id: d.id })}</option>
                     ))}
                   </select>
                 </div>
@@ -267,14 +270,14 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
 
               <div className="agendar-v2__field">
                 <label>
-                  <FileText size={14} /> Tipo de cita
-                  {tipoSugerido && <span className="agendar-v2__badge-sugerido"><Sparkles size={10} /> Sugerido</span>}
+                  <FileText size={14} /> {t('tipo_cita')}
+                  {tipoSugerido && <span className="agendar-v2__badge-sugerido"><Sparkles size={10} /> {t('sugerido')}</span>}
                 </label>
                 <select value={tipoCitaId} onChange={handleSelectTipoCita}>
-                  <option value="">Seleccionar tipo...</option>
-                  {tiposCita.map(t => (
-                    <option key={t.id} value={t.id}>
-                      {t.nombre} — {t.duracionMinutos} min
+                  <option value="">{t('seleccionar_tipo')}</option>
+                  {tiposCita.map(tipo => (
+                    <option key={tipo.id} value={tipo.id}>
+                      {tipo.nombre} — {tipo.duracionMinutos} {t('min')}
                     </option>
                   ))}
                 </select>
@@ -283,14 +286,14 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
               {tipoSeleccionado && (
                 <div className="agendar-v2__tipo-info">
                   <Clock size={14} />
-                  <span>{tipoSeleccionado.nombre} — {tipoSeleccionado.duracionMinutos} minutos</span>
+                  <span>{tipoSeleccionado.nombre} — {tipoSeleccionado.duracionMinutos} {t('minutos')}</span>
                 </div>
               )}
 
               <div className="agendar-v2__seccion">
                 <div className="agendar-v2__week-nav">
                   <button onClick={() => setWeekOffset(w => w - 1)} className="agendar-v2__week-btn"><ChevronLeft size={16} /></button>
-                  <span>Semana del {weekDates[0].getDate()} {MESES[weekDates[0].getMonth()]} — {weekDates[6].getDate()} {MESES[weekDates[6].getMonth()]}</span>
+                  <span>{t('semana_del')} {weekDates[0].getDate()} {MESES[weekDates[0].getMonth()]} — {weekDates[6].getDate()} {MESES[weekDates[6].getMonth()]}</span>
                   <button onClick={() => setWeekOffset(w => w + 1)} className="agendar-v2__week-btn"><ChevronRight size={16} /></button>
                 </div>
 
@@ -314,7 +317,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
                         <span className="agendar-v2__dia-nombre">{DIAS_CORTOS[i]}</span>
                         <span className="agendar-v2__dia-num">{d.getDate()}</span>
                         <span className="agendar-v2__dia-count">
-                          {sinAgenda ? 'Sin agenda' : lleno ? 'Lleno' : `${disponibles} libre${disponibles !== 1 ? 's' : ''}`}
+                          {sinAgenda ? t('sin_agenda') : lleno ? t('lleno') : t('disponibles_count', { count: disponibles })}
                         </span>
                       </button>
                     );
@@ -324,18 +327,18 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
 
               {loading ? (
                 <div className="agendar-v2__loading">
-                  <Loader2 size={20} className="spinner" /> Cargando disponibilidad...
+                  <Loader2 size={20} className="spinner" /> {t('cargando_disponibilidad')}
                 </div>
               ) : diaSeleccionado ? (
                 <div className="agendar-v2__seccion">
                   <h4 className="agendar-v2__seccion-titulo">
-                    Horarios — {formatDiaLargo(new Date(diaSeleccionado + 'T12:00:00'))}
+                    {t('horarios')} — {formatDiaLargo(new Date(diaSeleccionado + 'T12:00:00'))}
                   </h4>
 
                   {slotsDelDia.length === 0 ? (
                     <div className="agendar-v2__empty">
                       <AlertCircle size={20} />
-                      <p>Sin horarios disponibles para este día</p>
+                      <p>{t('sin_horarios_disponibles')}</p>
                     </div>
                   ) : (
                     <div className="agendar-v2__slots">
@@ -357,10 +360,10 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
                           >
                             <span className="agendar-v2__slot-hora">{inicio} — {fin}</span>
                             <span className="agendar-v2__slot-estado">
-                              {esDisponible ? 'Disponible' :
-                               estado === 'OCUPADO' ? `Ocupado${slot.descripcion ? ` (${slot.descripcion})` : ''}` :
-                               estado === 'BLOQUEADO' ? `Bloqueado${slot.descripcion ? ` (${slot.descripcion})` : ''}` :
-                               estado === 'EN_BUFFER' ? 'Preparación' : 'No disponible'}
+                              {esDisponible ? t('disponible') :
+                               estado === 'OCUPADO' ? t('ocupado_descripcion', { descripcion: slot.descripcion || '' }) :
+                               estado === 'BLOQUEADO' ? t('bloqueado_descripcion', { descripcion: slot.descripcion || '' }) :
+                               estado === 'EN_BUFFER' ? t('preparacion') : t('no_disponible')}
                             </span>
                           </button>
                         );
@@ -371,16 +374,16 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
               ) : (
                 <div className="agendar-v2__hint">
                   <Calendar size={20} />
-                  <p>{!tipoCitaId ? 'Selecciona un tipo de cita primero' : 'Selecciona un día para ver los horarios'}</p>
+                  <p>{!tipoCitaId ? t('seleccionar_tipo_primero') : t('seleccionar_dia_horarios')}</p>
                 </div>
               )}
 
               <div className="agendar-v2__field agendar-v2__field--full">
-                <label><FileText size={14} /> Notas (opcional)</label>
+                <label><FileText size={14} /> {t('notas_opcional')}</label>
                 <textarea
                   value={notas}
                   onChange={e => setNotas(e.target.value)}
-                  placeholder="Motivo de la consulta..."
+                  placeholder={t('motivo_consulta')}
                   rows={2}
                 />
               </div>
@@ -394,14 +397,14 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
               {slotSeleccionado && diaSeleccionado && (
                 <div className="agendar-v2__resumen">
                   <div className="agendar-v2__resumen-linea">
-                    <strong>{tipoSeleccionado?.nombre || 'Consulta'}</strong>
+                    <strong>{tipoSeleccionado?.nombre || t('consulta')}</strong>
                     <span>·</span>
                     <span>{formatDiaLargo(new Date(diaSeleccionado + 'T12:00:00'))}</span>
                     <span>·</span>
                     <span>{normalizeTime(slotSeleccionado.inicio)}</span>
                   </div>
                   <div className="agendar-v2__resumen-linea agendar-v2__resumen-linea--sub">
-                    {doctoraName} · {duracion} minutos
+                    {doctoraName} · {duracion} {t('minutos')}
                   </div>
                 </div>
               )}
@@ -411,13 +414,13 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
 
         {!exito && (
           <div className="agendar-v2__footer">
-            <button className="btn btn--ghost" onClick={onClose}>Cancelar</button>
+            <button className="btn btn--ghost" onClick={onClose}>{t('cancelar')}</button>
             <button
               className="btn btn--primary"
               onClick={handleConfirmar}
               disabled={!slotSeleccionado || sending}
             >
-              {sending ? 'Agendando...' : 'Agendar Cita'}
+              {sending ? t('agendando') : t('agendar_cita')}
             </button>
           </div>
         )}
