@@ -2,26 +2,26 @@
 @use '../mixins' as *;
 @use '../themes/light' as *;
 
-$cd-accent: $accent-primary;
-$cd-accent-hover: darken($accent-primary, 8%);
+$cd-accent: $light-accent;
+$cd-accent-hover: $light-accent-hover;
 $cd-accent-light: $light-accent-light;
 $cd-accent-border: $light-accent-border;
-$cd-surface: $bg-surface;
-$cd-card: $bg-card;
-$cd-card-hover: $bg-card-hover;
-$cd-text-primary: $text-primary;
+$cd-surface: $light-surface;
+$cd-card: $light-card;
+$cd-card-hover: $light-card-hover;
+$cd-text-primary: $light-text-primary;
 $cd-text-inverse: $light-text-inverse;
-$cd-text-secondary: $text-secondary;
-$cd-text-muted: $text-muted;
-$cd-border: $border-color;
+$cd-text-secondary: $light-text-secondary;
+$cd-text-muted: $light-text-muted;
+$cd-border: $light-border;
 $cd-border-strong: $light-border-strong;
-$cd-success: $success;
+$cd-success: $light-success;
 $cd-success-light: $light-success-light;
-$cd-error: $error;
+$cd-error: $light-error;
 $cd-error-light: $light-error-light;
-$cd-warning: $warning;
+$cd-warning: $light-warning;
 $cd-warning-light: $light-warning-light;
-$cd-shadow-lg: $shadow-lg;
+$cd-shadow-lg: $light-shadow-lg;
 
 // ===================== Centro de Datos Page =====================
 
