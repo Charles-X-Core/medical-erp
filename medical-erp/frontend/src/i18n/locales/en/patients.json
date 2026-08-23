@@ -11,6 +11,7 @@
   "error_loading": "Error loading client",
   "confirm_delete_client": "Delete client {{name}}?",
   "personal_data": "Personal Data",
+  "step_identificacion": "Client Identification",
   "contact_info": "Contact",
   "emergency_contact_title": "Emergency Contact",
   "medical_history_title": "Medical History",

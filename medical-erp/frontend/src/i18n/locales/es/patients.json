@@ -11,6 +11,7 @@
   "error_loading": "Error al cargar el cliente",
   "confirm_delete_client": "¿Eliminar cliente {{name}}?",
   "personal_data": "Datos Personales",
+  "step_identificacion": "Identificación del Cliente",
   "contact_info": "Contacto",
   "emergency_contact_title": "Contacto de Emergencia",
   "medical_history_title": "Antecedentes Médicos",
