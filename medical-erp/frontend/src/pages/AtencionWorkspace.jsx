@@ -530,10 +530,10 @@ export default function AtencionWorkspace() {
                           <AlertCircle size={14} className="resumen-tab__antecedente-icon" />
                           <div className="resumen-tab__antecedente-content">
                             <div className="resumen-tab__antecedente-row">
-                              <span className="resumen-tab__antecedente-label">{label}</span>
-                              <span className={`resumen-tab__antecedente-badge ${value === 'Si' ? 'resumen-tab__antecedente-badge--si' : 'resumen-tab__antecedente-badge--info'}`}>{value === 'Si' ? tc('si') : t('si_presents')}</span>
+                              <span className="resumen-tab__antecedente-label">{t(label)}</span>
+                              <span className={`resumen-tab__antecedente-badge ${value === 'Si' || value === 'Yes' ? 'resumen-tab__antecedente-badge--si' : 'resumen-tab__antecedente-badge--info'}`}>{value === 'Si' || value === 'Yes' ? tc('si') : t('si_presents')}</span>
                             </div>
-                            {value !== 'Si' && <p className="resumen-tab__antecedente-detail">{value}</p>}
+                            {value !== 'Si' && value !== 'Yes' && <p className="resumen-tab__antecedente-detail">{value}</p>}
                           </div>
                         </div>
                       ))}

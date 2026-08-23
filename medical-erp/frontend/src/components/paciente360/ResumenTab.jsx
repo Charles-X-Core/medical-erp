@@ -232,7 +232,7 @@ export default function ResumenTab({ paciente, historia: historiaInicial, pacien
                 <div key={key} className="rsum__item">
                   <span className="rsum__dot" />
                   <span className="rsum__item-label">{t(labelKey)}</span>
-                  {value !== 'Si' && <span className="rsum__item-detail">{value}</span>}
+                  {value !== 'Si' && value !== 'Yes' && <span className="rsum__item-detail">{value}</span>}
                 </div>
               ))}
             </div>
