@@ -25,8 +25,9 @@ public class WebConfig {
                 "http://localhost:5174",              // Vite dev server (ERP)
                 "http://192.168.0.12:5174",           // ERP from LAN
                 "http://192.168.0.158:5174",          // ERP from tablet/lan
-                "https://optimalhealthnowusa.com",    // Production landing page
-                "https://erp.optimalhealthnowusa.com" // Production ERP subdomain
+                "https://myoptimalhealthnow.com",     // Production landing page
+                "https://www.myoptimalhealthnow.com", // Production landing page (www)
+                "https://erp.myoptimalhealthnow.com"  // Production ERP subdomain
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(
