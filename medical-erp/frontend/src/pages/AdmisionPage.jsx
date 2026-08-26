@@ -23,6 +23,7 @@ import PasoContrato from '../components/admision-steps/PasoContrato';
 import PasoResumen from '../components/admision-steps/PasoResumen';
 import PanelAccionesPostAdmision from '../components/admision-steps/PanelAccionesPostAdmision';
 import AgendarCitaModal from '../components/admision-steps/AgendarCitaModal';
+import ConfirmModal from '../components/ConfirmModal';
 
 function extractList(data) {
   if (!data) return [];
@@ -68,6 +69,8 @@ export default function AdmisionPage() {
 
   const [view, setView] = useState('list');
   const [showAgendarCita, setShowAgendarCita] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmData, setConfirmData] = useState({ id: null, nombre: '', estadoActual: '' });
 
   const loadPacientes = useCallback(async () => {
     try {
@@ -224,8 +227,13 @@ export default function AdmisionPage() {
   };
 
   const handleToggleEstado = async (id, nombre, estadoActual) => {
-    const accion = estadoActual === 'activo' ? 'desactivar' : 'activar';
-    if (!confirm(`¿${accion.charAt(0).toUpperCase() + accion.slice(1)} a ${nombre}?`)) return;
+    setConfirmData({ id, nombre, estadoActual });
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmToggle = async () => {
+    const { id, nombre, estadoActual } = confirmData;
+    setConfirmOpen(false);
     try {
       if (estadoActual === 'activo') {
         await pacienteService.delete(id);
@@ -555,6 +563,16 @@ export default function AdmisionPage() {
       </div>
 
       <PacienteFormModal isOpen={showModal} onClose={handleCloseModal} onSave={handleSaveModal} pacienteId={editingPacienteId} />
+      <ConfirmModal
+        open={confirmOpen}
+        title={confirmData.estadoActual === 'activo' ? tCommon('desactivar') : tCommon('activar')}
+        message={confirmData.estadoActual === 'activo'
+          ? `${tCommon('desactivar')} a ${confirmData.nombre}?`
+          : `${tCommon('activar')} a ${confirmData.nombre}?`}
+        variant={confirmData.estadoActual === 'activo' ? 'danger' : 'activate'}
+        onConfirm={handleConfirmToggle}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   );
 }

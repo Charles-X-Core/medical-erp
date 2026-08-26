@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Pencil, UserX, UserCheck, FileText, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { pacienteService } from '../services/pacienteService';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function PacienteDetailPage() {
   const { t } = useTranslation('patients');
@@ -13,6 +14,7 @@ export default function PacienteDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('datos');
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -34,9 +36,8 @@ export default function PacienteDetailPage() {
     load();
   }, [load]);
 
-  const handleToggleEstado = async () => {
-    const accion = paciente.estado === 'activo' ? 'desactivar' : 'activar';
-    if (!confirm(`¿${accion.charAt(0).toUpperCase() + accion.slice(1)} a ${fullName}?`)) return;
+  const handleConfirmToggle = async () => {
+    setConfirmOpen(false);
     try {
       if (paciente.estado === 'activo') {
         await pacienteService.delete(id);
@@ -87,7 +88,7 @@ export default function PacienteDetailPage() {
           </button>
           <button
             className={`btn ${paciente.estado === 'activo' ? 'btn--danger' : 'btn--success'}`}
-            onClick={handleToggleEstado}
+            onClick={() => setConfirmOpen(true)}
           >
             {paciente.estado === 'activo' ? <UserX size={18} /> : <UserCheck size={18} />}
             {paciente.estado === 'activo' ? tco('desactivar') : tco('activar')}
@@ -212,6 +213,16 @@ export default function PacienteDetailPage() {
           </div>
         )}
       </div>
+      <ConfirmModal
+        open={confirmOpen}
+        title={paciente?.estado === 'activo' ? tco('desactivar') : tco('activar')}
+        message={paciente?.estado === 'activo'
+          ? `${tco('desactivar')} a ${fullName}?`
+          : `${tco('activar')} a ${fullName}?`}
+        variant={paciente?.estado === 'activo' ? 'danger' : 'activate'}
+        onConfirm={handleConfirmToggle}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   );
 }
