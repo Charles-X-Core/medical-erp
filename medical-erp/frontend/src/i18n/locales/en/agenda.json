@@ -219,5 +219,17 @@
   "buffer_min_label": "buffer",
   "disponible": "Available",
   "manana": "Morning",
-  "tarde": "Afternoon"
+  "tarde": "Afternoon",
+  "onboarding_title": "Set up your schedule",
+  "onboarding_subtitle": "Set your working hours so patients can book appointments with you.",
+  "onboarding_lunes": "Monday",
+  "onboarding_martes": "Tuesday",
+  "onboarding_miercoles": "Wednesday",
+  "onboarding_jueves": "Thursday",
+  "onboarding_viernes": "Friday",
+  "onboarding_sabado": "Saturday",
+  "onboarding_domingo": "Sunday",
+  "onboarding_guardar": "Save schedule",
+  "onboarding_omitir": "Skip for now",
+  "onboarding_at_least_one": "You must select at least one working day"
 }

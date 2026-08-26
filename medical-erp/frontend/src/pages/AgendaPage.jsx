@@ -18,6 +18,7 @@ import CitaDetalleModal from '../components/agenda/CitaDetalleModal';
 import MiniCalendar from '../components/agenda/MiniCalendar';
 import NowLine from '../components/agenda/NowLine';
 import CitaPopover from '../components/agenda/CitaPopover';
+import AgendaOnboardingModal from '../components/agenda/AgendaOnboardingModal';
 import CitaBlock, { DragCitaCtx } from '../components/agenda/CitaBlock';
 import QuickFilters from '../components/agenda/QuickFilters';
 
@@ -635,6 +636,7 @@ export default function AgendaPage() {
   const [reajusteData, setReajusteData] = useState(null);
   const [showScheduler, setShowScheduler] = useState(false);
   const [schedulerPaciente, setSchedulerPaciente] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const timelineRef = useRef(null);
 
   const primaryRole = getPrimaryRole(user);
@@ -697,8 +699,14 @@ export default function AgendaPage() {
   const loadAgenda = useCallback(async () => {
     try {
       const res = await agendaService.getAgendaByUsuario(user?.id);
-      if (res.success) setAgendaData(res.data);
-    } catch { /* */ }
+      if (res.success) {
+        setAgendaData(res.data);
+      } else {
+        setShowOnboarding(true);
+      }
+    } catch {
+      setShowOnboarding(true);
+    }
   }, [user?.id]);
 
   useEffect(() => { loadWeek(); loadAgenda(); }, [loadWeek, loadAgenda]);
@@ -1074,6 +1082,14 @@ export default function AgendaPage() {
           onCitaCreada={loadWeek}
         />
       )}
+
+      {/* Onboarding Modal - No agenda configured */}
+      <AgendaOnboardingModal
+        open={showOnboarding}
+        usuarioId={user?.id}
+        onSaved={() => { setShowOnboarding(false); loadAgenda(); loadWeek(); }}
+        onSkip={() => setShowOnboarding(false)}
+      />
     </div>
   );
 }

@@ -219,5 +219,17 @@
   "buffer_min_label": "buffer",
   "disponible": "Disponible",
   "manana": "Mañana",
-  "tarde": "Tarde"
+  "tarde": "Tarde",
+  "onboarding_title": "Configura tu agenda",
+  "onboarding_subtitle": "Establece tus horarios de atención para que los pacientes puedan agendar citas contigo.",
+  "onboarding_lunes": "Lunes",
+  "onboarding_martes": "Martes",
+  "onboarding_miercoles": "Miércoles",
+  "onboarding_jueves": "Jueves",
+  "onboarding_viernes": "Viernes",
+  "onboarding_sabado": "Sábado",
+  "onboarding_domingo": "Domingo",
+  "onboarding_guardar": "Guardar horarios",
+  "onboarding_omitir": "Omitir por ahora",
+  "onboarding_at_least_one": "Debes seleccionar al menos un día de atención"
 }
