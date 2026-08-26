@@ -162,4 +162,10 @@ public class CitaController {
         return ResponseEntity.ok(ApiResponse.success(citaService.marcarNoShow(id), "Marcada como no asistida"));
     }
 
+    @PatchMapping("/{id}/desmarcar-no-show")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CitaResponse>> desmarcarNoShow(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(citaService.desmarcarNoShow(id), "No-show desmarcado"));
+    }
+
 }

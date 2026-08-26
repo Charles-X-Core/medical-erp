@@ -340,6 +340,19 @@ const agendaService = {
     }
   },
 
+  // Desmarcar no show
+  desmarcarNoShow: async (citaId) => {
+    try {
+      const response = await apiClient(`/api/v1/citas/${citaId}/desmarcar-no-show`, {
+        method: 'PATCH',
+      });
+      return response;
+    } catch (error) {
+      console.error('Error desmarcando no show:', error);
+      throw error;
+    }
+  },
+
   // Get solicitudes propias de la doctora
   getMisSolicitadas: async () => {
     try {

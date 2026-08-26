@@ -530,6 +530,30 @@ public class CitaService {
 
     @Transactional
     @Auditable
+    public CitaResponse desmarcarNoShow(Long id) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita", id));
+
+        if (!"no_show".equals(cita.getEstado())) {
+            throw new BusinessRuleException("INVALID_STATE",
+                    "La cita no está en estado no_show");
+        }
+
+        LocalDateTime ahora = LocalDateTime.now();
+        int duracion = cita.getDuracionMinutos() != null ? cita.getDuracionMinutos() : 30;
+        LocalDateTime finCita = cita.getFechaHora().plusMinutes(duracion);
+        if (ahora.isAfter(finCita.plusMinutes(30))) {
+            throw new BusinessRuleException("NO_SHOW_LOCKED",
+                    "No se puede desmarcar — ya pasó el tiempo de la cita");
+        }
+
+        cita.setEstado("confirmada");
+        Cita saved = citaRepository.save(cita);
+        return citaMapper.toResponse(saved);
+    }
+
+    @Transactional
+    @Auditable
     public CitaResponse completar(Long id, Long consultaId) {
         if (consultaId == null) {
             throw new BusinessRuleException("INV-CIT-005", "Una cita completada requiere una consulta vinculada");

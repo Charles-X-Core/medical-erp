@@ -215,6 +215,17 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
         setMsg({ type: 'error', text: t('error_no_show') });
       }
       setSaving(false);
+    } else if (confirmAction === 'unmark_noshow') {
+      setSaving(true);
+      try {
+        await agendaService.desmarcarNoShow(cita.id);
+        setMsg({ type: 'success', text: t('no_show_desmarcado') });
+        if (onRefresh) onRefresh();
+        setTimeout(onClose, 1000);
+      } catch {
+        setMsg({ type: 'error', text: t('error_desmarcar_no_show') });
+      }
+      setSaving(false);
     }
     setConfirmAction(null);
   };
@@ -240,6 +251,15 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
   const doctoraCanExtend = isDoctora && (isEnAtencion || isConfirmada);
   const doctoraCanConfirm = isDoctora && (isPendiente || isSolicitada);
   const canCancel = !isFinal;
+
+  const isNoShow = cita.estado === 'no_show';
+  const noShowLocked = isNoShow && (() => {
+    const finCita = new Date(cita.fecha + 'T' + cita.hora);
+    finCita.setMinutes(finCita.getMinutes() + duracion + 30);
+    return new Date() > finCita;
+  })();
+  const canMarkNoShow = !isFinal && !isNoShow;
+  const canUnmarkNoShow = isNoShow && !noShowLocked;
   const canSaveDuration = !isEnAtencion && !isFinal;
 
   return (
@@ -458,9 +478,15 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
             </button>
           )}
 
-          {!isFinal && (
+          {canMarkNoShow && (
             <button className="cita-detalle-modal__btn cita-detalle-modal__btn--noshow" onClick={handleNoShow} disabled={saving}>
               <UserX size={14} /> {t('no_asistio_btn')}
+            </button>
+          )}
+
+          {canUnmarkNoShow && (
+            <button className="cita-detalle-modal__btn cita-detalle-modal__btn--confirm" onClick={() => setConfirmAction('unmark_noshow')} disabled={saving}>
+              <CheckCircle size={14} /> {t('desmarcar_no_show')}
             </button>
           )}
 
@@ -474,9 +500,9 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
 
       <ConfirmModal
         open={!!confirmAction}
-        title={confirmAction === 'cancel' ? t('cancel') : t('no_asistio_btn')}
-        message={confirmAction === 'cancel' ? t('confirm_cancel') : t('confirm_no_show')}
-        variant="danger"
+        title={confirmAction === 'cancel' ? t('cancel') : confirmAction === 'unmark_noshow' ? t('desmarcar_no_show') : t('no_asistio_btn')}
+        message={confirmAction === 'cancel' ? t('confirm_cancel') : confirmAction === 'unmark_noshow' ? t('confirm_desmarcar_no_show') : t('confirm_no_show')}
+        variant={confirmAction === 'unmark_noshow' ? 'activate' : 'danger'}
         onConfirm={handleConfirmAction}
         onCancel={() => setConfirmAction(null)}
       />

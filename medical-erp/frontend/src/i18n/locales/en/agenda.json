@@ -231,5 +231,9 @@
   "onboarding_domingo": "Sunday",
   "onboarding_guardar": "Save schedule",
   "onboarding_omitir": "Skip for now",
-  "onboarding_at_least_one": "You must select at least one working day"
+  "onboarding_at_least_one": "You must select at least one working day",
+  "desmarcar_no_show": "Undo No-Show",
+  "confirm_desmarcar_no_show": "Undo this no-show status? The patient will be marked as confirmed again.",
+  "no_show_desmarcado": "No-show status undone",
+  "error_desmarcar_no_show": "Could not undo no-show"
 }
