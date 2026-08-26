@@ -355,6 +355,9 @@ public class CitaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Cita", id));
 
         String estado = cita.getEstado();
+        if ("en_atencion".equals(estado)) {
+            return citaMapper.toResponse(cita);
+        }
         if (!"confirmada".equals(estado) && !"asistio".equals(estado) && !"llegada".equals(estado) && !"pendiente".equals(estado)) {
             throw new BusinessRuleException("BR-CIT-EN-001",
                     "Solo se puede iniciar atención en citas confirmadas, pendientes o con asistencia registrada");
