@@ -333,7 +333,7 @@ export default function AtencionWorkspace() {
         await agendaService.iniciarAtencion(existingCita.id);
         await load(); setAtencionView('motivo'); return;
       }
-      const now = new Date();
+      const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
       const fecha = now.toISOString().split('T')[0];
       const hora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       let dispRes;
