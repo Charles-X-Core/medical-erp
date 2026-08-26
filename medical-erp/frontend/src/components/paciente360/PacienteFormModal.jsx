@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Loader2, ChevronRight, ChevronLeft, Check, Shield, Calendar, FileText } from 'lucide-react';
+import { X, Loader2, ChevronRight, ChevronLeft, Check, Calendar } from 'lucide-react';
 import { pacienteService } from '../../services/pacienteService';
 import { historiaClinicaService } from '../../services/historiaClinicaService';
 import AntecedentesEditor from '../ui/AntecedentesEditor';
-import PasoContrato from '../admision-steps/PasoContrato';
 import CitaSchedulerModal from '../agenda/CitaSchedulerModal';
 
 const STEPS_NEW = [
@@ -12,7 +11,6 @@ const STEPS_NEW = [
   { labelKey: 'personal_data', icon: 'heart' },
   { labelKey: 'contact_info', icon: 'phone' },
   { labelKey: 'emergency_contact_title', icon: 'stethoscope' },
-  { labelKey: 'contrato_opcional', icon: 'shield' },
   { labelKey: 'agendar_opcional', icon: 'calendar' },
 ];
 
@@ -50,8 +48,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
   const isEdit = Boolean(pacienteId);
   const steps = isEdit ? STEPS_EDIT : STEPS_NEW;
   const lastDataStep = 3;
-  const contratoStep = 4;
-  const agendarStep = 5;
+  const agendarStep = 4;
 
   const [formData, setFormData] = useState({ ...emptyPaciente });
   const [antecedentesData, setAntecedentesData] = useState({});
@@ -62,8 +59,6 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
   const [currentStep, setCurrentStep] = useState(0);
 
   const [createdPacienteId, setCreatedPacienteId] = useState(null);
-  const [contratoFirmado, setContratoFirmado] = useState(false);
-  const [membresias, setMembresias] = useState([]);
   const [showScheduler, setShowScheduler] = useState(false);
 
   useEffect(() => {
@@ -76,8 +71,6 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
       setError('');
       setCurrentStep(0);
       setCreatedPacienteId(null);
-      setContratoFirmado(false);
-      setMembresias([]);
       setShowScheduler(false);
     }
   }, [isOpen, pacienteId]);
@@ -245,7 +238,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
 
   const isLastStep = currentStep === steps.length - 1;
   const activePacienteId = createdPacienteId || pacienteId;
-  const showPostSteps = !isEdit && currentStep >= contratoStep;
+  const showPostSteps = !isEdit && currentStep >= agendarStep;
 
   return (
     <div className="wizard-overlay">
@@ -407,51 +400,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
               </>
             )}
 
-            {/* Step 4: Contrato (opcional) */}
-            {currentStep === contratoStep && !isEdit && activePacienteId && (
-              <div className="wizard-form-section">
-                {contratoFirmado ? (
-                  <PasoContrato
-                    pacienteId={activePacienteId}
-                    pacienteNombre={`${formData.nombres} ${formData.apellidoPaterno}`}
-                    membresias={membresias}
-                    onMembresiasChange={setMembresias}
-                    contratoFirmado={contratoFirmado}
-                    onContratoFirmado={(firmado) => {
-                      setContratoFirmado(firmado);
-                      setError('');
-                    }}
-                  />
-                ) : (
-                  <div style={{ textAlign: 'center', padding: 32 }}>
-                    <Shield size={40} color="#94a3b8" style={{ marginBottom: 12 }} />
-                    <h4 style={{ margin: '0 0 8px', color: '#1e293b' }}>{t('generar_contrato')}</h4>
-                    <p style={{ color: '#64748b', fontSize: 14, marginBottom: 20 }}>{t('workspace_warning_no_contract')}</p>
-                    <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-                      <button
-                        className="wizard-btn wizard-btn--next"
-                        onClick={() => setContratoFirmado(false)}
-                        style={{ gap: 8 }}
-                      >
-                        <FileText size={16} /> {t('generar_contrato')}
-                      </button>
-                      <button
-                        className="wizard-btn wizard-btn--cancel"
-                        onClick={() => {
-                          setContratoFirmado(false);
-                          setCurrentStep(prev => prev + 1);
-                        }}
-                        style={{ gap: 8 }}
-                      >
-                        {t('omitir')} <ChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Step 5: Agendar Cita (opcional) */}
+            {/* Step 4: Agendar Cita (opcional) */}
             {currentStep === agendarStep && !isEdit && activePacienteId && (
               <div className="wizard-form-section" style={{ textAlign: 'center' }}>
                 <div style={{ marginBottom: 16 }}>
