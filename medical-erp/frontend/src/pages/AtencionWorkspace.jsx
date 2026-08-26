@@ -336,7 +336,13 @@ export default function AtencionWorkspace() {
       const now = new Date();
       const fecha = now.toISOString().split('T')[0];
       const hora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      const dispRes = await agendaService.getDisponibilidad(fecha, user?.id, 30);
+      let dispRes;
+      try {
+        dispRes = await agendaService.getDisponibilidad(fecha, user?.id, 30);
+      } catch (err) {
+        if (err.status === 404) { navigate('/agenda'); return; }
+        throw err;
+      }
       if (!dispRes.success || !Array.isArray(dispRes.data) || !dispRes.data.length) {
         setStartError(t('no_agenda_configurada')); setStartingAttention(false); return;
       }
