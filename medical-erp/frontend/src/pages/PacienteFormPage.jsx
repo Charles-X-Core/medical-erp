@@ -137,7 +137,7 @@ export default function PacienteFormPage() {
               <label className="form-label">ID *</label>
               <input className="form-input" value={paciente.licenciaConducir}
                 onChange={(e) => handleChange('licenciaConducir', e.target.value)}
-                maxLength={20} placeholder={t('id_number_placeholder')} required />
+                maxLength={8} placeholder={t('id_number_placeholder')} required />
             </div>
             <div className="form-field">
               <label className="form-label">{t('last_name_p')} *</label>

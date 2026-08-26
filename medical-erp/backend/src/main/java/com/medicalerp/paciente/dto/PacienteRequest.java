@@ -31,7 +31,7 @@ public class PacienteRequest {
     private String nombres;
 
     @NotBlank(message = "El ID es requerido")
-    @Size(min = 8, max = 20, message = "El ID debe tener entre 8 y 20 caracteres")
+    @Size(min = 8, max = 8, message = "El ID debe tener exactamente 8 caracteres")
     private String licenciaConducir;
 
     @Size(max = 50, message = "El teléfono no puede exceder 50 caracteres")

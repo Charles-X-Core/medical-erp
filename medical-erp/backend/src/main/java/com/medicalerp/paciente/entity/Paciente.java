@@ -36,7 +36,7 @@ public class Paciente {
     @Column(name = "nombres", nullable = false, length = 255)
     private String nombres;
 
-    @Column(name = "licencia_conducir", unique = true, length = 20)
+    @Column(name = "licencia_conducir", unique = true, length = 8)
     private String licenciaConducir;
 
     @Column(name = "telefono", length = 50)

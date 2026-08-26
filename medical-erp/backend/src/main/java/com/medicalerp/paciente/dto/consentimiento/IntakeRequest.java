@@ -29,7 +29,7 @@ public class IntakeRequest {
         private String nombres;
 
         @jakarta.validation.constraints.NotBlank(message = "El ID es requerido")
-        @jakarta.validation.constraints.Size(min = 8, max = 20, message = "El ID debe tener entre 8 y 20 caracteres")
+        @jakarta.validation.constraints.Size(min = 8, max = 8, message = "El ID debe tener exactamente 8 caracteres")
         private String licenciaConducir;
         private String telefono;
 

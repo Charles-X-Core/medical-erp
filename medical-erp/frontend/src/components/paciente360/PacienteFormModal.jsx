@@ -288,7 +288,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
                 <div className="wizard-form-grid">
                   <div className="wizard-field wizard-field--full">
                     <label>{t('doc_number')} *</label>
-                    <input type="text" name="licenciaConducir" value={formData.licenciaConducir} onChange={handleInputChange} required maxLength={20} placeholder={t('id_number_placeholder')} />
+                    <input type="text" name="licenciaConducir" value={formData.licenciaConducir} onChange={handleInputChange} required maxLength={8} placeholder={t('id_number_placeholder')} />
                   </div>
                   <div className="wizard-field">
                     <label>{t('last_name_p')} *</label>

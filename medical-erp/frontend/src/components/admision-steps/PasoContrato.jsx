@@ -183,7 +183,7 @@ export default function PasoContrato({ pacienteId, pacienteNombre, membresias, o
       {!loading && !previewHtml && (
         <div className="wizard-step__preview-loading">
           <AlertCircle size={20} />
-          <span>{tContract('no_se_pudo_cargar_contrato')}</span>
+          <span>{tContract('contract_error_load')}</span>
         </div>
       )}
     </div>

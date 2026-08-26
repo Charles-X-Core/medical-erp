@@ -297,8 +297,8 @@ public class PacienteService {
     private void validarLicenciaConducir(String licencia, String pais, Long excludeId) {
         if (licencia == null || licencia.isBlank()) return;
 
-        if (licencia.length() < 8 || licencia.length() > 20) {
-            throw new BusinessRuleException("VR-PAC-012", "El ID debe tener entre 8 y 20 caracteres");
+        if (licencia.length() < 8 || licencia.length() > 8) {
+            throw new BusinessRuleException("VR-PAC-012", "El ID debe tener exactamente 8 caracteres");
         }
 
         if (excludeId == null) {
