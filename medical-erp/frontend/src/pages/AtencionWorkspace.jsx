@@ -327,7 +327,7 @@ export default function AtencionWorkspace() {
     setStartingAttention(true); setStartError('');
     try {
       const existingCita = citasHoy.find(c =>
-        c.estado === 'pendiente' || c.estado === 'confirmada' || c.estado === 'asistio' || c.estado === 'llegada' || c.estado === 'programada'
+        c.estado === 'pendiente' || c.estado === 'confirmada' || c.estado === 'asistio' || c.estado === 'llegada' || c.estado === 'programada' || c.estado === 'en_atencion'
       );
       if (existingCita) {
         await agendaService.iniciarAtencion(existingCita.id);
