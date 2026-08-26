@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 
+function getLATime() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+}
+
 export default function NowLine({ horaInicio = 8, pxPerMin = 2 }) {
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState(getLATime());
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 60000);
+    const timer = setInterval(() => setNow(getLATime()), 60000);
     return () => clearInterval(timer);
   }, []);
 
