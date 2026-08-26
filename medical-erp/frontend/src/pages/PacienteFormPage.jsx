@@ -88,6 +88,10 @@ export default function PacienteFormPage() {
       setError(t('doc_number') + ' es obligatorio');
       setSaving(false); return;
     }
+    if (paciente.licenciaConducir.trim().length !== 8) {
+      setError(t('doc_number') + ' debe tener exactamente 8 caracteres');
+      setSaving(false); return;
+    }
     try {
       const res = isEdit ? await pacienteService.update(id, paciente) : await pacienteService.create(paciente);
       if (res.success) {
@@ -142,10 +146,6 @@ export default function PacienteFormPage() {
             <div className="form-field">
               <label className="form-label">{t('last_name_p')} *</label>
               <input className="form-input" value={paciente.apellidoPaterno} onChange={(e) => handleChange('apellidoPaterno', e.target.value)} required />
-            </div>
-            <div className="form-field">
-              <label className="form-label">{t('last_name_m')}</label>
-              <input className="form-input" value={paciente.apellidoMaterno} onChange={(e) => handleChange('apellidoMaterno', e.target.value)} />
             </div>
             <div className="form-field">
               <label className="form-label">{t('first_names')} *</label>

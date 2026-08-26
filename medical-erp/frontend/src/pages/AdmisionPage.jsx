@@ -5,7 +5,7 @@ import {
   User, Heart, Phone, Ruler, FileText, Send,
   ClipboardCheck, ClipboardList, Plus, ChevronLeft, ChevronRight,
   Pencil, Trash2, AlertCircle, Loader2, Eye, Stethoscope,
-  CalendarClock, ArrowUpDown
+  CalendarClock, ArrowUpDown, UserX, UserCheck
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
@@ -223,10 +223,15 @@ export default function AdmisionPage() {
     setView('list');
   };
 
-  const handleDelete = async (id, nombre) => {
-    if (!confirm(t('confirmar_eliminar_cliente', { nombre }))) return;
+  const handleToggleEstado = async (id, nombre, estadoActual) => {
+    const accion = estadoActual === 'activo' ? 'desactivar' : 'activar';
+    if (!confirm(`¿${accion.charAt(0).toUpperCase() + accion.slice(1)} a ${nombre}?`)) return;
     try {
-      await pacienteService.delete(id);
+      if (estadoActual === 'activo') {
+        await pacienteService.delete(id);
+      } else {
+        await pacienteService.activate(id);
+      }
       loadPacientes();
     } catch (err) {
       setError(err.message || t('error_eliminar_cliente'));
@@ -463,12 +468,11 @@ export default function AdmisionPage() {
               </thead>
               <tbody>
                 {pacientes.map((p) => (
-                  <tr key={p.id}>
+                  <tr key={p.id} className={p.estado === 'inactivo' ? 'admision-page__row--inactivo' : ''}>
                     <td className="admision-page__td-id">#{p.id}</td>
                     <td>
                       <div className="admision-page__td-name">
                         <span className="admision-page__td-name-main">{p.nombres} {p.apellidoPaterno}</span>
-                        {p.apellidoMaterno && <span className="admision-page__td-name-sub">{p.apellidoMaterno}</span>}
                       </div>
                     </td>
                     <td>{p.licenciaConducir || '-'}</td>
@@ -522,11 +526,11 @@ export default function AdmisionPage() {
                       </button>
                       {!isEnfermera && (
                         <button
-                          className="admision-page__action admision-page__action--danger"
-                          title={tCommon('eliminar')}
-                          onClick={() => handleDelete(p.id, `${p.nombres} ${p.apellidoPaterno}`)}
+                          className={`admision-page__action ${p.estado === 'activo' ? 'admision-page__action--danger' : 'admision-page__action--success'}`}
+                          title={p.estado === 'activo' ? t('desactivar') : t('activar')}
+                          onClick={() => handleToggleEstado(p.id, `${p.nombres} ${p.apellidoPaterno}`, p.estado)}
                         >
-                          <Trash2 size={18} />
+                          {p.estado === 'activo' ? <UserX size={18} /> : <UserCheck size={18} />}
                         </button>
                       )}
                     </td>

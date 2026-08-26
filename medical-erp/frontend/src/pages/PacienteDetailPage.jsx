@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Pencil, Trash2, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, Pencil, UserX, UserCheck, FileText, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { pacienteService } from '../services/pacienteService';
 
@@ -34,10 +34,15 @@ export default function PacienteDetailPage() {
     load();
   }, [load]);
 
-  const handleDelete = async () => {
-    if (!confirm(t('delete_irreversible'))) return;
+  const handleToggleEstado = async () => {
+    const accion = paciente.estado === 'activo' ? 'desactivar' : 'activar';
+    if (!confirm(`¿${accion.charAt(0).toUpperCase() + accion.slice(1)} a ${fullName}?`)) return;
     try {
-      await pacienteService.delete(id);
+      if (paciente.estado === 'activo') {
+        await pacienteService.delete(id);
+      } else {
+        await pacienteService.activate(id);
+      }
       navigate('/pacientes');
     } catch (err) {
       setError(err.message || t('error_delete'));
@@ -63,7 +68,7 @@ export default function PacienteDetailPage() {
     );
   }
 
-  const fullName = `${paciente.apellidoPaterno} ${paciente.apellidoMaterno || ''}, ${paciente.nombres}`;
+  const fullName = `${paciente.apellidoPaterno}, ${paciente.nombres}`;
 
   return (
     <div className="paciente-detail-page">
@@ -80,8 +85,12 @@ export default function PacienteDetailPage() {
           <button className="btn btn--secondary" onClick={() => navigate(`/pacientes/${id}/editar`)}>
             <Pencil size={18} /> {tco('edit')}
           </button>
-          <button className="btn btn--danger" onClick={handleDelete}>
-            <Trash2 size={18} /> {tco('delete')}
+          <button
+            className={`btn ${paciente.estado === 'activo' ? 'btn--danger' : 'btn--success'}`}
+            onClick={handleToggleEstado}
+          >
+            {paciente.estado === 'activo' ? <UserX size={18} /> : <UserCheck size={18} />}
+            {paciente.estado === 'activo' ? tco('desactivar') : tco('activar')}
           </button>
         </div>
       </div>

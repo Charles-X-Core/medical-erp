@@ -99,5 +99,7 @@
   "de": "of",
   "guardando": "Saving...",
   "editar": "Edit",
-  "eliminar": "Delete"
+  "eliminar": "Delete",
+  "desactivar": "Deactivate",
+  "activar": "Activate"
 }

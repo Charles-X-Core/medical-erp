@@ -172,10 +172,6 @@ export default function ManualForm() {
               <input type="text" value={data.apellidoPaterno} onChange={(e) => update('apellidoPaterno', e.target.value)} placeholder={t('paternal_surname_placeholder')} />
             </div>
             <div className="manual-form__field">
-              <label>{t('maternal_surname')}</label>
-              <input type="text" value={data.apellidoMaterno} onChange={(e) => update('apellidoMaterno', e.target.value)} placeholder={t('maternal_surname_placeholder')} />
-            </div>
-            <div className="manual-form__field">
               <label>{t('birth_date')}</label>
               <input type="date" value={data.fechaNacimiento} onChange={(e) => update('fechaNacimiento', e.target.value)} />
             </div>

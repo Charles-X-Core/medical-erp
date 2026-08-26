@@ -30,7 +30,6 @@ export default function PasoResumen({ formData, mediciones, membresias, firmaSen
           <div className="wizard-step__resumen-grid">
             <span><strong>{t('id')}:</strong> {formData.licenciaConducir || '-'}</span>
             <span><strong>{t('apellido_paterno')}:</strong> {formData.apellidoPaterno || '-'}</span>
-            <span><strong>{t('apellido_materno')}:</strong> {formData.apellidoMaterno || '-'}</span>
             <span><strong>{t('nombres')}:</strong> {formData.nombres || '-'}</span>
           </div>
         </div>

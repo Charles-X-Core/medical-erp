@@ -93,6 +93,13 @@ public class PacienteController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}/activate")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
+    public ResponseEntity<Void> activate(@PathVariable Long id) {
+        pacienteService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/buscar")
     @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<PacienteResponse>>> search(

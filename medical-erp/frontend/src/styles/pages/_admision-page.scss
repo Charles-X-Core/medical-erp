@@ -168,6 +168,22 @@
         &:last-child { border-bottom: none; }
       }
 
+      tr.admision-page__row--inactivo {
+        opacity: 0.55;
+        background: $light-card-hover;
+
+        .admision-page__td-name-main,
+        .admision-page__td-name-sub,
+        td {
+          color: $light-text-muted;
+        }
+
+        .admision-page__action:not(.admision-page__action--success) {
+          pointer-events: none;
+          opacity: 0.4;
+        }
+      }
+
       td {
         padding: $space-3 $space-4;
         color: $light-text-primary;
@@ -245,6 +261,10 @@
 
     &--danger {
       &:hover { background: $light-error-light; border-color: $light-error; color: $light-error; }
+    }
+
+    &--success {
+      &:hover { background: $light-success-light; border-color: $light-success; color: $light-success; }
     }
   }
 

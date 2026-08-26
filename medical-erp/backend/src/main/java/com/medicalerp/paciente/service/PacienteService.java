@@ -283,6 +283,18 @@ public class PacienteService {
         consentimientoRepository.softDeleteByPacienteId(id);
     }
 
+    @Transactional
+    @Auditable
+    public void activate(Long id) {
+        Long clinicaId = securityUtils.getCurrentClinicaId();
+        securityUtils.validateClinicaAccessOnWrite(clinicaId);
+
+        Paciente paciente = pacienteRepository.findByIdAndClinicaId(id, clinicaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente", id));
+        paciente.setEstado("activo");
+        pacienteRepository.save(paciente);
+    }
+
     // ==================== VALIDATION ====================
 
     private void validarPacienteRequest(PacienteRequest request, String pais, PaisConfig config, Long excludeId, Long clinicaId) {

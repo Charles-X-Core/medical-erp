@@ -89,6 +89,12 @@ export const pacienteService = {
     });
   },
 
+  async activate(id) {
+    return apiClient(`/api/v1/pacientes/${id}/activate`, {
+      method: 'PATCH',
+    });
+  },
+
   async search(query) {
     const res = await apiClient(`/api/v1/pacientes/buscar?q=${encodeURIComponent(query)}`);
     return mapList(res);

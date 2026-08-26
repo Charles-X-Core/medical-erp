@@ -25,10 +25,6 @@ export default function PasoIdentificacion({ formData, onChange }) {
           <label>{t('apellido_paterno')}</label>
           <input name="apellidoPaterno" value={formData.apellidoPaterno || ''} onChange={onChange} required />
         </div>
-        <div className="wizard-step__field">
-          <label>{t('apellido_materno')}</label>
-          <input name="apellidoMaterno" value={formData.apellidoMaterno || ''} onChange={onChange} />
-        </div>
         <div className="wizard-step__field wizard-step__field--full">
           <label>{t('nombres')}</label>
           <input name="nombres" value={formData.nombres || ''} onChange={onChange} required />
