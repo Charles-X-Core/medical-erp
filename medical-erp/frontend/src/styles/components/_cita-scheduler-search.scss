@@ -1,0 +1,73 @@
+@use '../variables' as *;
+@use '../themes/light' as *;
+
+// CitaSchedulerModal - clock + patient search styles
+.cita-scheduler {
+  &__clock {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    font-size: $fs-sm;
+    color: $light-text-secondary;
+    font-variant-numeric: tabular-nums;
+    margin-left: auto;
+  }
+
+  &__paciente-change {
+    margin-left: auto;
+    background: none;
+    border: 1px solid $light-accent;
+    color: $light-accent;
+    border-radius: $radius-sm;
+    padding: 2px 8px;
+    font-size: $fs-xs;
+    cursor: pointer;
+    transition: background 0.15s;
+    &:hover { background: $light-accent-light; }
+  }
+
+  &__paciente-placeholder {
+    color: $light-text-muted;
+    font-style: italic;
+  }
+
+  &__search-hint {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    padding: $space-1 0;
+  }
+
+  &__paciente-results {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: $space-1;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    overflow: hidden;
+  }
+
+  &__paciente-option {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    background: $light-bg;
+    border: none;
+    cursor: pointer;
+    font-size: $fs-sm;
+    color: $light-text-primary;
+    text-align: left;
+    transition: background 0.1s;
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__paciente-doc {
+    margin-left: auto;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+}

@@ -62,6 +62,7 @@ function formatDiaLargo(fechaStr, t) {
 
 export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialPaciente, tratamientoId, onCitaCreada }) {
   const { t } = useTranslation('agenda');
+  const [laTime, setLaTime] = useState(() => new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
   const [doctoras, setDoctoras] = useState([]);
   const [doctoraId, setDoctoraId] = useState('');
   const [doctoraName, setDoctoraName] = useState('');
@@ -136,6 +137,15 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
   useEffect(() => {
     setSlotSeleccionado(null);
   }, [tipoCitaId]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLaTime(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const laTimeStr = laTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   const loadDoctoras = async () => {
     try {
@@ -254,6 +264,10 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
       <div className="modal-content cita-scheduler" onClick={e => e.stopPropagation()}>
         <div className="cita-scheduler__header">
           <h3><Calendar size={20} /> {t('agendar_proxima')}</h3>
+          <div className="cita-scheduler__clock">
+            <Clock size={14} />
+            <span>{laTimeStr}</span>
+          </div>
           <button className="cita-scheduler__close" onClick={onClose}><X size={20} /></button>
         </div>
 
