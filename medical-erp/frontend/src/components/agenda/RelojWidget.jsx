@@ -14,7 +14,8 @@ export default function RelojWidget() {
     return () => clearInterval(timer);
   }, []);
 
-  const timeStr = hora.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const laTime = new Date(hora.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const timeStr = laTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const parts = timeStr.split(':');
 
   return (
@@ -26,7 +27,7 @@ export default function RelojWidget() {
       </div>
       <div className="reloj-widget__date">
         <Calendar size={14} />
-        <span>{t(DAY_KEYS[hora.getDay()])} {hora.getDate()} de {t(MONTH_KEYS[hora.getMonth()])}</span>
+        <span>{t(DAY_KEYS[laTime.getDay()])} {laTime.getDate()} de {t(MONTH_KEYS[laTime.getMonth()])}</span>
       </div>
     </div>
   );

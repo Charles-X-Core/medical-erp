@@ -739,7 +739,8 @@ public class CitaService {
         if (fecha == null || hora == null) return;
         LocalDateTime fechaHora = fecha.atTime(hora);
         LocalDateTime ahora = LocalDateTime.now().withSecond(0).withNano(0);
-        if (fechaHora.isBefore(ahora)) {
+        LocalDateTime tolerancia = ahora.minusMinutes(5);
+        if (fechaHora.isBefore(tolerancia)) {
             throw new BusinessRuleException("PAST_DATE", "No se pueden agendar citas en el pasado");
         }
     }

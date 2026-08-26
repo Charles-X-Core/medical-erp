@@ -58,7 +58,7 @@ public class AvailabilityEngine {
                         .duracionDisponible(duracionSesion)
                         .build());
 
-                cursor = slotFin;
+                cursor = cursor.plusMinutes(5);
             }
         }
 

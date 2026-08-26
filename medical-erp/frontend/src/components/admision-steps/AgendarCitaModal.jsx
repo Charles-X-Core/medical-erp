@@ -24,16 +24,19 @@ function fullTime(t) {
 
 function isPastSlot(fechaStr, horaInicio) {
   const now = new Date();
-  const today = now.toISOString().split('T')[0];
+  const laTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const today = laTime.toISOString().split('T')[0];
   if (fechaStr !== today) return false;
   const [h, m] = normalizeTime(horaInicio).split(':').map(Number);
-  const slotStart = new Date();
+  const slotStart = new Date(laTime);
   slotStart.setHours(h, m, 0, 0);
-  return slotStart <= now;
+  return slotStart <= laTime;
 }
 
 function isPastDate(fechaStr) {
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const laTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const today = laTime.toISOString().split('T')[0];
   return fechaStr < today;
 }
 
@@ -190,6 +193,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
     if (!diaSeleccionado) return [];
     return (slotsPorDia[diaSeleccionado] || [])
       .filter(slot => !isPastSlot(diaSeleccionado, slot.inicio))
+      .filter(slot => slot.estado === 'DISPONIBLE')
       .sort((a, b) => normalizeTime(a.inicio).localeCompare(normalizeTime(b.inicio)));
   }, [diaSeleccionado, slotsPorDia]);
 
