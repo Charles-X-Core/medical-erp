@@ -254,9 +254,14 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
 
   const isNoShow = cita.estado === 'no_show';
   const noShowLocked = isNoShow && (() => {
-    const finCita = new Date(cita.fecha + 'T' + cita.hora);
-    finCita.setMinutes(finCita.getMinutes() + duracion + 30);
-    return new Date() > finCita;
+    const [h, mi] = cita.hora.split(':').map(Number);
+    const finMinutes = h * 60 + mi + duracion + 30;
+    const finH = Math.floor(finMinutes / 60);
+    const finM = finMinutes % 60;
+    const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    const [y, mo, d] = cita.fecha.split('-').map(Number);
+    const finCita = new Date(y, mo - 1, d, finH, finM);
+    return nowLA > finCita;
   })();
   const canMarkNoShow = !isFinal && !isNoShow;
   const canUnmarkNoShow = isNoShow && !noShowLocked;
