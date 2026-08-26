@@ -6,6 +6,7 @@ import agendaService from '../../services/agendaService';
 import { getCitaEstado } from '../../utils/citaEstados';
 import { useAuth } from '../../hooks/useAuth';
 import { getPrimaryRole } from '../../utils/roleUtils';
+import ConfirmModal from '../ConfirmModal';
 
 const DURACIONES = [15, 20, 30, 45, 60, 90, 120];
 
@@ -32,6 +33,7 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
   const [timerRunning, setTimerRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const timerRef = useRef(null);
+  const [confirmAction, setConfirmAction] = useState(null);
   const startTimeRef = useRef(null);
 
   const [minutosExtra, setMinutosExtra] = useState('');
@@ -185,33 +187,36 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
     setSaving(false);
   };
 
-  const handleCancel = async () => {
-    if (!window.confirm(t('confirm_cancel'))) return;
-    setSaving(true);
-    try {
-      stopTimer();
-      await agendaService.cancelarCita(cita.id, t('cancelada_detalle'));
-      setMsg({ type: 'success', text: t('status_cancelada') });
-      if (onRefresh) onRefresh();
-      setTimeout(onClose, 1000);
-    } catch {
-      setMsg({ type: 'error', text: t('error_cancel') });
-    }
-    setSaving(false);
-  };
+  const handleCancel = () => setConfirmAction('cancel');
 
-  const handleNoShow = async () => {
-    if (!window.confirm(t('confirm_no_show'))) return;
-    setSaving(true);
-    try {
-      await agendaService.marcarNoShow(cita.id);
-      setMsg({ type: 'success', text: t('status_no_show') });
-      if (onRefresh) onRefresh();
-      setTimeout(onClose, 1000);
-    } catch {
-      setMsg({ type: 'error', text: t('error_no_show') });
+  const handleNoShow = () => setConfirmAction('noshow');
+
+  const handleConfirmAction = async () => {
+    if (confirmAction === 'cancel') {
+      setSaving(true);
+      try {
+        stopTimer();
+        await agendaService.cancelarCita(cita.id, t('cancelada_detalle'));
+        setMsg({ type: 'success', text: t('status_cancelada') });
+        if (onRefresh) onRefresh();
+        setTimeout(onClose, 1000);
+      } catch {
+        setMsg({ type: 'error', text: t('error_cancel') });
+      }
+      setSaving(false);
+    } else if (confirmAction === 'noshow') {
+      setSaving(true);
+      try {
+        await agendaService.marcarNoShow(cita.id);
+        setMsg({ type: 'success', text: t('status_no_show') });
+        if (onRefresh) onRefresh();
+        setTimeout(onClose, 1000);
+      } catch {
+        setMsg({ type: 'error', text: t('error_no_show') });
+      }
+      setSaving(false);
     }
-    setSaving(false);
+    setConfirmAction(null);
   };
 
   if (!cita) return null;
@@ -466,6 +471,15 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={!!confirmAction}
+        title={confirmAction === 'cancel' ? t('cancel') : t('no_asistio_btn')}
+        message={confirmAction === 'cancel' ? t('confirm_cancel') : t('confirm_no_show')}
+        variant="danger"
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 }
