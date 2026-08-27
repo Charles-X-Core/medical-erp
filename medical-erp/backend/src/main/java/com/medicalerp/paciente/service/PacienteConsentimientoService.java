@@ -10,6 +10,7 @@ import com.medicalerp.paciente.entity.PacienteConsentimiento;
 import com.medicalerp.paciente.mapper.PacienteConsentimientoMapper;
 import com.medicalerp.paciente.repository.PacienteConsentimientoRepository;
 import com.medicalerp.paciente.repository.PacienteRepository;
+import com.medicalerp.storage.StoragePathBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class PacienteConsentimientoService {
     private final PacienteConsentimientoMapper consentimientoMapper;
     private final SecurityUtils securityUtils;
     private final EmailService emailService;
+    private final StoragePathBuilder pathBuilder;
 
     @Transactional
     public PacienteConsentimientoResponse create(Long pacienteId, PacienteConsentimientoRequest request) {
@@ -95,9 +97,24 @@ public class PacienteConsentimientoService {
 
         String pacienteNombre = paciente.getNombres() + " " + paciente.getApellidoPaterno();
         String tipo = consentimiento.getTipo() != null ? consentimiento.getTipo() : "Consentimiento";
-        String pdfUrl = consentimiento.getStoragePath();
 
-        emailService.sendConsentimientoPaciente(email, pacienteNombre, tipo, pdfUrl, asunto, mensaje);
+        byte[] pdfBytes = null;
+        String nombreArchivo = consentimiento.getNombreArchivo() != null ? consentimiento.getNombreArchivo() : "consentimiento.pdf";
+        if (consentimiento.getStoragePath() != null && !consentimiento.getStoragePath().isBlank()) {
+            try {
+                java.nio.file.Path filePath = pathBuilder.getFullStoragePath(consentimiento.getStoragePath());
+                if (java.nio.file.Files.exists(filePath)) {
+                    pdfBytes = java.nio.file.Files.readAllBytes(filePath);
+                    log.info("PDF leído desde {} ({} bytes)", consentimiento.getStoragePath(), pdfBytes.length);
+                } else {
+                    log.warn("PDF no encontrado en {}", consentimiento.getStoragePath());
+                }
+            } catch (Exception e) {
+                log.error("Error leyendo PDF desde {}: {}", consentimiento.getStoragePath(), e.getMessage());
+            }
+        }
+
+        emailService.sendConsentimientoPaciente(email, pacienteNombre, tipo, pdfBytes, nombreArchivo, asunto, mensaje);
         log.info("Consentimiento {} enviado por email a {}", consentimientoId, email);
     }
 }

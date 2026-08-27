@@ -423,7 +423,7 @@ public class EmailService {
      */
     @Async
     public void sendConsentimientoPaciente(String toEmail, String pacienteNombre,
-                                            String tipo, String pdfUrl,
+                                            String tipo, byte[] pdfBytes, String filename,
                                             String asunto, String mensajeCustom) {
         if (mailSender == null) {
             log.debug("JavaMailSender not configured, skipping consentimiento email to {}", toEmail);
@@ -441,21 +441,25 @@ public class EmailService {
             }
             helper.setSubject(asunto);
 
-            String htmlContent = buildConsentimientoHtml(pacienteNombre, tipo, pdfUrl, mensajeCustom);
+            String htmlContent = buildConsentimientoHtml(pacienteNombre, tipo, pdfBytes != null, mensajeCustom);
             helper.setText(htmlContent, true);
 
+            if (pdfBytes != null && pdfBytes.length > 0) {
+                helper.addAttachment(filename, new ByteArrayResource(pdfBytes), "application/pdf");
+            }
+
             mailSender.send(message);
-            log.info("Consentimiento enviado por email a {} (paciente: {})", toEmail, pacienteNombre);
+            log.info("Consentimiento enviado por email a {} (paciente: {}, adjunto: {})", toEmail, pacienteNombre, filename);
 
         } catch (Exception e) {
             log.error("Error enviando consentimiento por email a {}: {}", toEmail, e.getMessage());
         }
     }
 
-    private String buildConsentimientoHtml(String pacienteNombre, String tipo, String pdfUrl, String mensajeCustom) {
+    private String buildConsentimientoHtml(String pacienteNombre, String tipo, boolean tienePdf, String mensajeCustom) {
         String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
-        String linkHtml = pdfUrl != null && !pdfUrl.isBlank()
-                ? "<div style=\"text-align: center; margin: 16px 0;\"><a href=\"" + pdfUrl + "\" style=\"display: inline-block; background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;\">Ver Documento</a></div>"
+        String pdfNote = tienePdf
+                ? "<div style=\"background: #F0FDF4; border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center;\"><p style=\"margin: 0; color: #166534; font-size: 14px;\">📄 El documento PDF firmado se encuentra adjunto a este correo.</p></div>"
                 : "";
         return """
             <!DOCTYPE html>
@@ -470,7 +474,7 @@ public class EmailService {
                     <div style="background: #ffffff; padding: 32px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
                         <p style="font-size: 16px; margin: 0 0 16px 0;">Hola <strong>%s</strong>,</p>
                         <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px 0;">
-                            Se le ha enviado un documento importante. Por favor revíselo y fírmelo digitalmente cuando sea necesario.
+                            Se le ha enviado un documento importante adjunto a este correo. Por favor revíselo cuando tenga oportunidad.
                         </p>
                         %s
                         <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
@@ -486,7 +490,7 @@ public class EmailService {
                 </div>
             </body>
             </html>
-            """.formatted(tipo, pacienteNombre, linkHtml, tipo, fecha,
+            """.formatted(tipo, pacienteNombre, pdfNote, tipo, fecha,
                     mensajeCustom != null && !mensajeCustom.isBlank()
                             ? "<div style=\"background: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0;\"><p style=\"margin: 0 0 8px 0;\"><strong>Mensaje:</strong></p><p style=\"margin: 0; white-space: pre-wrap;\">" + escapeHtml(mensajeCustom) + "</p></div>"
                             : "");
