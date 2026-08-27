@@ -43,9 +43,10 @@ export default function SessionExpiredModal({ open, cita, onFinalized, onExtende
   const handleExtend = async () => {
     setAction('extending');
     try {
-      await agendaService.extenderSesion(cita.id, 15);
+      const res = await agendaService.extenderSesion(cita.id, 15);
+      const nuevaDuracion = res.data?.citaExtendida?.duracionMinutos;
       setMsg('');
-      onExtended();
+      onExtended(nuevaDuracion);
     } catch (err) {
       setMsg(err.message || 'Error');
       setAction(null);

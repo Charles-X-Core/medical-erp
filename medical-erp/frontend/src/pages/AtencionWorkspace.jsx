@@ -627,7 +627,15 @@ export default function AtencionWorkspace() {
         open={showSessionExpired}
         cita={citaActiva}
         onFinalized={() => { setShowSessionExpired(false); load().then(() => setShowScheduleAfterComplete(true)); }}
-        onExtended={() => { setShowSessionExpired(false); load(); }}
+        onExtended={(nuevaDuracion) => {
+          setShowSessionExpired(false);
+          if (nuevaDuracion && citaActiva?.id) {
+            setCitasHoy(prev => prev.map(c =>
+              c.id === citaActiva.id ? { ...c, duracionMinutos: nuevaDuracion } : c
+            ));
+          }
+          load();
+        }}
         onDismiss={() => setShowSessionExpired(false)}
       />
       <ConfirmModal
