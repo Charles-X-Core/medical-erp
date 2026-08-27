@@ -20,6 +20,8 @@ public interface TratamientoRepository extends JpaRepository<Tratamiento, Long> 
 
     List<Tratamiento> findByPacienteIdAndEstadoIn(Long pacienteId, List<EstadoTratamiento> estados);
 
+    List<Tratamiento> findByPacienteId(Long pacienteId);
+
     long countByPacienteIdAndTipoTratamientoAndEstadoIn(Long pacienteId, String tipoTratamiento, List<EstadoTratamiento> estados);
 
     Page<Tratamiento> findByClinicaIdAndPacienteId(Long clinicaId, Long pacienteId, Pageable pageable);

@@ -2966,3 +2966,336 @@ $p360-glass-border: rgba(42, 122, 191, 0.25);
     transform: translateY(0) scale(1);
   }
 }
+
+// ============================================
+// TabArchivos - Clinical Files Folder UI
+// ============================================
+
+.tab-archivos {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-5;
+    border-bottom: 1px solid $light-border;
+
+    h3 { margin: 0; font-size: $fs-lg; font-weight: $fw-semibold; color: $light-text-primary; }
+  }
+
+  &__count {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    background: $light-surface;
+    padding: 2px 10px;
+    border-radius: $radius-md;
+  }
+
+  &__folders {
+    padding: $space-4 $space-5;
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+  }
+}
+
+.folder-tratamiento {
+  border: 1px solid $light-border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+
+  &__header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    background: $light-surface;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__icon { color: #F59E0B; flex-shrink: 0; }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__name {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__count {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: $radius-sm;
+    font-weight: $fw-medium;
+
+    &--en_curso { background: #dcfce7; color: #166534; }
+    &--finalizado { background: #f1f5f9; color: #64748b; }
+    &--programado { background: #dbeafe; color: #1e40af; }
+    &--pausado { background: #fef3c7; color: #92400e; }
+  }
+
+  &__sesiones {
+    padding: $space-2 0;
+  }
+}
+
+.folder-sesion {
+  &__header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-4 $space-2 $space-8;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__icon { color: $light-text-muted; flex-shrink: 0; }
+
+  &__name {
+    flex: 1;
+    font-size: $fs-sm;
+    color: $light-text-primary;
+  }
+
+  &__count {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    background: $light-surface;
+    padding: 1px 6px;
+    border-radius: $radius-sm;
+  }
+
+  &__fotos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: $space-3;
+    padding: $space-2 $space-4 $space-3 $space-12;
+  }
+}
+
+.archivo-card {
+  position: relative;
+  border-radius: $radius-md;
+  overflow: hidden;
+  border: 1px solid $light-border;
+  background: $light-bg;
+  transition: box-shadow 0.15s;
+
+  &:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+
+  &__preview {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    cursor: pointer;
+    background: $light-surface;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    color: white;
+
+    .archivo-card:hover & { opacity: 1; }
+  }
+
+  &__info {
+    padding: $space-2 $space-3;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__tipo {
+    font-size: 10px;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+    text-transform: uppercase;
+  }
+
+  &__desc {
+    font-size: $fs-xs;
+    color: $light-text-primary;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__date {
+    font-size: 10px;
+    color: $light-text-muted;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 2px;
+    padding: 0 $space-2 $space-2;
+
+    .btn { padding: 4px; }
+  }
+}
+
+// ============================================
+// EnviarEvidenciaModal
+// ============================================
+
+.enviar-evidencia-modal {
+  max-width: 480px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-5;
+    border-bottom: 1px solid $light-border;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      margin: 0;
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $light-text-primary;
+    }
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border: none;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 0.15s;
+    &:hover { background: $light-card-hover; }
+  }
+
+  &__body {
+    padding: $space-5;
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+
+  &__preview {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    background: $light-surface;
+    border-radius: $radius-md;
+    border: 1px solid $light-border;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+  }
+
+  &__preview-name {
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-primary;
+  }
+
+  &__preview-desc {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+
+    label {
+      font-size: $fs-xs;
+      font-weight: $fw-medium;
+      color: $light-text-muted;
+    }
+  }
+
+  &__input, &__textarea {
+    padding: $space-2 $space-3;
+    background: $light-bg;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    color: $light-text-primary;
+    font-family: inherit;
+    transition: border-color 0.15s;
+
+    &:focus { outline: none; border-color: $light-accent; box-shadow: 0 0 0 2px $light-accent-light; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  &__textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  &__error {
+    background: $light-error-light;
+    color: $light-error;
+    border: 1px solid $light-error-border;
+    border-radius: $radius-md;
+    padding: $space-2 $space-3;
+    font-size: $fs-sm;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-3;
+    justify-content: flex-end;
+    padding-top: $space-2;
+  }
+
+  &__success {
+    text-align: center;
+    padding: $space-8;
+    color: $light-success;
+
+    h4 { margin: $space-3 0 $space-1; color: $light-text-primary; }
+    p { color: $light-text-secondary; font-size: $fs-sm; }
+  }
+}

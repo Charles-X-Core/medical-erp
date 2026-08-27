@@ -338,4 +338,84 @@ public class EmailService {
             """.formatted(pacienteNombre, fecha);
     }
 
+    /**
+     * Envía evidencia clínica (imagen) al paciente por email con mensaje personalizado
+     */
+    @Async
+    public void sendEvidenciaPaciente(String toEmail, String pacienteNombre,
+                                       String descripcion, String archivoRuta,
+                                       String asunto, String mensajeCustom) {
+        if (mailSender == null) {
+            log.debug("JavaMailSender not configured, skipping evidencia email to {}", toEmail);
+            return;
+        }
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            try {
+                helper.setFrom(fromEmail, "Optimal Health NOW");
+            } catch (java.io.UnsupportedEncodingException e) {
+                helper.setFrom(fromEmail);
+            }
+            helper.setSubject(asunto);
+
+            String htmlContent = buildEvidenciaHtml(pacienteNombre, descripcion, mensajeCustom);
+            helper.setText(htmlContent, true);
+
+            // Attach the image file
+            java.io.File file = new java.io.File(archivoRuta);
+            if (file.exists()) {
+                String fileName = file.getName();
+                String contentType = java.nio.file.Files.probeContentType(file.toPath());
+                if (contentType == null) contentType = "application/octet-stream";
+                helper.addAttachment(fileName, new org.springframework.core.io.ByteArrayResource(
+                        java.nio.file.Files.readAllBytes(file.toPath())), contentType);
+            }
+
+            mailSender.send(message);
+            log.info("Evidencia enviada por email a {} (paciente: {})", toEmail, pacienteNombre);
+
+        } catch (Exception e) {
+            log.error("Error enviando evidencia por email a {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    private String buildEvidenciaHtml(String pacienteNombre, String descripcion, String mensajeCustom) {
+        String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family: Arial, sans-serif; color: #333; background: #f4f6f8; margin: 0; padding: 0;">
+                <div style="max-width: 500px; margin: 40px auto; padding: 0;">
+                    <div style="background: #0d2137; padding: 24px; border-radius: 8px 8px 0 0; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0; font-size: 20px;">Optimal Health NOW</h2>
+                        <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 14px;">Evidencia Clínica</p>
+                    </div>
+                    <div style="background: #ffffff; padding: 32px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
+                        <p style="font-size: 16px; margin: 0 0 16px 0;">Hola <strong>%s</strong>,</p>
+                        <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px 0;">
+                            Se le ha enviado una evidencia clínica adjunta a este correo.
+                        </p>
+                        <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin: 16px 0;">
+                            <p style="margin: 0 0 8px 0;"><strong>Descripción:</strong> %s</p>
+                            <p style="margin: 0; font-size: 12px; color: #64748b;">Fecha: %s</p>
+                        </div>
+                        %s
+                        <p style="font-size: 13px; color: #94a3b8; text-align: center; margin: 24px 0 0 0;">
+                            Este es un mensaje automatico de Optimal Health NOW.<br>
+                            &copy; 2026 Optimal Health NOW - Todos los derechos reservados.
+                        </p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(pacienteNombre, descripcion, fecha,
+                    mensajeCustom != null && !mensajeCustom.isBlank()
+                            ? "<div style=\"background: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0;\"><p style=\"margin: 0 0 8px 0;\"><strong>Mensaje:</strong></p><p style=\"margin: 0; white-space: pre-wrap;\">" + escapeHtml(mensajeCustom) + "</p></div>"
+                            : "");
+    }
+
 }
