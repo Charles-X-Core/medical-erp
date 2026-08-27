@@ -356,6 +356,10 @@ public class CitaService {
 
         String estado = cita.getEstado();
         if ("en_atencion".equals(estado)) {
+            if (cita.getInicioAtencion() == null) {
+                cita.setInicioAtencion(LocalDateTime.now());
+                citaRepository.save(cita);
+            }
             return citaMapper.toResponse(cita);
         }
         if (!"confirmada".equals(estado) && !"asistio".equals(estado) && !"llegada".equals(estado) && !"pendiente".equals(estado)) {

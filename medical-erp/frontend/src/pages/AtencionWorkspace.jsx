@@ -161,15 +161,20 @@ export default function AtencionWorkspace() {
 
   useEffect(() => {
     if (!citaActiva || !citaActiva.hora) return;
-    const [h, m] = citaActiva.hora.split(':').map(Number);
-    const duracion = citaActiva.duracionMinutos || 30;
-    const finMin = h * 60 + m + duracion;
-    const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-    const nowMin = nowLA.getHours() * 60 + nowLA.getMinutes();
-    if (nowMin > finMin) {
-      setShowSessionExpired(true);
-    }
-  }, [citaActiva]);
+    const check = () => {
+      const [h, m] = citaActiva.hora.split(':').map(Number);
+      const duracion = citaActiva.duracionMinutos || 30;
+      const finMin = h * 60 + m + duracion;
+      const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+      const nowMin = nowLA.getHours() * 60 + nowLA.getMinutes();
+      if (nowMin > finMin && !showSessionExpired) {
+        setShowSessionExpired(true);
+      }
+    };
+    check();
+    const interval = setInterval(check, 60000);
+    return () => clearInterval(interval);
+  }, [citaActiva, showSessionExpired]);
 
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();

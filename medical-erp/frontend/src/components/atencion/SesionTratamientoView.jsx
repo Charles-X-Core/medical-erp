@@ -165,7 +165,7 @@ export default function SesionTratamientoView({
       {/* Treatment list */}
       <div className="sesion-tratamiento__list">
         <h3 className="sesion-tratamiento__list-title">
-          <Stethoscope size={16} /> {t('tratamientos_de', { nombre: paciente?.nombres })}
+          <Stethoscope size={16} /> {t('tratamientos_de', { name: paciente?.nombres })}
         </h3>
 
         {activeTreatments.length === 0 && finishedTreatments.length === 0 ? (
