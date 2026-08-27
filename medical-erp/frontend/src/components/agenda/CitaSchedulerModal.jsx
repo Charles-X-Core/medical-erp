@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Calendar, Clock, User, FileText, CheckCircle, AlertCircle, Loader2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import agendaService from '../../services/agendaService';
 import { pacienteService } from '../../services/pacienteService';
+import { getLADateString } from '../../utils/laTimezone';
 
 function extractList(data) {
   if (!data) return [];
@@ -24,20 +25,16 @@ function fullTime(t) {
 }
 
 function isPastSlot(fechaStr, horaInicio) {
-  const now = new Date();
-  const laTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-  const today = laTime.toISOString().split('T')[0];
+  const today = getLADateString();
   if (fechaStr !== today) return false;
   const [h, m] = normalizeTime(horaInicio).split(':').map(Number);
-  const slotStart = new Date(laTime);
-  slotStart.setHours(h, m, 0, 0);
-  return slotStart <= laTime;
+  const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const nowMin = nowLA.getHours() * 60 + nowLA.getMinutes();
+  return (h * 60 + m) <= nowMin;
 }
 
 function isPastDate(fechaStr) {
-  const laTime = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-  const today = laTime.toISOString().split('T')[0];
-  return fechaStr < today;
+  return fechaStr < getLADateString();
 }
 
 function getDaysInMonth(year, month) {
@@ -68,9 +65,10 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
   const [tiposCita, setTiposCita] = useState([]);
   const [tipoCitaId, setTipoCitaId] = useState('');
 
-  const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-  const [calMonth, setCalMonth] = useState(today.getMonth());
-  const [calYear, setCalYear] = useState(today.getFullYear());
+  const todayStr = getLADateString();
+  const [todayYear, todayMonth] = todayStr.split('-').map(Number);
+  const [calMonth, setCalMonth] = useState(todayMonth - 1);
+  const [calYear, setCalYear] = useState(todayYear);
   const [slotsPorDia, setSlotsPorDia] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -107,8 +105,8 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
     if (isOpen) {
       loadDoctoras();
       loadTiposCita();
-      setCalMonth(today.getMonth());
-      setCalYear(today.getFullYear());
+      setCalMonth(todayMonth - 1);
+      setCalYear(todayYear);
       setDoctoraId('');
       setDoctoraName('');
       setTipoCitaId('');
@@ -389,7 +387,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
                       const fechaStr = formatDateStr(calYear, calMonth, day);
                       const slots = slotsPorDia[fechaStr] || [];
                       const disponibles = slots.filter(s => s.estado === 'DISPONIBLE' && !isPastSlot(fechaStr, s.inicio)).length;
-                      const esHoy = today.toISOString().split('T')[0] === fechaStr;
+                      const esHoy = todayStr === fechaStr;
                       const esPasado = isPastDate(fechaStr);
                       const seleccionado = diaSeleccionado === fechaStr;
                       const sinAgenda = slots.length === 0;

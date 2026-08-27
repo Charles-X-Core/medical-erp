@@ -625,7 +625,10 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [view, setView] = useState('semanal');
-  const [currentDate, setCurrentDate] = useState(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
+  const [currentDate, setCurrentDate] = useState(() => {
+    const s = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    return new Date(s.getFullYear(), s.getMonth(), s.getDate());
+  });
   const [citas, setCitas] = useState([]);
   const [slots, setSlots] = useState([]);
   const [weekSlots, setWeekSlots] = useState([]);
@@ -716,7 +719,10 @@ export default function AgendaPage() {
   const goToNextWeek = () => { const d = new Date(currentDate); d.setDate(d.getDate() + 7); setCurrentDate(d); };
   const goToPrevDay = () => { const d = new Date(currentDate); d.setDate(d.getDate() - 1); setCurrentDate(d); };
   const goToNextDay = () => { const d = new Date(currentDate); d.setDate(d.getDate() + 1); setCurrentDate(d); };
-  const goToToday = () => setCurrentDate(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
+  const goToToday = () => {
+    const s = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    setCurrentDate(new Date(s.getFullYear(), s.getMonth(), s.getDate()));
+  };
 
   const scrollToHour = useCallback((hour) => {
     if (!timelineRef.current) return;

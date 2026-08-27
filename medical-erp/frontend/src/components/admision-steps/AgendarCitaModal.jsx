@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Calendar, Clock, User, FileText, CheckCircle, AlertCircle, Loader2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import agendaService from '../../services/agendaService';
+import { getLADateString } from '../../utils/laTimezone';
 
 function extractList(data) {
   if (!data) return [];
@@ -23,21 +24,16 @@ function fullTime(t) {
 }
 
 function isPastSlot(fechaStr, horaInicio) {
-  const now = new Date();
-  const laTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-  const today = laTime.toISOString().split('T')[0];
+  const today = getLADateString();
   if (fechaStr !== today) return false;
   const [h, m] = normalizeTime(horaInicio).split(':').map(Number);
-  const slotStart = new Date(laTime);
-  slotStart.setHours(h, m, 0, 0);
-  return slotStart <= laTime;
+  const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const nowMin = nowLA.getHours() * 60 + nowLA.getMinutes();
+  return (h * 60 + m) <= nowMin;
 }
 
 function isPastDate(fechaStr) {
-  const now = new Date();
-  const laTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-  const today = laTime.toISOString().split('T')[0];
-  return fechaStr < today;
+  return fechaStr < getLADateString();
 }
 
 function getWeekDates(baseDate) {
@@ -306,7 +302,11 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
                     const fechaStr = d.toISOString().split('T')[0];
                     const slots = slotsPorDia[fechaStr] || [];
                     const disponibles = slots.filter(s => s.estado === 'DISPONIBLE' && !isPastSlot(fechaStr, s.inicio)).length;
-                    const esHoy = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })).toISOString().split('T')[0] === fechaStr;
+                    const esHoy = (() => {
+                      const parts = fechaStr.split('-').map(Number);
+                      const laParts = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }).split('-').map(Number);
+                      return parts[0] === laParts[0] && parts[1] === laParts[1] && parts[2] === laParts[2];
+                    })();
                     const esPasado = isPastDate(fechaStr);
                     const seleccionado = diaSeleccionado === fechaStr;
                     const sinAgenda = slots.length === 0;
