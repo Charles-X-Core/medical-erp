@@ -680,13 +680,17 @@ export default function AgendaPage() {
   const loadWeek = useCallback(async () => {
     try {
       setLoading(true); setError('');
-      const [citasRes, slotsRes] = await Promise.all([
-        Promise.all(weekDays.map((day) => agendaService.getCitasPorFecha(formatDateKey(day)).catch(() => ({ success: false, data: [] })))),
-        agendaService.getDisponibilidadSemana(user?.id, formatDateKey(weekStart), formatDateKey(weekEnd)).catch(() => ({ success: false, data: [] })),
+      const [citasResults, slotsResult] = await Promise.allSettled([
+        Promise.allSettled(weekDays.map((day) => agendaService.getCitasPorFecha(formatDateKey(day)))),
+        agendaService.getDisponibilidadSemana(user?.id, formatDateKey(weekStart), formatDateKey(weekEnd)),
       ]);
-      const allCitas = citasRes.filter((r) => r.success).flatMap((r) => r.data?.content || r.data || []);
+      const allCitas = (citasResults.status === 'fulfilled' ? citasResults.value : [])
+        .filter((r) => r.status === 'fulfilled' && r.value?.success)
+        .flatMap((r) => r.value.data?.content || r.value.data || []);
       setCitas(allCitas);
-      if (slotsRes.success) setWeekSlots(slotsRes.data || []);
+      if (slotsResult.status === 'fulfilled' && slotsResult.value?.success) {
+        setWeekSlots(slotsResult.value.data || []);
+      }
     } catch { setError(t('error_agenda')); }
     finally { setLoading(false); }
   }, [weekDays, weekStart, weekEnd, user?.id, t]);

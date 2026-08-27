@@ -615,5 +615,7 @@
   "enviar_consentimiento": "Send Consent Document",
   "consentimiento_enviado": "Consent sent!",
   "consentimiento_enviado_exito": "The consent document has been sent to the patient's email.",
-  "eliminar_consentimiento": "Delete this consent?"
+  "eliminar_consentimiento": "Delete this consent?",
+  "costo_por_sesion": "Cost per Session",
+  "crear_e_iniciar": "Create & Start"
 }

@@ -616,5 +616,7 @@
   "enviar_consentimiento": "Enviar Consentimiento",
   "consentimiento_enviado": "¡Consentimiento enviado!",
   "consentimiento_enviado_exito": "El consentimiento ha sido enviado al correo del paciente.",
-  "eliminar_consentimiento": "¿Eliminar este consentimiento?"
+  "eliminar_consentimiento": "¿Eliminar este consentimiento?",
+  "costo_por_sesion": "Costo por Sesión",
+  "crear_e_iniciar": "Crear e Iniciar"
 }
