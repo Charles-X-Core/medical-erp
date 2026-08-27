@@ -5,7 +5,7 @@ import apiClient from '../../services/apiClient';
 
 export default function EnviarConsentimientoModal({ open, consentimiento, paciente, onClose }) {
   const { t } = useTranslation('patients');
-  const { tCommon } = useTranslation('common');
+  const { t: tCommon } = useTranslation('common');
   const [asunto, setAsunto] = useState(`Consentimiento - ${consentimiento?.tipo || 'Documento'} - ${paciente?.nombres || ''}`);
   const [mensaje, setMensaje] = useState('');
   const [sending, setSending] = useState(false);
