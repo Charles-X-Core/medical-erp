@@ -140,5 +140,22 @@
   "otras_enfermedades": "Otras Enfermedades",
   "datos_generales": "Datos Generales",
   "firmar": "Firmar",
-  "back_to_client": "Volver al cliente"
+  "back_to_client": "Volver al cliente",
+  "motivo_consulta": "Motivo de Consulta",
+  "diagnostico_enfermedad": "Diagnóstico / Enfermedad",
+  "dolores_sintomas": "Dolores / Síntomas",
+  "antecedentes_medicos": "Antecedentes Médicos",
+  "examen_clinico_general": "Examen Clínico General",
+  "diagnostico_definitivo": "Diagnóstico Definitivo",
+  "describa_diagnostico_placeholder": "Describa diagnóstico...",
+  "sintomas_placeholder": "Describa síntomas...",
+  "antecedentes_placeholder": "Antecedentes médicos...",
+  "hallazgos_placeholder": "Describa hallazgos del examen...",
+  "diagnostico_definitivo_placeholder": "Diagnóstico definitivo...",
+  "session_expired_title": "Sesión Expirada",
+  "session_expired_message": "El tiempo de sesión de esta cita ha terminado. ¿Qué desea hacer?",
+  "session_expired_options": "Puede finalizar la sesión, extender el tiempo, o seguir trabajando.",
+  "finalize_session": "Finalizar Sesión",
+  "extend_session": "Extender 15 min",
+  "session_expired_late": "Terminó hace {{time}}"
 }

@@ -30,17 +30,17 @@ export default function SmartTimerBar({ citaActiva, siguienteCita }) {
   const { t: tClinical } = useTranslation('clinical');
   const { t: tPatients } = useTranslation('patients');
 
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState(() => new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 1000);
+    const interval = setInterval(() => setNow(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }))), 1000);
     return () => clearInterval(interval);
   }, []);
 
   if (!citaActiva) return null;
 
   const inicioAtencion = citaActiva.inicioAtencion
-    ? new Date(citaActiva.inicioAtencion)
+    ? new Date(new Date(citaActiva.inicioAtencion).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }))
     : null;
 
   const sessionDuration = inicioAtencion ? now - inicioAtencion : 0;

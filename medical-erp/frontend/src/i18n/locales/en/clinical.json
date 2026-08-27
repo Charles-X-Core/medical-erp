@@ -124,5 +124,22 @@
   "guardar_historia": "Save History",
   "nueva_consulta": "New Consultation",
   "sin_consultas_registradas": "No consultations registered",
-  "ver": "View"
+  "ver": "View",
+  "motivo_consulta": "Reason for Consultation",
+  "diagnostico_enfermedad": "Diagnosis / Disease",
+  "dolores_sintomas": "Pain / Symptoms",
+  "antecedentes_medicos": "Medical History",
+  "examen_clinico_general": "General Clinical Exam",
+  "diagnostico_definitivo": "Definitive Diagnosis",
+  "describa_diagnostico_placeholder": "Describe diagnosis...",
+  "sintomas_placeholder": "Describe symptoms...",
+  "antecedentes_placeholder": "Medical history...",
+  "hallazgos_placeholder": "Describe examination findings...",
+  "diagnostico_definitivo_placeholder": "Definitive diagnosis...",
+  "session_expired_title": "Session Expired",
+  "session_expired_message": "The session time for this appointment has ended. What would you like to do?",
+  "session_expired_options": "You can finalize the session, extend the time, or continue working.",
+  "finalize_session": "Finalize Session",
+  "extend_session": "Extend 15 min",
+  "session_expired_late": "Ended {{time}} ago"
 }

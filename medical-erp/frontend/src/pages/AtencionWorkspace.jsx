@@ -13,6 +13,7 @@ import { tratamientoService } from '../services/tratamientoService';
 import { contratoPwaService } from '../services/contratoPwaService';
 import agendaService from '../services/agendaService';
 import ResumenSidebar from '../components/paciente360/ResumenSidebar';
+import SessionExpiredModal from '../components/atencion/SessionExpiredModal';
 import AtencionSidebar from '../components/paciente360/AtencionSidebar';
 import WorkspaceTimeline from '../components/paciente360/WorkspaceTimeline';
 import TabClinico from '../components/paciente360/TabClinico';
@@ -57,6 +58,7 @@ export default function AtencionWorkspace() {
   const [contratoFirmado, setContratoFirmado] = useState(null);
   const [showFirmaContrato, setShowFirmaContrato] = useState(false);
   const [showContratoWarning, setShowContratoWarning] = useState(false);
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
 
   const WORKSPACE_TABS = [
     { id: 'resumen', label: t('tab_resumen'), icon: User },
@@ -155,6 +157,18 @@ export default function AtencionWorkspace() {
     const handler = (e) => { e.preventDefault(); e.returnValue = ''; };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
+  }, [citaActiva]);
+
+  useEffect(() => {
+    if (!citaActiva || !citaActiva.hora) return;
+    const [h, m] = citaActiva.hora.split(':').map(Number);
+    const duracion = citaActiva.duracionMinutos || 30;
+    const finMin = h * 60 + m + duracion;
+    const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    const nowMin = nowLA.getHours() * 60 + nowLA.getMinutes();
+    if (nowMin > finMin) {
+      setShowSessionExpired(true);
+    }
   }, [citaActiva]);
 
   const now = new Date();
@@ -389,9 +403,6 @@ export default function AtencionWorkspace() {
           </div>
         </div>
         <div className="workspace__header-actions">
-          <button className="btn btn--ghost btn--sm" onClick={() => { if (citaActiva && !window.confirm(t('confirmar_salida_sesion'))) return; navigate('/pacientes'); }}>
-            <ArrowLeft size={16} /> {tco('back')}
-          </button>
           <button className="btn btn--secondary btn--sm" onClick={() => { if (citaActiva && !window.confirm(t('confirmar_salida_sesion'))) return; navigate('/pacientes'); }}>
             <ArrowLeft size={16} /> {t('back_to_clients')}
           </button>
@@ -583,6 +594,13 @@ export default function AtencionWorkspace() {
 
       <CitaSchedulerModal isOpen={showScheduler} onClose={() => setShowScheduler(false)} paciente={paciente} />
       <FirmaContratoModal open={showFirmaContrato} onClose={() => setShowFirmaContrato(false)} pacienteId={parseInt(id)} pacienteNombre={paciente ? `${paciente.nombres} ${paciente.apellidos}` : ''} onSigned={() => { setContratoFirmado(true); setShowFirmaContrato(false); setShowContratoWarning(false); }} />
+      <SessionExpiredModal
+        open={showSessionExpired}
+        cita={citaActiva}
+        onFinalized={() => { setShowSessionExpired(false); load(); }}
+        onExtended={() => { setShowSessionExpired(false); load(); }}
+        onDismiss={() => setShowSessionExpired(false)}
+      />
     </div>
   );
 }
