@@ -272,14 +272,17 @@ public class ContratoPwaService {
         Paciente paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
 
-        // Usar el HTML del frontend si viene (con firma integrada), sino renderizar del template
-        String renderedHtml;
+        // Usar el template del archivo para generar el PDF (garantiza CSS completo)
+        String htmlContent = templateService.loadTemplateContent(template.getId());
+        Map<String, String> variables = buildVariables(paciente);
+        String renderedHtml = replaceVariables(htmlContent, variables);
+
+        // Si el frontend envía HTML con firma, extraer la imagen de firma e insertarla en el template
         if (htmlContentFromFrontend != null && !htmlContentFromFrontend.isBlank()) {
-            renderedHtml = htmlContentFromFrontend;
-        } else {
-            String htmlContent = templateService.loadTemplateContent(template.getId());
-            Map<String, String> variables = buildVariables(paciente);
-            renderedHtml = replaceVariables(htmlContent, variables);
+            String firmaImg = extractFirmaFromHtml(htmlContentFromFrontend);
+            if (firmaImg != null) {
+                renderedHtml = renderedHtml.replace("{{firma_imagen}}", firmaImg);
+            }
         }
 
         // 3. Firmar via ConsentimientoSignService
@@ -421,5 +424,21 @@ public class ContratoPwaService {
             }
         } while (sessionRepository.findBySigningTokenAndClinicaId(token, clinicaId).isPresent());
         return token;
+    }
+
+    /**
+     * Extracts the signature image (base64) from the frontend HTML.
+     * The frontend embeds the signature as an <img> tag with src="data:image/...".
+     */
+    private String extractFirmaFromHtml(String html) {
+        if (html == null) return null;
+        // Look for <img src="data:image/..." pattern
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile("<img[^>]+src=[\"'](data:image/[^\"']+)[\"']", java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(html);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
     }
 }

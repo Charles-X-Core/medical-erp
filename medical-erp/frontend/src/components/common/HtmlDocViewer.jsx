@@ -5,8 +5,7 @@ function extractBodyHtml(fullHtml) {
   if (!fullHtml) return '';
   const bodyMatch = fullHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
   let html = bodyMatch ? bodyMatch[1] : fullHtml;
-  html = html.replace(/<style[\s\S]*?<\/style>/gi, '');
-  html = html.replace(/<head[\s\S]*?<\/head>/gi, '');
+  // Keep <style> tags for proper rendering
   return html;
 }
 
