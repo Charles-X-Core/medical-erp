@@ -45,6 +45,7 @@ public class ContratoPwaService {
     private final ContratoStorageService contratoStorageService;
     private final EmailService emailService;
     private final SecurityUtils securityUtils;
+    private final com.medicalerp.storage.StoragePathBuilder pathBuilder;
 
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String TOKEN_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
