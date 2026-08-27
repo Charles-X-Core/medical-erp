@@ -625,7 +625,7 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [view, setView] = useState('semanal');
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
   const [citas, setCitas] = useState([]);
   const [slots, setSlots] = useState([]);
   const [weekSlots, setWeekSlots] = useState([]);

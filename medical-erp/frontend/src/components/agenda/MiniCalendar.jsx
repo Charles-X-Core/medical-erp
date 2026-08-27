@@ -40,11 +40,11 @@ function isSameDay(a, b) {
 function parseDateSearch(input) {
   if (!input || input.trim().length < 2) return null;
   const lower = input.trim().toLowerCase();
-  const today = new Date();
+  const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
 
-  if (lower === 'hoy' || lower === 'today') return new Date();
-  if (lower === 'ayer' || lower === 'yesterday') { const d = new Date(); d.setDate(d.getDate() - 1); return d; }
-  if (lower === 'mañana' || lower === 'tomorrow') { const d = new Date(); d.setDate(d.getDate() + 1); return d; }
+  if (lower === 'hoy' || lower === 'today') return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  if (lower === 'ayer' || lower === 'yesterday') { const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })); d.setDate(d.getDate() - 1); return d; }
+  if (lower === 'mañana' || lower === 'tomorrow') { const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })); d.setDate(d.getDate() + 1); return d; }
 
   const dayNames = { lunes: 1, martes: 2, miercoles: 3, jueves: 4, viernes: 5, sabado: 6, domingo: 0 };
   for (const [name, dow] of Object.entries(dayNames)) {
@@ -173,7 +173,7 @@ export default function MiniCalendar({ currentDate, onDateSelect, weekStart }) {
               <div key={d} className="mini-calendar__day-label">{d}</div>
             ))}
             {monthGrid.map((day, i) => {
-              const isToday = isSameDay(day.date, new Date());
+              const isToday = isSameDay(day.date, new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
               const isSelected = isSameDay(day.date, currentDate);
               const inWeek = weekStart && day.date >= weekStart && day.date <= new Date(weekStart.getTime() + 6 * 86400000);
               return (
