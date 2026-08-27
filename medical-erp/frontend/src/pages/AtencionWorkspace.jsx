@@ -164,19 +164,33 @@ export default function AtencionWorkspace() {
 
   useEffect(() => {
     if (!citaActiva || !citaActiva.hora) return;
-    const check = () => {
+
+    const duracion = citaActiva.duracionMinutos || 30;
+
+    // Calculate session end using inicioAtencion if available, otherwise use hora
+    let finMin;
+    if (citaActiva.inicioAtencion) {
+      const inicioLA = new Date(new Date(citaActiva.inicioAtencion).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+      finMin = inicioLA.getHours() * 60 + inicioLA.getMinutes() + duracion;
+    } else {
       const [h, m] = citaActiva.hora.split(':').map(Number);
-      const duracion = citaActiva.duracionMinutos || 30;
-      const finMin = h * 60 + m + duracion;
-      const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-      const nowMin = nowLA.getHours() * 60 + nowLA.getMinutes();
-      if (nowMin > finMin && !showSessionExpired) {
-        setShowSessionExpired(true);
-      }
-    };
-    check();
-    const interval = setInterval(check, 60000);
-    return () => clearInterval(interval);
+      finMin = h * 60 + m + duracion;
+    }
+
+    const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    const nowMin = nowLA.getHours() * 60 + nowLA.getMinutes();
+    const msHastaExpirar = (finMin - nowMin) * 60000;
+
+    if (msHastaExpirar <= 0) {
+      if (!showSessionExpired) setShowSessionExpired(true);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setShowSessionExpired(true);
+    }, msHastaExpirar);
+
+    return () => clearTimeout(timeout);
   }, [citaActiva, showSessionExpired]);
 
   const now = new Date();
