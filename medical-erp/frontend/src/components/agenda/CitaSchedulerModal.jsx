@@ -178,19 +178,16 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
     setLoading(true);
     setSlotsPorDia({});
     try {
-      const totalDays = getDaysInMonth(calYear, calMonth);
       const inicio = formatDateStr(calYear, calMonth, 1);
-      const fin = formatDateStr(calYear, calMonth, totalDays);
+      const fin = formatDateStr(calYear, calMonth, Math.min(getDaysInMonth(calYear, calMonth), 7));
       const res = await agendaService.getDisponibilidadSemana(doctoraId, inicio, fin, duracion);
       const allSlots = extractList(res);
-      console.log('[Scheduler] API:', { doctoraId, inicio, fin, duracion, totalSlots: allSlots.length, sample: allSlots.slice(0, 2) });
       const grouped = {};
       allSlots.forEach(slot => {
         const fecha = slot.fecha;
         if (!grouped[fecha]) grouped[fecha] = [];
         grouped[fecha].push(slot);
       });
-      console.log('[Scheduler] Grouped:', Object.keys(grouped));
       setSlotsPorDia(grouped);
     } catch (err) {
       console.error('[Scheduler] Error:', err);
