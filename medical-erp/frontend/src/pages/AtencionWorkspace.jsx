@@ -664,14 +664,14 @@ export default function AtencionWorkspace() {
         <div className="onboarding-modal" onClick={() => setShowScheduleAfterComplete(false)}>
           <div className="onboarding-modal__box" onClick={e => e.stopPropagation()}>
             <CheckCircle size={48} style={{ color: '#22C55E', margin: '0 auto 16px' }} />
-            <h3 className="onboarding-modal__title">{t('cita_completada')}</h3>
-            <p className="onboarding-modal__subtitle">{t('desea_agendar_nueva')}</p>
+            <h3 className="onboarding-modal__title">{tc('cita_completada')}</h3>
+            <p className="onboarding-modal__subtitle">{tc('desea_agendar_nueva')}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
               <button className="onboarding-modal__btn onboarding-modal__btn--save" onClick={handleScheduleAfterComplete}>
-                <Calendar size={16} /> {t('agendar_nueva_cita')}
+                <Calendar size={16} /> {tc('agendar_nueva_cita')}
               </button>
               <button className="onboarding-modal__btn onboarding-modal__btn--skip" onClick={handleFinishAfterComplete}>
-                {t('finalizar')}
+                {tco('finalizar')}
               </button>
             </div>
           </div>

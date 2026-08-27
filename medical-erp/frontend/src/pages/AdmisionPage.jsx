@@ -118,6 +118,9 @@ export default function AdmisionPage() {
       } catch { setCitasHoyIds(new Set()); }
     };
     loadCitasHoy();
+    const onFocus = () => loadCitasHoy();
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
   }, []);
 
   useEffect(() => {

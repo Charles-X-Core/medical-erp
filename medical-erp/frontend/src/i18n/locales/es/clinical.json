@@ -163,5 +163,11 @@
   "completar_cita": "Completar",
   "cita_completada": "Cita Completada",
   "desea_agendar_nueva": "¿Desea agendar una nueva cita para este paciente?",
-  "agendar_nueva_cita": "Agendar Nueva Cita"
+  "agendar_nueva_cita": "Agendar Nueva Cita",
+  "registro_fotografico": "Registro Fotográfico",
+  "foto_evolucion": "Foto de Evolución",
+  "costo_por_sesion": "Costo por Sesión",
+  "costo_esta_sesion": "Costo de Esta Sesión",
+  "describa_evolucion_placeholder": "Describa evolución...",
+  "observaciones_sesion_placeholder": "Observaciones de sesión..."
 }

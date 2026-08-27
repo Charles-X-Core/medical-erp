@@ -267,7 +267,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
                 <input
                   type="number"
                   className="session-form__input"
-                  placeholder="S/ 0.00"
+                  placeholder="$ 0.00"
                   step="0.01"
                   value={costoSesion}
                   onChange={(e) => setCostoSesion(e.target.value)}
@@ -295,7 +295,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
               <div className="session-form__field">
                 <label className="session-form__label">{t('costo_promedio')}</label>
                 <div className="session-form__input session-form__input--readonly">
-                  S/ {costoPromedio}
+                  $ {costoPromedio}
                 </div>
               </div>
             )}
@@ -322,7 +322,7 @@ export default function SessionForm({ mode, tratamiento, onSave, onFinalize, onP
               <input
                 type="number"
                 className="session-form__input"
-                placeholder={costoPromedio ? t('promedio_sesion', { promedio: costoPromedio }) : 'S/ 0.00'}
+                placeholder={costoPromedio ? t('promedio_sesion', { promedio: costoPromedio }) : '$ 0.00'}
                 step="0.01"
                 value={costoSesion}
                 onChange={(e) => setCostoSesion(e.target.value)}

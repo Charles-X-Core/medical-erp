@@ -323,7 +323,7 @@ export default function SesionTratamientoView({
                   <input
                     type="number"
                     className="session-form__input"
-                    placeholder="S/ 0.00"
+                    placeholder="$ 0.00"
                     step="0.01"
                     value={formCosto}
                     onChange={(e) => setFormCosto(e.target.value)}

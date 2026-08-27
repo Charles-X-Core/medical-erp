@@ -147,5 +147,11 @@
   "completar_cita": "Complete",
   "cita_completada": "Appointment Completed",
   "desea_agendar_nueva": "Do you want to schedule a new appointment for this patient?",
-  "agendar_nueva_cita": "Schedule New Appointment"
+  "agendar_nueva_cita": "Schedule New Appointment",
+  "registro_fotografico": "Photo Record",
+  "foto_evolucion": "Evolution Photo",
+  "costo_por_sesion": "Cost per Session",
+  "costo_esta_sesion": "Session Cost",
+  "describa_evolucion_placeholder": "Describe evolution...",
+  "observaciones_sesion_placeholder": "Session observations..."
 }

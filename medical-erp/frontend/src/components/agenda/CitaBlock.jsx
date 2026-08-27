@@ -31,7 +31,7 @@ export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30,
   const duracion = cita.duracionMinutos || slotDuracion;
 
   const topPx = (offsetMin / slotDuracion) * (slotDuracion * pxPerMin);
-  const heightPx = (duracion / slotDuracion) * (slotDuracion * pxPerMin) - 2;
+  const heightPx = Math.min((duracion / slotDuracion) * (slotDuracion * pxPerMin) - 2, 240);
 
   const leftPercent = (col / numCols) * 100;
   const widthPercent = (1 / numCols) * 100;
