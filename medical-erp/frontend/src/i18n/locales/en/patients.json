@@ -587,6 +587,7 @@
   "edad_anios": "{{edad}} years",
   "masculino": "Male",
   "femenino": "Female",
+  "registros_count": "{{count}} records",
   "archivos_clinicos": "Clinical Files",
   "fotos_en_total": "photos in total",
   "sin_archivos": "No clinical files",
@@ -608,5 +609,11 @@
   "tipo": "Type",
   "fecha": "Date",
   "archivo": "File",
-  "tamano": "Size"
+  "tamano": "Size",
+  "ver_pdf": "View PDF",
+  "enviar_por_email": "Send by Email",
+  "enviar_consentimiento": "Send Consent Document",
+  "consentimiento_enviado": "Consent sent!",
+  "consentimiento_enviado_exito": "The consent document has been sent to the patient's email.",
+  "eliminar_consentimiento": "Delete this consent?"
 }

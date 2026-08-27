@@ -588,6 +588,7 @@
   "firma_pendiente_titulo": "Firma pendiente: {{nombres}} {{apellido}}",
   "firma_pendiente_descripcion": "El cliente {{nombres}} {{apellido}} necesita firmar documentos.",
   "nuevo_cliente": "Nuevo Cliente",
+  "registros_count": "{{count}} registros",
   "archivos_clinicos": "Archivos Clínicos",
   "fotos_en_total": "fotos en total",
   "sin_archivos": "No hay archivos clínicos",
@@ -609,5 +610,11 @@
   "tipo": "Tipo",
   "fecha": "Fecha",
   "archivo": "Archivo",
-  "tamano": "Tamaño"
+  "tamano": "Tamaño",
+  "ver_pdf": "Ver PDF",
+  "enviar_por_email": "Enviar por Email",
+  "enviar_consentimiento": "Enviar Consentimiento",
+  "consentimiento_enviado": "¡Consentimiento enviado!",
+  "consentimiento_enviado_exito": "El consentimiento ha sido enviado al correo del paciente.",
+  "eliminar_consentimiento": "¿Eliminar este consentimiento?"
 }

@@ -1,40 +1,54 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Shield, FileText, Check, Clock, X, Eye, Trash2, Edit2, Save, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Shield, Check, Clock, FileText, X, ChevronDown, ChevronUp,
+  Edit2, Trash2, Save, Loader2, Eye, Send, Download, CheckCircle
+} from 'lucide-react';
 import { pacienteConsentimientoService } from '../../services/pacienteSubServices';
+import { pacienteService } from '../../services/pacienteService';
+import EnviarEvidenciaModal from './EnviarEvidenciaModal';
 
-function formatFecha(fecha) {
-  if (!fecha) return '-';
-  const d = new Date(fecha);
+function formatFecha(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function formatFechaHora(fecha) {
-  if (!fecha) return '-';
-  const d = new Date(fecha);
+function formatFechaHora(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 export default function TabConsentimientos({ pacienteId }) {
   const { t } = useTranslation('patients');
+  const { tCommon } = useTranslation('common');
   const [consentimientos, setConsentimientos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [paciente, setPaciente] = useState(null);
+  const [sendConsent, setSendConsent] = useState(null);
 
   useEffect(() => {
-    loadConsentimientos();
+    loadData();
   }, [pacienteId]);
 
-  const loadConsentimientos = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const res = await pacienteConsentimientoService.list(pacienteId);
-      if (res.success) {
-        const data = res.data;
+      const [consRes, pacRes] = await Promise.allSettled([
+        pacienteConsentimientoService.list(pacienteId),
+        pacienteService.getById(pacienteId),
+      ]);
+      if (consRes.status === 'fulfilled' && consRes.value?.success) {
+        const data = consRes.value.data;
         setConsentimientos(Array.isArray(data) ? data : data?.content || []);
+      }
+      if (pacRes.status === 'fulfilled' && pacRes.value?.success) {
+        setPaciente(pacRes.value.data);
       }
     } catch (err) {
       console.error('Error loading consentimientos:', err);
@@ -50,7 +64,7 @@ export default function TabConsentimientos({ pacienteId }) {
         aceptado: !consent.aceptado,
       });
       if (res.success) {
-        await loadConsentimientos();
+        await loadData();
         setEditingId(null);
       }
     } catch (err) {
@@ -66,7 +80,7 @@ export default function TabConsentimientos({ pacienteId }) {
       const res = await pacienteConsentimientoService.delete(pacienteId, consentId);
       if (res.success) {
         setConfirmDeleteId(null);
-        await loadConsentimientos();
+        await loadData();
       }
     } catch (err) {
       console.error('Error deleting consentimiento:', err);
@@ -76,17 +90,21 @@ export default function TabConsentimientos({ pacienteId }) {
   };
 
   if (loading) {
-    return <div className="tab-loading">{t('loading', { ns: 'common' })}</div>;
+    return <div className="tab-loading">{tCommon('loading')}</div>;
   }
 
   const getEstadoConfig = (consent) => {
     const ESTADO_CONFIG = {
       FIRMADO: { label: t('aceptado_label'), icon: Check, color: '#22C55E', bg: '#F0FDF4' },
-      BORRADOR: { label: t('pending', { ns: 'common' }), icon: FileText, color: '#94A3B8', bg: '#F8FAFC' },
+      BORRADOR: { label: tCommon('pending'), icon: FileText, color: '#94A3B8', bg: '#F8FAFC' },
       REVISION: { label: t('doc_estado'), icon: Clock, color: '#F59E0B', bg: '#FFFBEB' },
-      ANULADO: { label: t('cancelled', { ns: 'common' }), icon: X, color: '#EF4444', bg: '#FEF2F2' },
+      ANULADO: { label: tCommon('cancelled'), icon: X, color: '#EF4444', bg: '#FEF2F2' },
     };
     return ESTADO_CONFIG[consent.estadoDocumento] || ESTADO_CONFIG[consent.estado] || ESTADO_CONFIG.BORRADOR;
+  };
+
+  const isContrato = (consent) => {
+    return consent.tipo?.includes('CONTRATO') || consent.templateCodigo?.includes('CONTRATO');
   };
 
   return (
@@ -109,19 +127,25 @@ export default function TabConsentimientos({ pacienteId }) {
             const isExpanded = expandedId === consent.id;
             const isEditing = editingId === consent.id;
             const isConfirmDelete = confirmDeleteId === consent.id;
+            const esContrato = isContrato(consent);
 
             return (
-              <div key={consent.id} className={`consent-card ${isExpanded ? 'consent-card--expanded' : ''}`}>
+              <div key={consent.id} className={`consent-card ${isExpanded ? 'consent-card--expanded' : ''} ${esContrato ? 'consent-card--contrato' : ''}`}>
                 <div
                   className="consent-card__main"
                   onClick={() => setExpandedId(isExpanded ? null : consent.id)}
                 >
                   <div className="consent-card__icon" style={{ background: config.bg }}>
-                    <Icon size={20} style={{ color: config.color }} />
+                    {esContrato ? <Shield size={20} style={{ color: config.color }} /> : <Icon size={20} style={{ color: config.color }} />}
                   </div>
                   <div className="consent-card__info">
-                    <h4 className="consent-card__nombre">{consent.tipo || consent.templateNombre || t('consentimientos')}</h4>
-                    <span className="consent-card__fecha">{formatFecha(consent.fechaFirma || consent.createdAt)}</span>
+                    <h4 className="consent-card__nombre">
+                      {consent.tipo || consent.templateNombre || t('consentimientos')}
+                      {esContrato && <span className="consent-card__badge">CONTRATO</span>}
+                    </h4>
+                    <span className="consent-card__fecha">
+                      {consent.fechaFirma ? `${t('fecha_firma')}: ${formatFechaHora(consent.fechaFirma)}` : formatFecha(consent.createdAt)}
+                    </span>
                   </div>
                   <div className="consent-card__right">
                     <span className="consent-card__estado" style={{ background: config.bg, color: config.color }}>
@@ -136,15 +160,20 @@ export default function TabConsentimientos({ pacienteId }) {
                     <div className="consent-card__detail-grid">
                       <div className="consent-card__detail-row">
                         <span className="consent-card__detail-label">{t('type', { ns: 'common' })}</span>
-                        <span className="consent-card__detail-value">{consent.tipo || '-'}</span>
+                        <span className="consent-card__detail-value">{consent.tipo || consent.templateNombre || '—'}</span>
                       </div>
                       <div className="consent-card__detail-row">
                         <span className="consent-card__detail-label">{t('documento_estado')}</span>
-                        <span className="consent-card__detail-value">{consent.estadoDocumento || consent.estado || '-'}</span>
+                        <span className="consent-card__detail-value">{consent.estadoDocumento || consent.estado || '—'}</span>
                       </div>
                       <div className="consent-card__detail-row">
                         <span className="consent-card__detail-label">{t('aceptado_label')}</span>
-                        <span className="consent-card__detail-value">{consent.aceptado ? t('yes_label', { ns: 'common' }) : t('no_label', { ns: 'common' })}</span>
+                        <span className="consent-card__detail-value">
+                          {consent.aceptado
+                            ? <span style={{ color: '#22C55E' }}>✓ {tCommon('yes')}</span>
+                            : <span style={{ color: '#EF4444' }}>✗ {tCommon('no')}</span>
+                          }
+                        </span>
                       </div>
                       <div className="consent-card__detail-row">
                         <span className="consent-card__detail-label">{t('fecha_label')}</span>
@@ -165,7 +194,9 @@ export default function TabConsentimientos({ pacienteId }) {
                       {consent.hashDocumento && (
                         <div className="consent-card__detail-row consent-card__detail-row--full">
                           <span className="consent-card__detail-label">Hash</span>
-                          <span className="consent-card__detail-value consent-card__detail-value--mono">{consent.hashDocumento}</span>
+                          <span className="consent-card__detail-value consent-card__detail-value--mono" title={consent.hashDocumento}>
+                            {consent.hashDocumento.substring(0, 20)}...
+                          </span>
                         </div>
                       )}
                     </div>
@@ -173,18 +204,10 @@ export default function TabConsentimientos({ pacienteId }) {
                     <div className="consent-card__actions">
                       {isEditing ? (
                         <>
-                          <button
-                            className="btn btn--ghost btn--sm"
-                            onClick={() => setEditingId(null)}
-                            disabled={saving}
-                          >
-                            {t('cancel', { ns: 'common' })}
+                          <button className="btn btn--ghost btn--sm" onClick={() => setEditingId(null)} disabled={saving}>
+                            {tCommon('cancelar')}
                           </button>
-                          <button
-                            className="btn btn--primary btn--sm"
-                            onClick={() => handleToggleAceptado(consent)}
-                            disabled={saving}
-                          >
+                          <button className="btn btn--primary btn--sm" onClick={() => handleToggleAceptado(consent)} disabled={saving}>
                             {saving ? <Loader2 size={14} className="spinner" /> : <Save size={14} />}
                             {saving ? t('saving') : consent.aceptado ? t('marcar_no_aceptado') : t('marcar_aceptado')}
                           </button>
@@ -192,35 +215,29 @@ export default function TabConsentimientos({ pacienteId }) {
                       ) : isConfirmDelete ? (
                         <>
                           <span className="consent-card__confirm-text">{t('eliminar_consentimiento')}</span>
-                          <button
-                            className="btn btn--ghost btn--sm"
-                            onClick={() => setConfirmDeleteId(null)}
-                            disabled={saving}
-                          >
-                            {t('cancel', { ns: 'common' })}
+                          <button className="btn btn--ghost btn--sm" onClick={() => setConfirmDeleteId(null)} disabled={saving}>
+                            {tCommon('cancelar')}
                           </button>
-                          <button
-                            className="btn btn--danger btn--sm"
-                            onClick={() => handleDelete(consent.id)}
-                            disabled={saving}
-                          >
+                          <button className="btn btn--danger btn--sm" onClick={() => handleDelete(consent.id)} disabled={saving}>
                             {saving ? <Loader2 size={14} className="spinner" /> : <Trash2 size={14} />}
-                            {saving ? t('eliminando') : t('delete', { ns: 'common' })}
+                            {saving ? t('eliminando') : tCommon('eliminar')}
                           </button>
                         </>
                       ) : (
                         <>
-                          <button
-                            className="btn btn--ghost btn--sm"
-                            onClick={(e) => { e.stopPropagation(); setEditingId(consent.id); }}
-                          >
-                            <Edit2 size={14} /> {t('edit', { ns: 'common' })}
+                          {consent.pdfUrl && (
+                            <button className="btn btn--ghost btn--sm" onClick={() => window.open(consent.pdfUrl, '_blank')}>
+                              <Eye size={14} /> {t('ver_pdf')}
+                            </button>
+                          )}
+                          <button className="btn btn--ghost btn--sm" onClick={() => setSendConsent(consent)}>
+                            <Send size={14} /> {t('enviar_por_email')}
                           </button>
-                          <button
-                            className="btn btn--ghost btn--sm btn--danger"
-                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(consent.id); }}
-                          >
-                            <Trash2 size={14} /> {t('delete', { ns: 'common' })}
+                          <button className="btn btn--ghost btn--sm" onClick={(e) => { e.stopPropagation(); setEditingId(consent.id); }}>
+                            <Edit2 size={14} /> {tCommon('editar')}
+                          </button>
+                          <button className="btn btn--ghost btn--sm btn--danger" onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(consent.id); }}>
+                            <Trash2 size={14} /> {tCommon('eliminar')}
                           </button>
                         </>
                       )}
@@ -231,6 +248,16 @@ export default function TabConsentimientos({ pacienteId }) {
             );
           })}
         </div>
+      )}
+
+      {/* Send Consent Modal */}
+      {sendConsent && (
+        <EnviarConsentimientoModal
+          open={true}
+          consentimiento={sendConsent}
+          paciente={paciente}
+          onClose={() => setSendConsent(null)}
+        />
       )}
     </div>
   );

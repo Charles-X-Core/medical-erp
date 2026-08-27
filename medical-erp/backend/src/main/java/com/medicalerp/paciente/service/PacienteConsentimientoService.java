@@ -2,6 +2,7 @@ package com.medicalerp.paciente.service;
 
 import com.medicalerp.common.exception.ResourceNotFoundException;
 import com.medicalerp.common.util.SecurityUtils;
+import com.medicalerp.contacto.service.EmailService;
 import com.medicalerp.paciente.dto.PacienteConsentimientoRequest;
 import com.medicalerp.paciente.dto.PacienteConsentimientoResponse;
 import com.medicalerp.paciente.entity.Paciente;
@@ -10,12 +11,14 @@ import com.medicalerp.paciente.mapper.PacienteConsentimientoMapper;
 import com.medicalerp.paciente.repository.PacienteConsentimientoRepository;
 import com.medicalerp.paciente.repository.PacienteRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,6 +28,7 @@ public class PacienteConsentimientoService {
     private final PacienteRepository pacienteRepository;
     private final PacienteConsentimientoMapper consentimientoMapper;
     private final SecurityUtils securityUtils;
+    private final EmailService emailService;
 
     @Transactional
     public PacienteConsentimientoResponse create(Long pacienteId, PacienteConsentimientoRequest request) {
@@ -75,5 +79,25 @@ public class PacienteConsentimientoService {
         PacienteConsentimiento consentimiento = consentimientoRepository.findByIdAndClinicaId(id, clinicaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Consentimiento", id));
         return consentimientoMapper.toResponse(consentimiento);
+    }
+
+    public void enviarPorEmail(Long consentimientoId, Long pacienteId, String asunto, String mensaje) {
+        PacienteConsentimiento consentimiento = consentimientoRepository.findById(consentimientoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Consentimiento", consentimientoId));
+
+        Paciente paciente = pacienteRepository.findById(pacienteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
+
+        String email = paciente.getEmail();
+        if (email == null || email.isBlank()) {
+            throw new ResourceNotFoundException("El paciente no tiene correo electrónico registrado");
+        }
+
+        String pacienteNombre = paciente.getNombres() + " " + paciente.getApellidoPaterno();
+        String tipo = consentimiento.getTipo() != null ? consentimiento.getTipo() : "Consentimiento";
+        String pdfUrl = consentimiento.getStoragePath();
+
+        emailService.sendConsentimientoPaciente(email, pacienteNombre, tipo, pdfUrl, asunto, mensaje);
+        log.info("Consentimiento {} enviado por email a {}", consentimientoId, email);
     }
 }
