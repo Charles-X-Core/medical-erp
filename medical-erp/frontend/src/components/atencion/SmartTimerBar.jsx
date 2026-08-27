@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock, AlertTriangle, CheckCircle, Timer } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, Timer, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 function formatTime(date) {
@@ -26,7 +26,7 @@ function parseTimeToDate(timeStr, baseDate) {
   return d;
 }
 
-export default function SmartTimerBar({ citaActiva, siguienteCita }) {
+export default function SmartTimerBar({ citaActiva, siguienteCita, onComplete }) {
   const { t: tClinical } = useTranslation('clinical');
   const { t: tPatients } = useTranslation('patients');
 
@@ -45,6 +45,11 @@ export default function SmartTimerBar({ citaActiva, siguienteCita }) {
 
   const sessionDuration = inicioAtencion ? now - inicioAtencion : 0;
   const sessionStart = inicioAtencion ? formatTime(inicioAtencion) : '--:--';
+
+  const duracion = citaActiva.duracionMinutos || 30;
+  const finSesion = inicioAtencion ? new Date(inicioAtencion.getTime() + duracion * 60000) : null;
+  const sessionRemainingMs = finSesion ? finSesion - now : null;
+  const sessionExpired = sessionRemainingMs !== null && sessionRemainingMs <= 0;
 
   let nextCitaTime = null;
   let nextCitaLabel = '';
@@ -67,7 +72,23 @@ export default function SmartTimerBar({ citaActiva, siguienteCita }) {
   let status = 'normal';
   let statusLabel = tClinical('normal');
   let statusIcon = CheckCircle;
-  if (remainingMin !== null) {
+
+  if (sessionExpired) {
+    status = 'expired';
+    statusLabel = tClinical('tiempo_expirado');
+    statusIcon = AlertTriangle;
+  } else if (sessionRemainingMs !== null) {
+    const remainingSessionMin = Math.floor(sessionRemainingMs / 60000);
+    if (remainingSessionMin < 5) {
+      status = 'urgent';
+      statusLabel = tClinical('urgente');
+      statusIcon = AlertTriangle;
+    } else if (remainingSessionMin < 15) {
+      status = 'warning';
+      statusLabel = tClinical('precaucion');
+      statusIcon = AlertTriangle;
+    }
+  } else if (remainingMin !== null) {
     if (remainingMin < 5) {
       status = 'urgent';
       statusLabel = tClinical('urgente');
@@ -97,6 +118,21 @@ export default function SmartTimerBar({ citaActiva, siguienteCita }) {
         <span className="smart-timer__label">{tPatients('sesion')} ({sessionStart})</span>
       </div>
 
+      {sessionRemainingMs !== null && (
+        <>
+          <div className="smart-timer__divider" />
+          <div className="smart-timer__section smart-timer__section--remaining">
+            <Timer size={16} />
+            <span className="smart-timer__time">
+              {sessionExpired ? formatDuration(Math.abs(sessionRemainingMs)) : formatDuration(sessionRemainingMs)}
+            </span>
+            <span className="smart-timer__label">
+              {sessionExpired ? tClinical('tiempo_expirado') : tClinical('tiempo_restante')}
+            </span>
+          </div>
+        </>
+      )}
+
       {nextCitaTime && (
         <>
           <div className="smart-timer__divider" />
@@ -114,6 +150,12 @@ export default function SmartTimerBar({ citaActiva, siguienteCita }) {
         <StatusIcon size={14} />
         <span>{statusLabel}</span>
       </div>
+
+      {onComplete && (
+        <button className="smart-timer__complete-btn" onClick={onComplete}>
+          <CheckCircle size={14} /> {tClinical('completar_cita')}
+        </button>
+      )}
     </div>
   );
 }

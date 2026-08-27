@@ -333,6 +333,7 @@
   "seleccionar_nuevo": "Select \"New Treatment\" to begin",
   "seleccione_nuevo_para_comenzar": "Select a new treatment to get started",
   "seleccione_o_cree": "Select or create a treatment",
+  "confirmar_completar_cita": "Are you sure you want to complete this appointment?",
   "pendiente_confirmacion": "Pending confirmation",
   "inicio_label_2": "Start:",
   "confirmar_fecha": "Once the date is confirmed, you can continue with the treatment.",

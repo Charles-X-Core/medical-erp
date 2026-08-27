@@ -157,5 +157,11 @@
   "session_expired_options": "Puede finalizar la sesión, extender el tiempo, o seguir trabajando.",
   "finalize_session": "Finalizar Sesión",
   "extend_session": "Extender 15 min",
-  "session_expired_late": "Terminó hace {{time}}"
+  "session_expired_late": "Terminó hace {{time}}",
+  "tiempo_restante": "Tiempo restante",
+  "tiempo_expirado": "Tiempo expirado",
+  "completar_cita": "Completar",
+  "cita_completada": "Cita Completada",
+  "desea_agendar_nueva": "¿Desea agendar una nueva cita para este paciente?",
+  "agendar_nueva_cita": "Agendar Nueva Cita"
 }

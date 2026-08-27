@@ -14,6 +14,7 @@ import { contratoPwaService } from '../services/contratoPwaService';
 import agendaService from '../services/agendaService';
 import ResumenSidebar from '../components/paciente360/ResumenSidebar';
 import SessionExpiredModal from '../components/atencion/SessionExpiredModal';
+import ConfirmModal from '../components/ConfirmModal';
 import AtencionSidebar from '../components/paciente360/AtencionSidebar';
 import WorkspaceTimeline from '../components/paciente360/WorkspaceTimeline';
 import TabClinico from '../components/paciente360/TabClinico';
@@ -59,6 +60,8 @@ export default function AtencionWorkspace() {
   const [showFirmaContrato, setShowFirmaContrato] = useState(false);
   const [showContratoWarning, setShowContratoWarning] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+  const [showScheduleAfterComplete, setShowScheduleAfterComplete] = useState(false);
 
   const WORKSPACE_TABS = [
     { id: 'resumen', label: t('tab_resumen'), icon: User },
@@ -265,6 +268,27 @@ export default function AtencionWorkspace() {
     catch (err) { console.error('Error scheduling:', err); setAtencionView('entry'); await load(); }
   };
 
+  const handleCompleteCita = async () => {
+    setShowCompleteConfirm(false);
+    try {
+      await agendaService.completarCita(citaActiva.id);
+      await load();
+      setShowScheduleAfterComplete(true);
+    } catch (err) {
+      console.error('Error completing:', err);
+    }
+  };
+
+  const handleScheduleAfterComplete = () => {
+    setShowScheduleAfterComplete(false);
+    setShowScheduler(true);
+  };
+
+  const handleFinishAfterComplete = () => {
+    setShowScheduleAfterComplete(false);
+    navigate('/pacientes');
+  };
+
   const handleCreateTratamiento = async (formData) => {
     try {
       const createRes = await tratamientoService.create({
@@ -414,7 +438,7 @@ export default function AtencionWorkspace() {
         </div>
       </div>
 
-      {citaActiva && <SmartTimerBar citaActiva={citaActiva} siguienteCita={siguienteCita} />}
+      {citaActiva && <SmartTimerBar citaActiva={citaActiva} siguienteCita={siguienteCita} onComplete={() => setShowCompleteConfirm(true)} />}
 
       <div className="workspace__tabs-bar">
         {WORKSPACE_TABS.map((tab) => {
@@ -602,10 +626,35 @@ export default function AtencionWorkspace() {
       <SessionExpiredModal
         open={showSessionExpired}
         cita={citaActiva}
-        onFinalized={() => { setShowSessionExpired(false); load(); }}
+        onFinalized={() => { setShowSessionExpired(false); load().then(() => setShowScheduleAfterComplete(true)); }}
         onExtended={() => { setShowSessionExpired(false); load(); }}
         onDismiss={() => setShowSessionExpired(false)}
       />
+      <ConfirmModal
+        open={showCompleteConfirm}
+        title={tco('confirmar')}
+        message={t('confirmar_completar_cita')}
+        variant="activate"
+        onConfirm={handleCompleteCita}
+        onCancel={() => setShowCompleteConfirm(false)}
+      />
+      {showScheduleAfterComplete && (
+        <div className="onboarding-modal" onClick={() => setShowScheduleAfterComplete(false)}>
+          <div className="onboarding-modal__box" onClick={e => e.stopPropagation()}>
+            <CheckCircle size={48} style={{ color: '#22C55E', margin: '0 auto 16px' }} />
+            <h3 className="onboarding-modal__title">{t('cita_completada')}</h3>
+            <p className="onboarding-modal__subtitle">{t('desea_agendar_nueva')}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
+              <button className="onboarding-modal__btn onboarding-modal__btn--save" onClick={handleScheduleAfterComplete}>
+                <Calendar size={16} /> {t('agendar_nueva_cita')}
+              </button>
+              <button className="onboarding-modal__btn onboarding-modal__btn--skip" onClick={handleFinishAfterComplete}>
+                {t('finalizar')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

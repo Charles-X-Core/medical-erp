@@ -141,5 +141,11 @@
   "session_expired_options": "You can finalize the session, extend the time, or continue working.",
   "finalize_session": "Finalize Session",
   "extend_session": "Extend 15 min",
-  "session_expired_late": "Ended {{time}} ago"
+  "session_expired_late": "Ended {{time}} ago",
+  "tiempo_restante": "Time remaining",
+  "tiempo_expirado": "Time expired",
+  "completar_cita": "Complete",
+  "cita_completada": "Appointment Completed",
+  "desea_agendar_nueva": "Do you want to schedule a new appointment for this patient?",
+  "agendar_nueva_cita": "Schedule New Appointment"
 }
