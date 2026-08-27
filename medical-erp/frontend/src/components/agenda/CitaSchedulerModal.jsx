@@ -35,8 +35,7 @@ function isPastSlot(fechaStr, horaInicio) {
 }
 
 function isPastDate(fechaStr) {
-  const now = new Date();
-  const laTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const laTime = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
   const today = laTime.toISOString().split('T')[0];
   return fechaStr < today;
 }
@@ -69,7 +68,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
   const [tiposCita, setTiposCita] = useState([]);
   const [tipoCitaId, setTipoCitaId] = useState('');
 
-  const today = new Date();
+  const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
   const [calMonth, setCalMonth] = useState(today.getMonth());
   const [calYear, setCalYear] = useState(today.getFullYear());
   const [slotsPorDia, setSlotsPorDia] = useState({});
@@ -126,6 +125,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
   }, [isOpen, initialPaciente]);
 
   useEffect(() => {
+    console.log('[Scheduler] useEffect:', { doctoraId, calMonth, calYear, isOpen, duracion });
     if (doctoraId && isOpen) loadMonthData();
   }, [doctoraId, calMonth, calYear, isOpen, duracion]);
 
@@ -179,14 +179,17 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
       const fin = formatDateStr(calYear, calMonth, totalDays);
       const res = await agendaService.getDisponibilidadSemana(doctoraId, inicio, fin, duracion);
       const allSlots = extractList(res);
+      console.log('[Scheduler] API:', { doctoraId, inicio, fin, duracion, totalSlots: allSlots.length, sample: allSlots.slice(0, 2) });
       const grouped = {};
       allSlots.forEach(slot => {
         const fecha = slot.fecha;
         if (!grouped[fecha]) grouped[fecha] = [];
         grouped[fecha].push(slot);
       });
+      console.log('[Scheduler] Grouped:', Object.keys(grouped));
       setSlotsPorDia(grouped);
-    } catch {
+    } catch (err) {
+      console.error('[Scheduler] Error:', err);
       setSlotsPorDia({});
     } finally {
       setLoading(false);
@@ -195,10 +198,16 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
 
   const slotsDelDia = useMemo(() => {
     if (!diaSeleccionado) return [];
-    return (slotsPorDia[diaSeleccionado] || [])
+    const forDay = slotsPorDia[diaSeleccionado] || [];
+    const estadoCount = {};
+    forDay.forEach(s => { estadoCount[s.estado] = (estadoCount[s.estado] || 0) + 1; });
+    console.log('[Scheduler] Estado distribution:', { diaSeleccionado, total: forDay.length, estadoCount });
+    const result = forDay
       .filter(slot => !isPastSlot(diaSeleccionado, slot.inicio))
       .filter(slot => slot.estado === 'DISPONIBLE')
       .sort((a, b) => normalizeTime(a.inicio).localeCompare(normalizeTime(b.inicio)));
+    console.log('[Scheduler] after filters:', { pastFiltered: forDay.filter(s => !isPastSlot(diaSeleccionado, s.inicio)).length, dispForDay: result.length });
+    return result;
   }, [diaSeleccionado, slotsPorDia]);
 
   const searchPaciente = async (query) => {

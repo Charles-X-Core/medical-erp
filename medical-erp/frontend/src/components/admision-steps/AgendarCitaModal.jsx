@@ -306,7 +306,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
                     const fechaStr = d.toISOString().split('T')[0];
                     const slots = slotsPorDia[fechaStr] || [];
                     const disponibles = slots.filter(s => s.estado === 'DISPONIBLE' && !isPastSlot(fechaStr, s.inicio)).length;
-                    const esHoy = new Date().toISOString().split('T')[0] === fechaStr;
+                    const esHoy = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })).toISOString().split('T')[0] === fechaStr;
                     const esPasado = isPastDate(fechaStr);
                     const seleccionado = diaSeleccionado === fechaStr;
                     const sinAgenda = slots.length === 0;

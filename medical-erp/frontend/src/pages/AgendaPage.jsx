@@ -761,7 +761,7 @@ export default function AgendaPage() {
     const newHora = `${String(newHour).padStart(2, '0')}:00`;
     if (cita.fecha === newDateKey && cita.hora === newHora) return;
 
-    const now = new Date();
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
     const today = now.toISOString().split('T')[0];
     if (newDateKey < today) { setError(t('fecha_pasada_label')); return; }
 
@@ -815,7 +815,7 @@ export default function AgendaPage() {
     if (!reajusteData) return;
     const { cita, nuevaFecha } = reajusteData;
 
-    const now = new Date();
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
     const today = now.toISOString().split('T')[0];
     if (nuevaFecha < today) {
       setError(t('fecha_pasada_label'));
