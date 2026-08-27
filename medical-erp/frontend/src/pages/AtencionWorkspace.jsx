@@ -15,6 +15,7 @@ import agendaService from '../services/agendaService';
 import ResumenSidebar from '../components/paciente360/ResumenSidebar';
 import SessionExpiredModal from '../components/atencion/SessionExpiredModal';
 import ConfirmModal from '../components/ConfirmModal';
+import { getLADateString } from '../utils/laTimezone';
 import AtencionSidebar from '../components/paciente360/AtencionSidebar';
 import WorkspaceTimeline from '../components/paciente360/WorkspaceTimeline';
 import TabClinico from '../components/paciente360/TabClinico';
@@ -102,9 +103,9 @@ export default function AtencionWorkspace() {
         );
         if (cfRes.status === 'fulfilled' && cfRes.value?.success) {
           const todas = Array.isArray(cfRes.value.data) ? cfRes.value.data : [];
-          const hoyStr = new Date().toISOString().split('T')[0];
-          const ahora = new Date();
-          const ahoraMin = ahora.getHours() * 60 + ahora.getMinutes();
+          const hoyStr = getLADateString();
+          const ahoraLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+          const ahoraMin = ahoraLA.getHours() * 60 + ahoraLA.getMinutes();
 
           const esCitaFutura = (c) => {
             if (c.fecha > hoyStr) return true;
@@ -193,9 +194,9 @@ export default function AtencionWorkspace() {
     return () => clearTimeout(timeout);
   }, [citaActiva, showSessionExpired]);
 
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const siguienteCita = citasHoy.find(c => {
+  const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const nowMin = nowLA.getHours() * 60 + nowLA.getMinutes();
+  const siguienteCita = [...citasHoy, ...citasFuturas].find(c => {
     if (c.estado === 'en_atencion') return false;
     if (!c.hora) return false;
     const [h, m] = c.hora.split(':').map(Number);
