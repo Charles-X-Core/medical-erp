@@ -36,6 +36,8 @@ public class CitaResponse {
     private Long consultaId;
     private String notas;
     private LocalDateTime asistioConfirmedAt;
+    private LocalDateTime inicioAtencion;
+    private LocalDateTime finAtencion;
     private LocalDateTime canceladoAt;
     private String canceladoMotivo;
     private Long reprogramadaDe;
