@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { pacienteConsentimientoService } from '../../services/pacienteSubServices';
 import { pacienteService } from '../../services/pacienteService';
-import EnviarEvidenciaModal from './EnviarEvidenciaModal';
+import EnviarConsentimientoModal from './EnviarConsentimientoModal';
 
 function formatFecha(dateStr) {
   if (!dateStr) return '—';
