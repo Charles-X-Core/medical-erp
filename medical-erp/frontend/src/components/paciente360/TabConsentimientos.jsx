@@ -22,7 +22,7 @@ function formatFechaHora(dateStr) {
 
 export default function TabConsentimientos({ pacienteId }) {
   const { t } = useTranslation('patients');
-  const { tCommon } = useTranslation('common');
+  const { t: tCommon } = useTranslation('common');
   const [consentimientos, setConsentimientos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
