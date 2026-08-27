@@ -716,7 +716,7 @@ export default function AgendaPage() {
   const goToNextWeek = () => { const d = new Date(currentDate); d.setDate(d.getDate() + 7); setCurrentDate(d); };
   const goToPrevDay = () => { const d = new Date(currentDate); d.setDate(d.getDate() - 1); setCurrentDate(d); };
   const goToNextDay = () => { const d = new Date(currentDate); d.setDate(d.getDate() + 1); setCurrentDate(d); };
-  const goToToday = () => setCurrentDate(new Date());
+  const goToToday = () => setCurrentDate(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
 
   const scrollToHour = useCallback((hour) => {
     if (!timelineRef.current) return;
