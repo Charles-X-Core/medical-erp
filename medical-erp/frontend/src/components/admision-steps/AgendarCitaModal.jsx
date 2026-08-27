@@ -27,8 +27,14 @@ function isPastSlot(fechaStr, horaInicio) {
   const today = getLADateString();
   if (fechaStr !== today) return false;
   const [h, m] = normalizeTime(horaInicio).split(':').map(Number);
-  const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-  const nowMin = nowLA.getHours() * 60 + nowLA.getMinutes();
+  const laStr = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit', hour12: true });
+  const match = laStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) return false;
+  let laH = parseInt(match[1]);
+  const laM = parseInt(match[2]);
+  if (match[3].toUpperCase() === 'PM' && laH !== 12) laH += 12;
+  if (match[3].toUpperCase() === 'AM' && laH === 12) laH = 0;
+  const nowMin = laH * 60 + laM;
   return (h * 60 + m) <= nowMin;
 }
 
