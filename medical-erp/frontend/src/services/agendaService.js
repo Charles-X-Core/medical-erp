@@ -150,15 +150,37 @@ const agendaService = {
   },
 
   // Disponibilidad semanal
-  getDisponibilidadSemana: async (usuarioId, inicio, fin, duracion = 30) => {
+  getDisponibilidadSemana: async (usuarioId, inicio, fin, duracion = 30, soloDisponibles = false) => {
     try {
       const response = await apiClient(
-        `/api/v1/agenda/${usuarioId}/disponibilidad-semana?inicio=${inicio}&fin=${fin}&duracion=${duracion}`
+        `/api/v1/agenda/${usuarioId}/disponibilidad-semana?inicio=${inicio}&fin=${fin}&duracion=${duracion}&soloDisponibles=${soloDisponibles}`
       );
       return response;
     } catch (error) {
       console.error('Error fetching disponibilidad semanal:', error);
       return { success: false, data: [] };
+    }
+  },
+
+  // Disponibilidad por día (con timeout de 15s)
+  getDisponibilidadDia: async (usuarioId, fecha, duracion = 30, soloDisponibles = true) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await apiClient(
+        `/api/v1/agenda/${usuarioId}/disponibilidad?fecha=${fecha}&duracion=${duracion}&soloDisponibles=${soloDisponibles}`,
+        { signal: controller.signal }
+      );
+      return response;
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.warn('Timeout fetching disponibilidad dia:', fecha);
+        return { success: false, data: [], timeout: true };
+      }
+      console.error('Error fetching disponibilidad dia:', error);
+      return { success: false, data: [] };
+    } finally {
+      clearTimeout(timeout);
     }
   },
 

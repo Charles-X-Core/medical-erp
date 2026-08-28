@@ -301,6 +301,10 @@ public class AgendaService {
      * GET /api/v1/agenda/{usuarioId}/disponibilidad?fecha=2026-08-04&duracion=30
      */
     public List<SlotDisponibilidad> getDisponibilidad(Long usuarioId, LocalDate fecha, Integer duracion) {
+        return getDisponibilidad(usuarioId, fecha, duracion, false);
+    }
+
+    public List<SlotDisponibilidad> getDisponibilidad(Long usuarioId, LocalDate fecha, Integer duracion, boolean soloDisponibles) {
         Agenda agenda = agendaRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Agenda del usuario", usuarioId));
 
@@ -310,7 +314,7 @@ public class AgendaService {
         List<Bloqueo> bloqueos = bloqueoRepository.findByAgendaId(agenda.getId());
         List<Cita> citas = citaRepository.findActivasByFechaBetween(fecha, fecha);
 
-        return availabilityEngine.calcularSlots(agenda, disponibilidades, bloqueos, citas, fecha, duracion);
+        return availabilityEngine.calcularSlots(agenda, disponibilidades, bloqueos, citas, fecha, duracion, soloDisponibles);
     }
 
     /**
@@ -333,6 +337,10 @@ public class AgendaService {
      * GET /api/v1/agenda/{usuarioId}/disponibilidad-semana?inicio=YYYY-MM-DD&fin=YYYY-MM-DD
      */
     public List<SlotDisponibilidad> getDisponibilidadSemana(Long usuarioId, LocalDate inicio, LocalDate fin, Integer duracion) {
+        return getDisponibilidadSemana(usuarioId, inicio, fin, duracion, false);
+    }
+
+    public List<SlotDisponibilidad> getDisponibilidadSemana(Long usuarioId, LocalDate inicio, LocalDate fin, Integer duracion, boolean soloDisponibles) {
         Agenda agenda = agendaRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Agenda del usuario", usuarioId));
 
@@ -340,7 +348,7 @@ public class AgendaService {
         List<Bloqueo> bloqueos = bloqueoRepository.findByAgendaId(agenda.getId());
         List<Cita> citas = citaRepository.findActivasByFechaBetween(inicio, fin);
 
-        return availabilityEngine.calcularSlotsSemana(agenda, disponibilidades, bloqueos, citas, inicio, fin, duracion);
+        return availabilityEngine.calcularSlotsSemana(agenda, disponibilidades, bloqueos, citas, inicio, fin, duracion, soloDisponibles);
     }
 
     /**

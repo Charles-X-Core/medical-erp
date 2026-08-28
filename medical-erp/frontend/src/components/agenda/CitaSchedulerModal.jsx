@@ -76,7 +76,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
   const [calMonth, setCalMonth] = useState(todayMonth - 1);
   const [calYear, setCalYear] = useState(todayYear);
   const [slotsPorDia, setSlotsPorDia] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loadingDay, setLoadingDay] = useState(false);
 
   const [diaSeleccionado, setDiaSeleccionado] = useState(null);
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
@@ -129,14 +129,13 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
   }, [isOpen, initialPaciente]);
 
   useEffect(() => {
-    console.log('[Scheduler] useEffect:', { doctoraId, calMonth, calYear, isOpen, duracion });
-    if (doctoraId && isOpen) loadMonthData();
-  }, [doctoraId, calMonth, calYear, isOpen, duracion]);
-
-  useEffect(() => {
-    setDiaSeleccionado(null);
-    setSlotSeleccionado(null);
-  }, [doctoraId]);
+    console.log('[Scheduler] useEffect:', { doctoraId, isOpen });
+    if (doctoraId && isOpen) {
+      setSlotsPorDia({});
+      setDiaSeleccionado(null);
+      setSlotSeleccionado(null);
+    }
+  }, [doctoraId, isOpen]);
 
   useEffect(() => {
     setSlotSeleccionado(null);
@@ -174,41 +173,29 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
     }
   };
 
-  const loadMonthData = useCallback(async () => {
-    setLoading(true);
-    setSlotsPorDia({});
+  const loadDayData = useCallback(async (fechaStr) => {
+    if (!doctoraId || !fechaStr) return;
+    setLoadingDay(true);
     try {
-      const inicio = formatDateStr(calYear, calMonth, 1);
-      const fin = formatDateStr(calYear, calMonth, Math.min(getDaysInMonth(calYear, calMonth), 7));
-      const res = await agendaService.getDisponibilidadSemana(doctoraId, inicio, fin, duracion);
+      const res = await agendaService.getDisponibilidadDia(doctoraId, fechaStr, duracion, true);
       const allSlots = extractList(res);
-      const grouped = {};
-      allSlots.forEach(slot => {
-        const fecha = slot.fecha;
-        if (!grouped[fecha]) grouped[fecha] = [];
-        grouped[fecha].push(slot);
-      });
-      setSlotsPorDia(grouped);
+      console.log('[Scheduler] Day API:', { fechaStr, doctoraId, duracion, totalSlots: allSlots.length });
+      setSlotsPorDia(prev => ({ ...prev, [fechaStr]: allSlots }));
     } catch (err) {
       console.error('[Scheduler] Error:', err);
-      setSlotsPorDia({});
+      setSlotsPorDia(prev => ({ ...prev, [fechaStr]: [] }));
     } finally {
-      setLoading(false);
+      setLoadingDay(false);
     }
-  }, [doctoraId, calMonth, calYear, duracion]);
+  }, [doctoraId, duracion]);
 
   const slotsDelDia = useMemo(() => {
     if (!diaSeleccionado) return [];
     const forDay = slotsPorDia[diaSeleccionado] || [];
-    const estadoCount = {};
-    forDay.forEach(s => { estadoCount[s.estado] = (estadoCount[s.estado] || 0) + 1; });
-    console.log('[Scheduler] Estado distribution:', { diaSeleccionado, total: forDay.length, estadoCount });
-    const result = forDay
+    console.log('[Scheduler] Slots for day:', { diaSeleccionado, total: forDay.length });
+    return forDay
       .filter(slot => !isPastSlot(diaSeleccionado, slot.inicio))
-      .filter(slot => slot.estado === 'DISPONIBLE')
       .sort((a, b) => normalizeTime(a.inicio).localeCompare(normalizeTime(b.inicio)));
-    console.log('[Scheduler] after filters:', { pastFiltered: forDay.filter(s => !isPastSlot(diaSeleccionado, s.inicio)).length, dispForDay: result.length });
-    return result;
   }, [diaSeleccionado, slotsPorDia]);
 
   const searchPaciente = async (query) => {
@@ -388,31 +375,36 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
                     {calDays.map((day, i) => {
                       if (day === null) return <div key={`empty-${i}`} className="cita-scheduler__cal-dia cita-scheduler__cal-dia--empty" />;
                       const fechaStr = formatDateStr(calYear, calMonth, day);
-                      const slots = slotsPorDia[fechaStr] || [];
-                      const disponibles = slots.filter(s => s.estado === 'DISPONIBLE' && !isPastSlot(fechaStr, s.inicio)).length;
+                      const slots = slotsPorDia[fechaStr];
+                      const loaded = slots !== undefined;
+                      const disponibles = loaded ? slots.filter(s => !isPastSlot(fechaStr, s.inicio)).length : 0;
                       const esHoy = todayStr === fechaStr;
                       const esPasado = isPastDate(fechaStr);
                       const seleccionado = diaSeleccionado === fechaStr;
-                      const sinAgenda = slots.length === 0;
+                      const sinAgenda = loaded && slots.length === 0;
                       const tieneCupos = disponibles > 0;
 
                       let className = 'cita-scheduler__cal-dia';
                       if (esPasado) className += ' cita-scheduler__cal-dia--pasado';
                       else if (seleccionado) className += ' cita-scheduler__cal-dia--selected';
                       else if (tieneCupos) className += ' cita-scheduler__cal-dia--disponible';
-                      else if (sinAgenda) className += ' cita-scheduler__cal-dia--sin-agenda';
-                      else className += ' cita-scheduler__cal-dia--lleno';
+                      else if (sinAgenda) className += ' cita-scheduler__cal-dia--lleno';
+                      else className += ' cita-scheduler__cal-dia--sin-agenda';
                       if (esHoy) className += ' cita-scheduler__cal-dia--hoy';
 
                       return (
                         <button
                           key={i}
                           className={className}
-                          onClick={() => { setDiaSeleccionado(fechaStr); setSlotSeleccionado(null); }}
-                          disabled={sinAgenda || esPasado}
+                          onClick={() => {
+                            setDiaSeleccionado(fechaStr);
+                            setSlotSeleccionado(null);
+                            if (!loaded && !esPasado) loadDayData(fechaStr);
+                          }}
+                          disabled={esPasado}
                         >
                           <span className="cita-scheduler__cal-num">{day}</span>
-                          {!esPasado && !sinAgenda && (
+                          {!esPasado && loaded && (
                             <span className={`cita-scheduler__cal-dot ${tieneCupos ? 'cita-scheduler__cal-dot--ok' : 'cita-scheduler__cal-dot--full'}`} />
                           )}
                         </button>
@@ -428,7 +420,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
                 </div>
 
                 <div className="cita-scheduler__horarios">
-                  {loading ? (
+                  {loadingDay && diaSeleccionado && !slotsPorDia[diaSeleccionado] ? (
                     <div className="cita-scheduler__loading">
                       <Loader2 size={20} className="spinner" /> {t('cargando')}
                     </div>

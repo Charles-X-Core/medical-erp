@@ -33,6 +33,20 @@ public class AvailabilityEngine {
             List<Cita> citasExistentes,
             LocalDate fecha,
             Integer duracionSesion) {
+        return calcularSlots(agenda, disponibilidades, bloqueos, citasExistentes, fecha, duracionSesion, false);
+    }
+
+    /**
+     * Calcula slots disponibles para una fecha específica, con opción de filtrar solo DISPONIBLE.
+     */
+    public List<SlotDisponibilidad> calcularSlots(
+            Agenda agenda,
+            List<Disponibilidad> disponibilidades,
+            List<Bloqueo> bloqueos,
+            List<Cita> citasExistentes,
+            LocalDate fecha,
+            Integer duracionSesion,
+            boolean soloDisponibles) {
 
         List<SlotDisponibilidad> slots = new ArrayList<>();
 
@@ -49,14 +63,16 @@ public class AvailabilityEngine {
                         slotInicioDateTime, slotFinDateTime,
                         bloqueos, citasExistentes, duracionSesion);
 
-                slots.add(SlotDisponibilidad.builder()
-                        .fecha(fecha)
-                        .inicio(cursor)
-                        .fin(slotFin)
-                        .estado(info.estado)
-                        .descripcion(info.descripcion)
-                        .duracionDisponible(duracionSesion)
-                        .build());
+                if (!soloDisponibles || SlotEstado.DISPONIBLE.equals(info.estado)) {
+                    slots.add(SlotDisponibilidad.builder()
+                            .fecha(fecha)
+                            .inicio(cursor)
+                            .fin(slotFin)
+                            .estado(info.estado)
+                            .descripcion(info.descripcion)
+                            .duracionDisponible(duracionSesion)
+                            .build());
+                }
 
                 cursor = cursor.plusMinutes(5);
             }
@@ -76,6 +92,21 @@ public class AvailabilityEngine {
             LocalDate inicioSemana,
             LocalDate finSemana,
             Integer duracionSesion) {
+        return calcularSlotsSemana(agenda, disponibilidades, bloqueos, citasExistentes, inicioSemana, finSemana, duracionSesion, false);
+    }
+
+    /**
+     * Calcula slots disponibles para una semana completa, con opción de filtrar solo DISPONIBLE.
+     */
+    public List<SlotDisponibilidad> calcularSlotsSemana(
+            Agenda agenda,
+            List<Disponibilidad> disponibilidades,
+            List<Bloqueo> bloqueos,
+            List<Cita> citasExistentes,
+            LocalDate inicioSemana,
+            LocalDate finSemana,
+            Integer duracionSesion,
+            boolean soloDisponibles) {
 
         List<SlotDisponibilidad> todosLosSlots = new ArrayList<>();
         LocalDate fecha = inicioSemana;
@@ -88,7 +119,7 @@ public class AvailabilityEngine {
 
             if (!dispDia.isEmpty()) {
                 List<SlotDisponibilidad> slots = calcularSlots(
-                        agenda, dispDia, bloqueos, citasExistentes, fecha, duracionSesion);
+                        agenda, dispDia, bloqueos, citasExistentes, fecha, duracionSesion, soloDisponibles);
                 todosLosSlots.addAll(slots);
             }
 
