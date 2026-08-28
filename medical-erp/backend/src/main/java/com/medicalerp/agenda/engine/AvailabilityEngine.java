@@ -74,7 +74,7 @@ public class AvailabilityEngine {
                             .build());
                 }
 
-                cursor = cursor.plusMinutes(5);
+                cursor = cursor.plusMinutes(duracionSesion);
             }
         }
 
