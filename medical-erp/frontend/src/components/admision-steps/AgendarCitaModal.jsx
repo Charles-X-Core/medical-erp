@@ -75,7 +75,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
 
   const [weekOffset, setWeekOffset] = useState(0);
   const [slotsPorDia, setSlotsPorDia] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loadingDay, setLoadingDay] = useState(false);
 
   const [diaSeleccionado, setDiaSeleccionado] = useState(null);
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
@@ -108,12 +108,17 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
       setNotas('');
       setError('');
       setExito(false);
+      setLoadingDay(false);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    if (doctoraId && isOpen) loadWeekData();
-  }, [doctoraId, weekOffset, isOpen, duracion]);
+    if (doctoraId && isOpen) {
+      setSlotsPorDia({});
+      setDiaSeleccionado(null);
+      setSlotSeleccionado(null);
+    }
+  }, [doctoraId, isOpen]);
 
   useEffect(() => {
     setDiaSeleccionado(null);
@@ -122,7 +127,6 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
 
   useEffect(() => {
     setSlotSeleccionado(null);
-    if (diaSeleccionado && doctoraId && isOpen) loadWeekData();
   }, [tipoCitaId]);
 
   const loadDoctoras = async () => {
@@ -169,27 +173,21 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
     }
   };
 
-  const loadWeekData = useCallback(async () => {
-    setLoading(true);
-    setSlotsPorDia({});
+  const loadDayData = useCallback(async (fechaStr) => {
+    if (!doctoraId || !fechaStr) return;
+    setLoadingDay(true);
     try {
-      const inicio = weekDates[0].toISOString().split('T')[0];
-      const fin = weekDates[6].toISOString().split('T')[0];
-      const res = await agendaService.getDisponibilidadSemana(doctoraId, inicio, fin, duracion);
+      const res = await agendaService.getDisponibilidadDia(doctoraId, fechaStr, duracion, true);
       const allSlots = extractList(res);
-      const grouped = {};
-      allSlots.forEach(slot => {
-        const fecha = slot.fecha;
-        if (!grouped[fecha]) grouped[fecha] = [];
-        grouped[fecha].push(slot);
-      });
-      setSlotsPorDia(grouped);
-    } catch {
-      setSlotsPorDia({});
+      console.log('[AgendarCita] Day API:', { fechaStr, doctoraId, duracion, totalSlots: allSlots.length });
+      setSlotsPorDia(prev => ({ ...prev, [fechaStr]: allSlots }));
+    } catch (err) {
+      console.error('[AgendarCita] Error:', err);
+      setSlotsPorDia(prev => ({ ...prev, [fechaStr]: [] }));
     } finally {
-      setLoading(false);
+      setLoadingDay(false);
     }
-  }, [doctoraId, weekOffset, duracion]);
+  }, [doctoraId, duracion]);
 
   const slotsDelDia = useMemo(() => {
     if (!diaSeleccionado) return [];
@@ -306,8 +304,9 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
                 <div className="agendar-v2__dias">
                   {weekDates.map((d, i) => {
                     const fechaStr = d.toISOString().split('T')[0];
-                    const slots = slotsPorDia[fechaStr] || [];
-                    const disponibles = slots.filter(s => s.estado === 'DISPONIBLE' && !isPastSlot(fechaStr, s.inicio)).length;
+                    const slots = slotsPorDia[fechaStr];
+                    const loaded = slots !== undefined;
+                    const disponibles = loaded ? slots.filter(s => !isPastSlot(fechaStr, s.inicio)).length : 0;
                     const esHoy = (() => {
                       const parts = fechaStr.split('-').map(Number);
                       const laParts = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }).split('-').map(Number);
@@ -315,19 +314,23 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
                     })();
                     const esPasado = isPastDate(fechaStr);
                     const seleccionado = diaSeleccionado === fechaStr;
-                    const sinAgenda = slots.length === 0;
-                    const lleno = slots.length > 0 && disponibles === 0;
+                    const sinAgenda = loaded && slots.length === 0;
+                    const lleno = loaded && slots.length > 0 && disponibles === 0;
                     return (
                       <button
                         key={i}
                         className={`agendar-v2__dia ${seleccionado ? 'agendar-v2__dia--selected' : ''} ${esPasado ? 'agendar-v2__dia--pasado' : ''} ${lleno ? 'agendar-v2__dia--lleno' : ''} ${esHoy ? 'agendar-v2__dia--hoy' : ''}`}
-                        onClick={() => { setDiaSeleccionado(fechaStr); setSlotSeleccionado(null); }}
-                        disabled={sinAgenda || esPasado}
+                        onClick={() => {
+                          setDiaSeleccionado(fechaStr);
+                          setSlotSeleccionado(null);
+                          if (!loaded && !esPasado) loadDayData(fechaStr);
+                        }}
+                        disabled={esPasado}
                       >
                         <span className="agendar-v2__dia-nombre">{DIAS_CORTOS[i]}</span>
                         <span className="agendar-v2__dia-num">{d.getDate()}</span>
                         <span className="agendar-v2__dia-count">
-                          {sinAgenda ? t('sin_agenda') : lleno ? t('lleno') : t('disponibles_count', { count: disponibles })}
+                          {!loaded ? t('cargar') : sinAgenda ? t('sin_agenda') : lleno ? t('lleno') : t('disponibles_count', { count: disponibles })}
                         </span>
                       </button>
                     );
@@ -335,7 +338,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
                 </div>
               </div>
 
-              {loading ? (
+              {loadingDay && diaSeleccionado && !slotsPorDia[diaSeleccionado] ? (
                 <div className="agendar-v2__loading">
                   <Loader2 size={20} className="spinner" /> {t('cargando_disponibilidad')}
                 </div>

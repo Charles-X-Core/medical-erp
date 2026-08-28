@@ -235,5 +235,7 @@
   "desmarcar_no_show": "Desmarcar No-Show",
   "confirm_desmarcar_no_show": "¿Desmarcar este no-show? El paciente volverá a estar confirmado.",
   "no_show_desmarcado": "No-show desmarcado",
-  "error_desmarcar_no_show": "No se pudo desmarcar no-show"
+  "error_desmarcar_no_show": "No se pudo desmarcar no-show",
+  "timeout_slots": "Los horarios tardaron demasiado en cargar. Intente de nuevo.",
+  "cargar": "Cargar"
 }

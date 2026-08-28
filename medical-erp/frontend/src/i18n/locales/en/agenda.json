@@ -235,5 +235,7 @@
   "desmarcar_no_show": "Undo No-Show",
   "confirm_desmarcar_no_show": "Undo this no-show status? The patient will be marked as confirmed again.",
   "no_show_desmarcado": "No-show status undone",
-  "error_desmarcar_no_show": "Could not undo no-show"
+  "error_desmarcar_no_show": "Could not undo no-show",
+  "timeout_slots": "Slots took too long to load. Please try again.",
+  "cargar": "Load"
 }

@@ -125,6 +125,7 @@ export default function CitaSchedulerModal({ isOpen, onClose, paciente: initialP
       setPacienteQuery('');
       setPacienteResults([]);
       setShowPacienteSearch(!initialPaciente);
+      setLoadingDay(false);
     }
   }, [isOpen, initialPaciente]);
 

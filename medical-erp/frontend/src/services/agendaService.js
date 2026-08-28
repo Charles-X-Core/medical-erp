@@ -149,16 +149,25 @@ const agendaService = {
     });
   },
 
-  // Disponibilidad semanal
+  // Disponibilidad semanal (con timeout de 20s)
   getDisponibilidadSemana: async (usuarioId, inicio, fin, duracion = 30, soloDisponibles = false) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
     try {
       const response = await apiClient(
-        `/api/v1/agenda/${usuarioId}/disponibilidad-semana?inicio=${inicio}&fin=${fin}&duracion=${duracion}&soloDisponibles=${soloDisponibles}`
+        `/api/v1/agenda/${usuarioId}/disponibilidad-semana?inicio=${inicio}&fin=${fin}&duracion=${duracion}&soloDisponibles=${soloDisponibles}`,
+        { signal: controller.signal }
       );
       return response;
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.warn('Timeout fetching disponibilidad semanal');
+        return { success: false, data: [], timeout: true };
+      }
       console.error('Error fetching disponibilidad semanal:', error);
       return { success: false, data: [] };
+    } finally {
+      clearTimeout(timeout);
     }
   },
 

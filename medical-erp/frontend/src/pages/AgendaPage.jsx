@@ -688,8 +688,14 @@ export default function AgendaPage() {
         .filter((r) => r.status === 'fulfilled' && r.value?.success)
         .flatMap((r) => r.value.data?.content || r.value.data || []);
       setCitas(allCitas);
-      if (slotsResult.status === 'fulfilled' && slotsResult.value?.success) {
-        setWeekSlots(slotsResult.value.data || []);
+      if (slotsResult.status === 'fulfilled') {
+        const slotsData = slotsResult.value;
+        if (slotsData?.timeout) {
+          setError(t('timeout_slots'));
+          setWeekSlots([]);
+        } else if (slotsData?.success) {
+          setWeekSlots(slotsData.data || []);
+        }
       }
     } catch { setError(t('error_agenda')); }
     finally { setLoading(false); }
