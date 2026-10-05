@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Standard API Response Wrapper
@@ -23,7 +23,7 @@ public class ApiResponse<T> {
     private String message;
     private T data;
     private ErrorDetails error;
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 
     @Data
     @Builder
@@ -53,7 +53,7 @@ public class ApiResponse<T> {
                 .success(true)
                 .message(message)
                 .data(data)
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
     }
 
@@ -70,7 +70,7 @@ public class ApiResponse<T> {
                         .message(message)
                         .details(details)
                         .build())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
     }
 
@@ -88,7 +88,7 @@ public class ApiResponse<T> {
                         .message(message)
                         .fieldErrors(fieldErrors)
                         .build())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
     }
 

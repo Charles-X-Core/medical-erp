@@ -21,6 +21,11 @@ public class StoragePathBuilder {
                 clinicaId, pacienteId, tratamientoId, numeroSesion);
     }
 
+    public String buildEvidenciaTratamientoPath(Long clinicaId, Long pacienteId, Long tratamientoId) {
+        return String.format("%d/pacientes/%d/tratamientos/%d",
+                clinicaId, pacienteId, tratamientoId);
+    }
+
     public String buildDocumentoPath(Long clinicaId, Long pacienteId) {
         return String.format("%d/pacientes/%d/documentos", clinicaId, pacienteId);
     }

@@ -3,6 +3,7 @@ package com.medicalerp.paciente.service;
 import com.medicalerp.clinica.entity.Clinica;
 import com.medicalerp.clinica.repository.ClinicaRepository;
 import com.medicalerp.common.exception.ResourceNotFoundException;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.common.util.SecurityUtils;
 import com.medicalerp.paciente.dto.ImportResult;
 import com.medicalerp.paciente.entity.Paciente;
@@ -282,7 +283,7 @@ public class PacienteImportService {
             t.setSesionesRealizadas(0);
             t.setCostoEstimado(parseBigDecimal(getRecordValue(record, headerMap, "costo", "costo total", "costo estimado")));
             t.setCostoTotal(BigDecimal.ZERO);
-            t.setFechaInicio(LocalDate.now());
+            t.setFechaInicio(LocalDate.now(BusinessTime.ZONE));
             t.setObservaciones(getRecordValue(record, headerMap, "evolucion", "evolución", "mejoría"));
             tratamientoRepository.save(t);
         } catch (Exception e) {
@@ -305,7 +306,7 @@ public class PacienteImportService {
             t.setSesionesRealizadas(0);
             t.setCostoEstimado(parseBigDecimal(getExcelValue(row, headerMap, "costo", "costo total", "costo estimado")));
             t.setCostoTotal(BigDecimal.ZERO);
-            t.setFechaInicio(LocalDate.now());
+            t.setFechaInicio(LocalDate.now(BusinessTime.ZONE));
             t.setObservaciones(getExcelValue(row, headerMap, "evolucion", "evolución", "mejoría"));
             tratamientoRepository.save(t);
         } catch (Exception e) {

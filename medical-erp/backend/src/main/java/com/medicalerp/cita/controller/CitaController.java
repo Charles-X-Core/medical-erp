@@ -33,6 +33,20 @@ public class CitaController {
                 .body(ApiResponse.success(citaService.create(request), "Cita creada exitosamente"));
     }
 
+    /**
+     * Cita walk-in: la doctora inicia una atención sin cita previa.
+     * Se crea directamente en estado "en_atencion" con hora actual, sin validar agenda.
+     */
+    @PostMapping("/walk-in")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CitaResponse>> crearWalkIn(
+            @RequestParam Long pacienteId,
+            @RequestParam(required = false) String motivo) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(citaService.crearWalkIn(pacienteId, motivo),
+                        "Atención directa iniciada"));
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<CitaResponse>>> getAll(

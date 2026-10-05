@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -38,19 +38,21 @@ public class TratamientoResponse {
     private Integer sesionesRestantes;
     private BigDecimal costoEstimado;
     private BigDecimal costoTotal;
+    private String modoCosto;
     private String observaciones;
     private String resultadoFinal;
     private String motivoCancelacion;
     private String motivoPausa;
     private Long usuarioAsignadoId;
     private String usuarioAsignadoNombre;
+    private Boolean requiereMedicacion;
 
     private ProtocoloClinicoResponse protocolo;
     private ProximaAccion proximaAccion;
     private List<TratamientoAlertaResponse> alertas;
     private String mensaje;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

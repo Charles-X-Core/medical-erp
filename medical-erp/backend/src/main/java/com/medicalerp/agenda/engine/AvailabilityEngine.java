@@ -36,9 +36,6 @@ public class AvailabilityEngine {
         return calcularSlots(agenda, disponibilidades, bloqueos, citasExistentes, fecha, duracionSesion, false);
     }
 
-    /**
-     * Calcula slots disponibles para una fecha específica, con opción de filtrar solo DISPONIBLE.
-     */
     public List<SlotDisponibilidad> calcularSlots(
             Agenda agenda,
             List<Disponibilidad> disponibilidades,
@@ -47,7 +44,28 @@ public class AvailabilityEngine {
             LocalDate fecha,
             Integer duracionSesion,
             boolean soloDisponibles) {
+        return calcularSlots(agenda, disponibilidades, bloqueos, citasExistentes, fecha, duracionSesion, soloDisponibles, duracionSesion);
+    }
 
+    /**
+     * Calcula slots disponibles para una fecha específica.
+     * <p>
+     * {@code duracionSesion} define el ancho del slot (duración de la cita), mientras que
+     * {@code paso} define cada cuántos minutos se ofrece un inicio de turno. Si {@code paso}
+     * es menor que {@code duracionSesion}, se obtienen inicios consecutivos (p. ej. cita de
+     * 20 min con inicios cada 5 min: 14:05, 14:10, 14:15 ...).
+     */
+    public List<SlotDisponibilidad> calcularSlots(
+            Agenda agenda,
+            List<Disponibilidad> disponibilidades,
+            List<Bloqueo> bloqueos,
+            List<Cita> citasExistentes,
+            LocalDate fecha,
+            Integer duracionSesion,
+            boolean soloDisponibles,
+            Integer paso) {
+
+        int step = (paso != null && paso > 0) ? paso : duracionSesion;
         List<SlotDisponibilidad> slots = new ArrayList<>();
 
         for (Disponibilidad disp : disponibilidades) {
@@ -56,6 +74,14 @@ public class AvailabilityEngine {
 
             while (!cursor.plusMinutes(duracionSesion).isAfter(finDisponibilidad)) {
                 LocalTime slotFin = cursor.plusMinutes(duracionSesion);
+
+                // Cut on midnight wrap-around: if slotFin is earlier than cursor,
+                // the clock passed midnight (e.g. 23:30 + 30min = 00:00), which would
+                // otherwise loop forever on availability ending at 23:59.
+                if (slotFin.isBefore(cursor)) {
+                    break;
+                }
+
                 LocalDateTime slotInicioDateTime = fecha.atTime(cursor);
                 LocalDateTime slotFinDateTime = fecha.atTime(slotFin);
 
@@ -74,7 +100,7 @@ public class AvailabilityEngine {
                             .build());
                 }
 
-                cursor = cursor.plusMinutes(duracionSesion);
+                cursor = cursor.plusMinutes(step);
             }
         }
 
@@ -107,7 +133,21 @@ public class AvailabilityEngine {
             LocalDate finSemana,
             Integer duracionSesion,
             boolean soloDisponibles) {
+        return calcularSlotsSemana(agenda, disponibilidades, bloqueos, citasExistentes, inicioSemana, finSemana, duracionSesion, soloDisponibles, duracionSesion);
+    }
 
+    public List<SlotDisponibilidad> calcularSlotsSemana(
+            Agenda agenda,
+            List<Disponibilidad> disponibilidades,
+            List<Bloqueo> bloqueos,
+            List<Cita> citasExistentes,
+            LocalDate inicioSemana,
+            LocalDate finSemana,
+            Integer duracionSesion,
+            boolean soloDisponibles,
+            Integer paso) {
+
+        int step = (paso != null && paso > 0) ? paso : duracionSesion;
         List<SlotDisponibilidad> todosLosSlots = new ArrayList<>();
         LocalDate fecha = inicioSemana;
 
@@ -119,7 +159,7 @@ public class AvailabilityEngine {
 
             if (!dispDia.isEmpty()) {
                 List<SlotDisponibilidad> slots = calcularSlots(
-                        agenda, dispDia, bloqueos, citasExistentes, fecha, duracionSesion, soloDisponibles);
+                        agenda, dispDia, bloqueos, citasExistentes, fecha, duracionSesion, soloDisponibles, step);
                 todosLosSlots.addAll(slots);
             }
 

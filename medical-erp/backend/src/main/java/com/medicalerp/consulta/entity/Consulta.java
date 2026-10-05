@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**
@@ -31,11 +32,17 @@ public class Consulta {
     @Column(name = "cita_id")
     private Long citaId;
 
+    @Column(name = "tratamiento_id")
+    private Long tratamientoId;
+
     @Column(name = "fecha", nullable = false)
     private LocalDateTime fecha;
 
     @Column(name = "motivo", nullable = false, length = 500)
     private String motivo;
+
+    @Column(name = "motivo_inicial", length = 500)
+    private String motivoInicial;
 
     @Column(name = "tiempo_enfermedad", length = 255)
     private String tiempoEnfermedad;
@@ -66,14 +73,14 @@ public class Consulta {
     private Boolean firmado = false;
 
     @Column(name = "firmado_at")
-    private LocalDateTime firmadoAt;
+    private Instant firmadoAt;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private java.time.Instant createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private java.time.Instant updatedAt;
 
 }

@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -17,5 +17,5 @@ public class ConsentimientoFirmaResponse {
     private Long consentimientoId;
     private String hashDocumento;
     private String nombreArchivo;
-    private LocalDateTime firmaFecha;
+    private Instant firmaFecha;
 }

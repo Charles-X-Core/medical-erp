@@ -5,8 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Patient Entity (DOM-PAC-001)
@@ -117,18 +117,20 @@ public class Paciente {
 
     @Column(name = "pais", length = 2)
     @Builder.Default
-    private String pais = "PE";
+    private String pais = "US";
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     public String getNombreCompleto() {
-        return String.format("%s %s, %s", apellidoPaterno, apellidoMaterno, nombres);
+        return (apellidoMaterno == null || apellidoMaterno.isBlank())
+                ? String.format("%s, %s", apellidoPaterno, nombres)
+                : String.format("%s %s, %s", apellidoPaterno, apellidoMaterno, nombres);
     }
 
 }

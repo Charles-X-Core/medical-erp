@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
@@ -40,7 +40,7 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     Page<Paciente> findByEstado(String estado, Pageable pageable);
 
-    long countByClinicaIdAndCreatedAtGreaterThanEqual(Long clinicaId, LocalDateTime desde);
+    long countByClinicaIdAndCreatedAtGreaterThanEqual(Long clinicaId, Instant desde);
 
     long countByClinicaId(Long clinicaId);
 

@@ -11,6 +11,8 @@ public interface EvidenciaTratamientoRepository extends JpaRepository<EvidenciaT
 
     List<EvidenciaTratamiento> findBySesionId(Long sesionId);
 
+    List<EvidenciaTratamiento> findByTratamientoIdAndSesionIdIsNull(Long tratamientoId);
+
     List<EvidenciaTratamiento> findByClinicaId(Long clinicaId);
 
 }

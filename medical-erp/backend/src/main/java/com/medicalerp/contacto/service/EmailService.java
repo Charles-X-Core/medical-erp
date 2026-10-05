@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import com.medicalerp.common.util.BusinessTime;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -197,21 +198,21 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Cita Confirmada - Optimal Health NOW");
+            helper.setSubject("Appointment Confirmed - Optimal Health NOW");
 
             String html = """
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <div style="background: linear-gradient(135deg, #3B82F6, #60A5FA); padding: 24px; text-align: center;">
-                        <h1 style="color: white; margin: 0;">Cita Confirmada</h1>
+                        <h1 style="color: white; margin: 0;">Appointment Confirmed</h1>
                     </div>
                     <div style="background: #f8fafc; padding: 24px;">
-                        <p>Hola <strong>%s</strong>,</p>
-                        <p>Su cita ha sido confirmada:</p>
+                        <p>Hello <strong>%s</strong>,</p>
+                        <p>Your appointment has been confirmed:</p>
                         <div style="background: white; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #3B82F6;">
-                            <p><strong>Fecha:</strong> %s</p>
-                            <p><strong>Hora:</strong> %s</p>
-                            <p><strong>Doctora:</strong> %s</p>
-                            <p><strong>Tipo:</strong> %s</p>
+                            <p><strong>Date:</strong> %s</p>
+                            <p><strong>Time:</strong> %s</p>
+                            <p><strong>Doctor:</strong> %s</p>
+                            <p><strong>Type:</strong> %s</p>
                         </div>
                         <p style="color: #64748B; font-size: 12px;">Optimal Health NOW - Medical ERP</p>
                     </div>
@@ -222,6 +223,92 @@ public class EmailService {
             log.info("Email de confirmación enviado a {}", toEmail);
         } catch (Exception e) {
             log.error("Error enviando email de confirmación a {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    /**
+     * Email de cita de sesión de tratamiento al paciente (correo personalizado).
+     */
+    @Async
+    public void sendCitaSesion(String toEmail, String pacienteNombre, String fecha, String hora, String doctoraNombre, String motivo) {
+        try {
+            if (mailSender == null) {
+                log.warn("JavaMailSender not configured, skipping sesión email to {}", toEmail);
+                return;
+            }
+            String fromEmail = env.getProperty("spring.mail.username", "noreply@medicalerp.com");
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Treatment Session Scheduled - Optimal Health NOW");
+
+            String html = """
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #0EA5E9, #38BDF8); padding: 24px; text-align: center;">
+                        <h1 style="color: white; margin: 0;">Treatment Session</h1>
+                    </div>
+                    <div style="background: #f8fafc; padding: 24px;">
+                        <p>Hello <strong>%s</strong>,</p>
+                        <p>Your next treatment session has been scheduled:</p>
+                        <div style="background: white; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #0EA5E9;">
+                            <p><strong>Treatment:</strong> %s</p>
+                            <p><strong>Date:</strong> %s</p>
+                            <p><strong>Time:</strong> %s</p>
+                            <p><strong>Doctor:</strong> %s</p>
+                        </div>
+                        <p style="color: #64748B; font-size: 12px;">Optimal Health NOW - Medical ERP</p>
+                    </div>
+                </div>
+                """.formatted(pacienteNombre, motivo, fecha, hora, doctoraNombre);
+            helper.setText(html, true);
+            mailSender.send(message);
+            log.info("Email de sesión de tratamiento enviado a {}", toEmail);
+        } catch (Exception e) {
+            log.error("Error enviando email de sesión a {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    /**
+     * Email de cita de sesión de tratamiento a la doctora.
+     */
+    @Async
+    public void sendCitaSesionDoctora(String toEmail, String doctoraNombre, String pacienteNombre, String fecha, String hora, String motivo) {
+        try {
+            if (mailSender == null) {
+                log.warn("JavaMailSender not configured, skipping sesión email to {}", toEmail);
+                return;
+            }
+            String fromEmail = env.getProperty("spring.mail.username", "noreply@medicalerp.com");
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Treatment Session Scheduled - Optimal Health NOW");
+
+            String html = """
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #0EA5E9, #38BDF8); padding: 24px; text-align: center;">
+                        <h1 style="color: white; margin: 0;">Treatment Session</h1>
+                    </div>
+                    <div style="background: #f8fafc; padding: 24px;">
+                        <p>Hello <strong>%s</strong>,</p>
+                        <p>You have a treatment session scheduled:</p>
+                        <div style="background: white; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #0EA5E9;">
+                            <p><strong>Patient:</strong> %s</p>
+                            <p><strong>Treatment:</strong> %s</p>
+                            <p><strong>Date:</strong> %s</p>
+                            <p><strong>Time:</strong> %s</p>
+                        </div>
+                        <p style="color: #64748B; font-size: 12px;">Optimal Health NOW - Medical ERP</p>
+                    </div>
+                </div>
+                """.formatted(doctoraNombre, pacienteNombre, motivo, fecha, hora);
+            helper.setText(html, true);
+            mailSender.send(message);
+            log.info("Email de sesión de tratamiento enviado a doctora {}", toEmail);
+        } catch (Exception e) {
+            log.error("Error enviando email de sesión a doctora {}: {}", toEmail, e.getMessage());
         }
     }
 
@@ -240,21 +327,21 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Nueva Cita Agendada - Notificación");
+            helper.setSubject("New Appointment Scheduled - Notification");
 
             String html = """
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <div style="background: linear-gradient(135deg, #8B5CF6, #A78BFA); padding: 24px; text-align: center;">
-                        <h1 style="color: white; margin: 0;">Nueva Cita Agendada</h1>
+                        <h1 style="color: white; margin: 0;">New Appointment Scheduled</h1>
                     </div>
                     <div style="background: #f8fafc; padding: 24px;">
-                        <p>Se ha agendado una cita:</p>
+                        <p>An appointment has been scheduled:</p>
                         <div style="background: white; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #8B5CF6;">
-                            <p><strong>Paciente:</strong> %s</p>
-                            <p><strong>Fecha:</strong> %s</p>
-                            <p><strong>Hora:</strong> %s</p>
-                            <p><strong>Tipo:</strong> %s</p>
-                            <p><strong>Motivo:</strong> %s</p>
+                            <p><strong>Patient:</strong> %s</p>
+                            <p><strong>Date:</strong> %s</p>
+                            <p><strong>Time:</strong> %s</p>
+                            <p><strong>Type:</strong> %s</p>
+                            <p><strong>Reason:</strong> %s</p>
                         </div>
                         <p style="color: #64748B; font-size: 12px;">Optimal Health NOW - Medical ERP</p>
                     </div>
@@ -265,6 +352,92 @@ public class EmailService {
             log.info("Email de notificación enviado a doctora {}", toEmail);
         } catch (Exception e) {
             log.error("Error enviando email de notificación a doctora {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    /**
+     * Email recordatorio de cita (1 hora antes) al paciente
+     */
+    @Async
+    public void sendRecordatorioCita(String toEmail, String pacienteNombre, String fecha, String hora, String doctoraNombre, String tipoCita) {
+        try {
+            if (mailSender == null) {
+                log.warn("JavaMailSender not configured, skipping recordatorio to {}", toEmail);
+                return;
+            }
+            String fromEmail = env.getProperty("spring.mail.username", "noreply@medicalerp.com");
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Appointment Reminder - Optimal Health NOW");
+
+            String html = """
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #F59E0B, #FBBF24); padding: 24px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0;">Appointment Reminder</h1>
+                    </div>
+                    <div style="background: #f8fafc; padding: 24px;">
+                        <p>Hello <strong>%s</strong>,</p>
+                        <p>This is a reminder about your upcoming appointment:</p>
+                        <div style="background: white; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #F59E0B;">
+                            <p><strong>Date:</strong> %s</p>
+                            <p><strong>Time:</strong> %s</p>
+                            <p><strong>Doctor:</strong> %s</p>
+                            <p><strong>Type:</strong> %s</p>
+                        </div>
+                        <p style="color: #64748B; font-size: 12px;">Optimal Health NOW - Medical ERP</p>
+                    </div>
+                </div>
+                """.formatted(pacienteNombre, fecha, hora, doctoraNombre, tipoCita);
+            helper.setText(html, true);
+            mailSender.send(message);
+            log.info("Email recordatorio de cita enviado a {}", toEmail);
+        } catch (Exception e) {
+            log.error("Error enviando email recordatorio a {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    /**
+     * Email recordatorio de cita (1 hora antes) a la doctora
+     */
+    @Async
+    public void sendRecordatorioCitaDoctora(String toEmail, String doctoraNombre, String pacienteNombre, String fecha, String hora, String tipoCita) {
+        try {
+            if (mailSender == null) {
+                log.warn("JavaMailSender not configured, skipping recordatorio to {}", toEmail);
+                return;
+            }
+            String fromEmail = env.getProperty("spring.mail.username", "noreply@medicalerp.com");
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Reminder: appointment in 1 hour - Optimal Health NOW");
+
+            String html = """
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #8B5CF6, #A78BFA); padding: 24px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0;">Appointment Reminder</h1>
+                    </div>
+                    <div style="background: #f8fafc; padding: 24px;">
+                        <p>Hello <strong>%s</strong>,</p>
+                        <p>You have an appointment in 1 hour:</p>
+                        <div style="background: white; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #8B5CF6;">
+                            <p><strong>Patient:</strong> %s</p>
+                            <p><strong>Date:</strong> %s</p>
+                            <p><strong>Time:</strong> %s</p>
+                            <p><strong>Type:</strong> %s</p>
+                        </div>
+                        <p style="color: #64748B; font-size: 12px;">Optimal Health NOW - Medical ERP</p>
+                    </div>
+                </div>
+                """.formatted(doctoraNombre, pacienteNombre, fecha, hora, tipoCita);
+            helper.setText(html, true);
+            mailSender.send(message);
+            log.info("Email recordatorio de cita enviado a doctora {}", toEmail);
+        } catch (Exception e) {
+            log.error("Error enviando email recordatorio a doctora {}: {}", toEmail, e.getMessage());
         }
     }
 
@@ -307,7 +480,7 @@ public class EmailService {
     }
 
     private String buildContratoFirmadoHtml(String pacienteNombre) {
-        String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
+        String fecha = BusinessTime.currentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
         return """
             <!DOCTYPE html>
             <html>
@@ -383,7 +556,7 @@ public class EmailService {
     }
 
     private String buildEvidenciaHtml(String pacienteNombre, String descripcion, String mensajeCustom) {
-        String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
+        String fecha = BusinessTime.currentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
         return """
             <!DOCTYPE html>
             <html>
@@ -457,7 +630,7 @@ public class EmailService {
     }
 
     private String buildConsentimientoHtml(String pacienteNombre, String tipo, boolean tienePdf, String mensajeCustom) {
-        String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
+        String fecha = BusinessTime.currentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
         String pdfNote = tienePdf
                 ? "<div style=\"background: #F0FDF4; border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center;\"><p style=\"margin: 0; color: #166534; font-size: 14px;\">📄 El documento PDF firmado se encuentra adjunto a este correo.</p></div>"
                 : "";
@@ -491,6 +664,76 @@ public class EmailService {
             </body>
             </html>
             """.formatted(tipo, pacienteNombre, pdfNote, tipo, fecha,
+                    mensajeCustom != null && !mensajeCustom.isBlank()
+                            ? "<div style=\"background: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0;\"><p style=\"margin: 0 0 8px 0;\"><strong>Mensaje:</strong></p><p style=\"margin: 0; white-space: pre-wrap;\">" + escapeHtml(mensajeCustom) + "</p></div>"
+                            : "");
+    }
+
+    public void sendRecetaPaciente(String toEmail, String pacienteNombre,
+                                      String medicamento, String asunto,
+                                      String mensajeCustom, byte[] pdfBytes, String filename) {
+        if (mailSender == null) {
+            log.debug("JavaMailSender not configured, skipping receta email to {}", toEmail);
+            return;
+        }
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            try {
+                helper.setFrom(fromEmail, "Optimal Health NOW");
+            } catch (java.io.UnsupportedEncodingException e) {
+                helper.setFrom(fromEmail);
+            }
+            helper.setSubject(asunto);
+
+            String htmlContent = buildRecetaHtml(pacienteNombre, medicamento, mensajeCustom);
+            helper.setText(htmlContent, true);
+
+            if (pdfBytes != null && pdfBytes.length > 0) {
+                helper.addAttachment(filename, new ByteArrayResource(pdfBytes), "application/pdf");
+            }
+
+            mailSender.send(message);
+            log.info("Receta enviada por email a {} (paciente: {}, medicamento: {})", toEmail, pacienteNombre, medicamento);
+
+        } catch (Exception e) {
+            log.error("Error enviando receta por email a {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    private String buildRecetaHtml(String pacienteNombre, String medicamento, String mensajeCustom) {
+        String fecha = BusinessTime.currentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"));
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family: Arial, sans-serif; color: #333; background: #f4f6f8; margin: 0; padding: 0;">
+                <div style="max-width: 500px; margin: 40px auto; padding: 0;">
+                    <div style="background: #0d2137; padding: 24px; border-radius: 8px 8px 0 0; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0; font-size: 20px;">Optimal Health NOW</h2>
+                        <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 14px;">Receta Medica</p>
+                    </div>
+                    <div style="background: #ffffff; padding: 32px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
+                        <p style="font-size: 16px; margin: 0 0 16px 0;">Hola <strong>%s</strong>,</p>
+                        <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px 0;">
+                            Se le ha enviado una receta medica adjunta a este correo. El medicamento prescrito es: <strong>%s</strong>.
+                        </p>
+                        <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
+                            <p style="margin: 0 0 8px 0;"><strong>Adjunto: PDF con la receta completa</strong></p>
+                            <p style="margin: 0; font-size: 12px; color: #64748b;">Fecha: %s</p>
+                        </div>
+                        %s
+                        <p style="font-size: 13px; color: #94a3b8; text-align: center; margin: 24px 0 0 0;">
+                            Este es un mensaje automatico de Optimal Health NOW.<br>
+                            2026 Optimal Health NOW - Todos los derechos reservados.
+                        </p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(pacienteNombre, medicamento, fecha,
                     mensajeCustom != null && !mensajeCustom.isBlank()
                             ? "<div style=\"background: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0;\"><p style=\"margin: 0 0 8px 0;\"><strong>Mensaje:</strong></p><p style=\"margin: 0; white-space: pre-wrap;\">" + escapeHtml(mensajeCustom) + "</p></div>"
                             : "");

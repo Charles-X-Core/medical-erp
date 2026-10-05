@@ -2,6 +2,7 @@ package com.medicalerp.dashboard.service;
 
 import com.medicalerp.cita.entity.Cita;
 import com.medicalerp.cita.repository.CitaRepository;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.dashboard.dto.CitaResumenDto;
 import com.medicalerp.dashboard.dto.CitasHoyStatsDto;
 import com.medicalerp.dashboard.dto.DashboardPollResponse;
@@ -22,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -59,17 +62,19 @@ public class DashboardService {
     // ============================================
 
     public DashboardResumenResponse obtenerResumen(Long clinicaId, Long usuarioId, String rol) {
-        LocalDate hoy = LocalDate.now();
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDate hoy = LocalDate.now(BusinessTime.ZONE);
+        Instant ahora = Instant.now();
 
         boolean isDoctora = "DOCTORA".equals(rol);
 
         // ---- Citas hoy ----
+        LocalDateTime inicio = hoy.atStartOfDay();
+        LocalDateTime fin = hoy.plusDays(1).atStartOfDay();
         List<Cita> citasHoy;
         if (isDoctora) {
-            citasHoy = citaRepository.findByFechaAndUsuarioIdAndEstadoNot(usuarioId, hoy, "cancelada");
+            citasHoy = citaRepository.findByUsuarioIdAndRangoFechaAndEstadoNot(usuarioId, inicio, fin, "cancelada");
         } else {
-            citasHoy = citaRepository.findByFechaAndEstadoNot(hoy, "cancelada");
+            citasHoy = citaRepository.findByRangoFechaAndEstadoNot(inicio, fin, "cancelada");
         }
 
         // ---- Stats citas hoy ----
@@ -89,11 +94,11 @@ public class DashboardService {
         // ---- Próximas citas ----
         List<Cita> proximas;
         if (isDoctora) {
-            proximas = citaRepository.findProximasByUsuarioId(usuarioId, ahora).stream()
+            proximas = citaRepository.findProximasByUsuarioId(usuarioId, BusinessTime.toLocalDateTime(ahora)).stream()
                     .limit(6)
                     .toList();
         } else {
-            proximas = citaRepository.findProximas(ahora).stream()
+            proximas = citaRepository.findProximas(BusinessTime.toLocalDateTime(ahora)).stream()
                     .filter(c -> mismoClinica(c, clinicaId))
                     .sorted(Comparator.comparing(Cita::getFechaHora))
                     .limit(6)
@@ -148,7 +153,7 @@ public class DashboardService {
 
         // ---- Pacientes nuevos 7d ----
         long pacientesNuevos = pacienteRepository
-                .countByClinicaIdAndCreatedAtGreaterThanEqual(clinicaId, ahora.minusDays(7));
+                .countByClinicaIdAndCreatedAtGreaterThanEqual(clinicaId, ahora.minus(Duration.ofDays(7)));
 
         return DashboardResumenResponse.builder()
                 .clinicaId(clinicaId)
@@ -170,14 +175,18 @@ public class DashboardService {
     // ============================================
 
     public DashboardPollResponse obtenerPoll(Long clinicaId, Long usuarioId, String rol) {
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(BusinessTime.ZONE);
         boolean isDoctora = "DOCTORA".equals(rol);
 
         List<Cita> citasHoy;
         if (isDoctora) {
-            citasHoy = citaRepository.findByFechaAndUsuarioIdAndEstadoNot(usuarioId, hoy, "cancelada");
+            LocalDateTime inicio = hoy.atStartOfDay();
+            LocalDateTime fin = hoy.plusDays(1).atStartOfDay();
+            citasHoy = citaRepository.findByUsuarioIdAndRangoFechaAndEstadoNot(usuarioId, inicio, fin, "cancelada");
         } else {
-            citasHoy = citaRepository.findByFechaAndEstadoNot(hoy, "cancelada");
+            LocalDateTime inicio = hoy.atStartOfDay();
+            LocalDateTime fin = hoy.plusDays(1).atStartOfDay();
+            citasHoy = citaRepository.findByRangoFechaAndEstadoNot(inicio, fin, "cancelada");
         }
 
         List<Cita> cola = citasHoy.stream()
@@ -192,7 +201,7 @@ public class DashboardService {
                 .cola(cola.stream().map(this::toCitaDto).limit(6).toList())
                 .proximoPaciente(cola.isEmpty() ? null : toCitaDto(cola.get(0)))
                 .citasHoyStats(stats)
-                .timestamp(LocalDateTime.now())
+                .timestamp(BusinessTime.toLocalDateTime(Instant.now()))
                 .build();
     }
 
@@ -255,7 +264,7 @@ public class DashboardService {
 
             LocalDate fechaProxima = ultima.get().getFecha().toLocalDate()
                     .plusDays(protocolo.get().getFrecuenciaDias());
-            if (!fechaProxima.isAfter(LocalDate.now())) {
+            if (!fechaProxima.isAfter(LocalDate.now(com.medicalerp.common.util.BusinessTime.ZONE))) {
                 alertas.add(buildAlerta(t, "SESION_VENCIDA", "ERROR",
                         "Sesión vencida desde " + fechaProxima,
                         "Programar la próxima sesión"));
@@ -363,7 +372,7 @@ public class DashboardService {
 
             LocalDate fechaProxima = ultima.get().getFecha().toLocalDate()
                     .plusDays(protocolo.get().getFrecuenciaDias());
-            if (!fechaProxima.isAfter(LocalDate.now())) {
+            if (!fechaProxima.isAfter(LocalDate.now(com.medicalerp.common.util.BusinessTime.ZONE))) {
                 alertas.add(buildAlerta(t, "SESION_VENCIDA", "ERROR",
                         "Sesión vencida desde " + fechaProxima,
                         "Programar la próxima sesión"));

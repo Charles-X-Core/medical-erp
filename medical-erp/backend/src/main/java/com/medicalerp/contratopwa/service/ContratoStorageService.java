@@ -2,7 +2,11 @@ package com.medicalerp.contratopwa.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.html2pdf.HtmlConverter;
+import com.itextpdf.kernel.events.PdfDocumentEvent;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
 import com.medicalerp.common.exception.BusinessRuleException;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.contratopwa.entity.ContratoSigningSession;
 import com.medicalerp.paciente.entity.Paciente;
 import com.medicalerp.storage.StoragePathBuilder;
@@ -10,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -105,7 +110,10 @@ public class ContratoStorageService {
             String fullHtml = ensureCompleteHtml(renderedHtml);
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            HtmlConverter.convertToPdf(fullHtml, baos);
+            PdfWriter writer = new PdfWriter(baos);
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            pdfDoc.addEventHandler(PdfDocumentEvent.END_PAGE, new ContratoFooterEvent());
+            HtmlConverter.convertToPdf(new ByteArrayInputStream(fullHtml.getBytes()), pdfDoc);
             byte[] pdfBytes = baos.toByteArray();
             Files.write(pdfPath, pdfBytes);
 
@@ -235,7 +243,7 @@ public class ContratoStorageService {
             metadata.put("pacienteNombre", nombreCompleto);
             metadata.put("templateCode", session.getTemplateCode());
             metadata.put("consentimientoId", session.getConsentimientoId());
-            metadata.put("signedAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            metadata.put("signedAt", BusinessTime.currentDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             metadata.put("status", session.getStatus());
             if (pdfSha256 != null) {
                 metadata.put("pdfSha256", pdfSha256);

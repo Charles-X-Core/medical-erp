@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Documento Service (DOM-DOC-001)
@@ -82,7 +82,7 @@ public class DocumentoService {
                 // Set as signed/firmado (auto-archived per user's request)
                 saved.setFirmaImagen(request.getFirmaImagen());
                 saved.setFirmado(true);
-                saved.setFirmadoAt(LocalDateTime.now());
+                saved.setFirmadoAt(Instant.now());
                 saved.setEstado("firmado");
 
                 Documento finalDoc = documentoRepository.save(saved);
@@ -143,7 +143,7 @@ public class DocumentoService {
 
         documento.setFirmaImagen(firmaImagenBase64);
         documento.setFirmado(true);
-        documento.setFirmadoAt(LocalDateTime.now());
+        documento.setFirmadoAt(Instant.now());
 
         // Generate PDF with signature
         try {

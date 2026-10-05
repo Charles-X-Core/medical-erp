@@ -19,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LocalStorageService implements StorageStrategy {
 
-    @Value("${medicalerp.storage.base-path:uploads}")
+    @Value("${app.upload.dir:./uploads}")
     private String basePath;
 
     @Override

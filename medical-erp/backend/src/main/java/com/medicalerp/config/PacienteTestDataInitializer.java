@@ -429,7 +429,7 @@ public class PacienteTestDataInitializer implements CommandLineRunner {
             t.setFechaInicio(LocalDate.parse(fechaInicio));
         }
         if (estado == EstadoTratamiento.FINALIZADO) {
-            t.setFechaFin(LocalDate.now());
+            t.setFechaFin(java.time.LocalDate.now(com.medicalerp.common.util.BusinessTime.ZONE));
             t.setResultadoFinal("Tratamiento completado satisfactoriamente");
         }
         return tratamientoRepository.save(t);

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -91,7 +91,7 @@ public class ConsentTemplateService {
         ConsentTemplate template = templateRepository.findByIdAndClinicaId(id, clinicaId)
                 .orElseThrow(() -> new ResourceNotFoundException("ConsentTemplate", id));
 
-        template.setDeletedAt(LocalDateTime.now());
+        template.setDeletedAt(Instant.now());
         templateRepository.save(template);
         log.info("Template de consentimiento eliminado: id={}", id);
     }

@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -25,5 +25,5 @@ public class ConsentTemplateResponse {
     private Boolean requiereFirma;
     private Boolean requiereFecha;
     private Boolean activo;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

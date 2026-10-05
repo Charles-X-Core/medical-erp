@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.LocalTime;
 
 /**
@@ -21,7 +21,7 @@ public class DisponibilidadResponse {
     private Integer diaSemana;
     private LocalTime horaInicio;
     private LocalTime horaFin;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

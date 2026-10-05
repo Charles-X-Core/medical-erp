@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Audit Aspect (SEC-004)
@@ -58,7 +58,7 @@ public class AuditAspect {
             String userAgent = request.getHeader("User-Agent");
 
             AuditLog auditLog = AuditLog.builder()
-                    .timestamp(LocalDateTime.now())
+                    .timestamp(Instant.now())
                     .userId(userId)
                     .userEmail(userEmail)
                     .userRole(userRole)

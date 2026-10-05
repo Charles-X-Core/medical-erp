@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class NotificacionResponse {
@@ -18,5 +18,5 @@ public class NotificacionResponse {
     private String referenciaTipo;
     private Long referenciaId;
     private Boolean leida;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

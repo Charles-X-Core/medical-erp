@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Historia Clinica Response DTO
@@ -32,7 +32,7 @@ public class HistoriaClinicaResponse {
     private String enfermedadActualMedicacion;
     private String otrasEnfermedades;
     private String observaciones;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

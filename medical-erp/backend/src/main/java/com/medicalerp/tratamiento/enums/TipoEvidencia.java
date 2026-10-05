@@ -6,5 +6,8 @@ public enum TipoEvidencia {
     LABORATORIO,
     VIDEO,
     ECOGRAFIA,
-    DOCUMENTO_CLINICO
+    DOCUMENTO_CLINICO,
+    FOTO_INICIO,
+    FOTO_FIN,
+    REGISTRO_FOTOGRAFICO
 }

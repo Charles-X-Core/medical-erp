@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -24,12 +24,12 @@ public class PacienteConsentimientoResponse {
     private String version;
     private String ipAddress;
     private String userAgent;
-    private LocalDateTime firmaFecha;
+    private Instant firmaFecha;
     private String nombreArchivo;
     private String hashDocumento;
     private Integer tamanoArchivo;
     private String estadoDocumento;
     private Long tratamientoId;
     private Long consultaId;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

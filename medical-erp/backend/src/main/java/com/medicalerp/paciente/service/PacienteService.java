@@ -6,6 +6,7 @@ import com.medicalerp.common.exception.BusinessRuleException;
 import com.medicalerp.common.exception.DuplicateResourceException;
 import com.medicalerp.common.exception.ResourceNotFoundException;
 import com.medicalerp.common.util.Auditable;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.common.util.SecurityUtils;
 import com.medicalerp.config.PaisConfig;
 import com.medicalerp.config.PaisConfigService;
@@ -266,6 +267,32 @@ public class PacienteService {
         }
     }
 
+    /**
+     * Actualiza únicamente peso y estatura del paciente.
+     * Usado por el Resumen (Paciente360) y por el flujo de Atención para mantener
+     * la ficha del paciente sincronizada con la última medición tomada.
+     */
+    @Transactional
+    @Auditable
+    public PacienteResponse updateSignosVitales(Long id, com.medicalerp.paciente.dto.SignosVitalesPacienteRequest request) {
+        Long clinicaId = securityUtils.getCurrentClinicaId();
+        securityUtils.validateClinicaAccessOnWrite(clinicaId);
+
+        Paciente paciente = pacienteRepository.findByIdAndClinicaId(id, clinicaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente", id));
+
+        paciente.setPeso(request.getPeso());
+        paciente.setEstatura(request.getEstatura());
+        Paciente saved = pacienteRepository.save(paciente);
+
+        try {
+            return buildFullResponse(saved);
+        } catch (Exception ex) {
+            log.warn("buildFullResponse failed for paciente {}: {}", saved.getId(), ex.getMessage());
+            return pacienteMapper.toResponse(saved);
+        }
+    }
+
     @Transactional
     @Auditable
     public void delete(Long id) {
@@ -445,7 +472,7 @@ public class PacienteService {
 
 
     private void validarFechaNacimiento(LocalDate fechaNacimiento) {
-        if (fechaNacimiento != null && fechaNacimiento.isAfter(LocalDate.now())) {
+        if (fechaNacimiento != null && fechaNacimiento.isAfter(LocalDate.now(BusinessTime.ZONE))) {
             throw new BusinessRuleException("VR-PAC-008", "La fecha de nacimiento no puede ser futura");
         }
     }

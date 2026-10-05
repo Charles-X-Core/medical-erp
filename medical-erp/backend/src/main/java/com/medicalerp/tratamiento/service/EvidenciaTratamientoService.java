@@ -86,6 +86,41 @@ public class EvidenciaTratamientoService {
         return evidencias;
     }
 
+    @Transactional
+    public List<EvidenciaTratamientoResponse> subirBatchTratamiento(Long tratamientoId, TipoEvidencia tipo,
+                                                                    String descripcion, MultipartFile[] files) {
+        Tratamiento tratamiento = tratamientoRepository.findById(tratamientoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tratamiento", tratamientoId));
+
+        String basePath = pathBuilder.buildEvidenciaTratamientoPath(
+                tratamiento.getClinicaId(),
+                tratamiento.getPacienteId(),
+                tratamientoId
+        );
+
+        List<EvidenciaTratamientoResponse> evidencias = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            String ruta = storageStrategy.store(file, basePath);
+
+            EvidenciaTratamiento evidencia = EvidenciaTratamiento.builder()
+                    .tratamientoId(tratamientoId)
+                    .clinicaId(tratamiento.getClinicaId())
+                    .tipo(tipo)
+                    .archivoRuta(ruta)
+                    .archivoNombre(file.getOriginalFilename())
+                    .archivoMimeType(storageStrategy.getMimeType(file.getOriginalFilename()))
+                    .archivoTamano(file.getSize())
+                    .descripcion(descripcion)
+                    .build();
+
+            EvidenciaTratamiento saved = repository.save(evidencia);
+            evidencias.add(mapper.toResponse(saved));
+        }
+
+        return evidencias;
+    }
+
     public EvidenciaTratamientoResponse findById(Long id) {
         EvidenciaTratamiento evidencia = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("EvidenciaTratamiento", id));
@@ -123,6 +158,22 @@ public class EvidenciaTratamientoService {
                 }
             }
 
+            // Evidencias globales del tratamiento (foto inicio/fin), sin sesión asociada
+            List<EvidenciaTratamientoResponse> evidenciasTratamiento = repository
+                    .findByTratamientoIdAndSesionIdIsNull(tratamiento.getId())
+                    .stream()
+                    .map(mapper::toResponse)
+                    .toList();
+            if (!evidenciasTratamiento.isEmpty()) {
+                Map<String, Object> tratamientoDataGlobal = new HashMap<>();
+                tratamientoDataGlobal.put("sesionId", null);
+                tratamientoDataGlobal.put("numeroSesion", null);
+                tratamientoDataGlobal.put("fecha", null);
+                tratamientoDataGlobal.put("esTratamiento", true);
+                tratamientoDataGlobal.put("evidencias", evidenciasTratamiento);
+                sesionesConEvidencias.add(0, tratamientoDataGlobal);
+            }
+
             if (!sesionesConEvidencias.isEmpty()) {
                 Map<String, Object> tratamientoData = new HashMap<>();
                 tratamientoData.put("tratamientoId", tratamiento.getId());
@@ -145,14 +196,19 @@ public class EvidenciaTratamientoService {
         EvidenciaTratamiento evidencia = repository.findById(evidenciaId)
                 .orElseThrow(() -> new ResourceNotFoundException("EvidenciaTratamiento", evidenciaId));
 
-        SesionTratamiento sesion = sesionRepository.findById(evidencia.getSesionId()).orElse(null);
-        if (sesion == null) {
-            throw new ResourceNotFoundException("SesionTratamiento", evidencia.getSesionId());
+        Tratamiento tratamiento;
+        if (evidencia.getSesionId() != null) {
+            SesionTratamiento sesion = sesionRepository.findById(evidencia.getSesionId()).orElse(null);
+            if (sesion == null) {
+                throw new ResourceNotFoundException("SesionTratamiento", evidencia.getSesionId());
+            }
+            tratamiento = tratamientoRepository.findById(sesion.getTratamientoId()).orElse(null);
+        } else {
+            tratamiento = tratamientoRepository.findById(evidencia.getTratamientoId()).orElse(null);
         }
-
-        Tratamiento tratamiento = tratamientoRepository.findById(sesion.getTratamientoId()).orElse(null);
         if (tratamiento == null) {
-            throw new ResourceNotFoundException("Tratamiento", sesion.getTratamientoId());
+            throw new ResourceNotFoundException("Tratamiento",
+                    evidencia.getTratamientoId() != null ? evidencia.getTratamientoId() : -1L);
         }
 
         Paciente paciente = pacienteRepository.findById(tratamiento.getPacienteId())

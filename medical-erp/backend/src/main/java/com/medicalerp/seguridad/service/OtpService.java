@@ -12,7 +12,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -65,7 +66,7 @@ public class OtpService {
         }
 
         // Check max active codes per email (prevent abuse)
-        long activeCount = otpCodeRepository.countRecentByEmail(email, LocalDateTime.now().minusMinutes(expirationMinutes));
+        long activeCount = otpCodeRepository.countRecentByEmail(email, Instant.now().minusSeconds(expirationMinutes * 60L));
         if (activeCount >= maxActiveCodesPerEmail) {
             throw new OtpVerificationException("TOO_MANY_CODES", "Demasiados códigos activos. Espere a que expiren.");
         }
@@ -81,7 +82,7 @@ public class OtpService {
                 .userAgent(userAgent)
                 .usado(false)
                 .intentos(0)
-                .expiraAt(LocalDateTime.now().plusMinutes(expirationMinutes))
+                .expiraAt(Instant.now().plusSeconds(expirationMinutes * 60L))
                 .build();
 
         OtpCode saved = otpCodeRepository.save(otp);
@@ -102,7 +103,7 @@ public class OtpService {
                 .orElseThrow(() -> new OtpVerificationException("OTP_NOT_FOUND", "Código OTP no encontrado o expirado"));
 
         // Check expired
-        if (otp.getExpiraAt().isBefore(LocalDateTime.now())) {
+        if (otp.getExpiraAt().isBefore(Instant.now())) {
             throw new OtpVerificationException("OTP_EXPIRED", "Código OTP expirado. Solicite uno nuevo.");
         }
 
@@ -141,10 +142,10 @@ public class OtpService {
     private void checkIpRateLimit(String ipAddress) {
         if (ipAddress == null || ipAddress.isBlank()) return;
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         RateLimitEntry entry = ipRateLimits.get(ipAddress);
 
-        if (entry == null || entry.windowStart.plusHours(1).isBefore(now)) {
+        if (entry == null || entry.windowStart.plus(Duration.ofHours(1)).isBefore(now)) {
             ipRateLimits.put(ipAddress, new RateLimitEntry(now, 1));
             return;
         }
@@ -157,7 +158,7 @@ public class OtpService {
     }
 
     private void checkResendRateLimit(String email) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         RateLimitEntry entry = resendRateLimits.get(email);
 
         if (entry == null || entry.windowStart.plusSeconds(resendSeconds).isBefore(now)) {
@@ -171,8 +172,8 @@ public class OtpService {
     @Scheduled(fixedDelayString = "${otp.cleanup-interval-ms:300000}")
     @Transactional
     public void cleanupExpiredCodes() {
-        int deleted = otpCodeRepository.deleteAllExpired(LocalDateTime.now());
-        int oldDeleted = otpCodeRepository.deleteAllOlderThan(LocalDateTime.now().minusDays(1));
+        int deleted = otpCodeRepository.deleteAllExpired(Instant.now());
+        int oldDeleted = otpCodeRepository.deleteAllOlderThan(Instant.now().minusSeconds(86400L));
         if (deleted > 0 || oldDeleted > 0) {
             log.info("Cleaned up {} expired + {} old OTP codes", deleted, oldDeleted);
         }
@@ -190,10 +191,10 @@ public class OtpService {
     }
 
     private static class RateLimitEntry {
-        LocalDateTime windowStart;
+        Instant windowStart;
         int count;
 
-        RateLimitEntry(LocalDateTime windowStart, int count) {
+        RateLimitEntry(Instant windowStart, int count) {
             this.windowStart = windowStart;
             this.count = count;
         }

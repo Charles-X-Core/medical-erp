@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -26,6 +26,6 @@ public class ClinicalContext {
     private List<SesionTratamiento> sesiones;
     private SesionTratamiento ultimaSesion;
     private Long clinicaId;
-    private LocalDateTime now;
+    private Instant now;
 
 }

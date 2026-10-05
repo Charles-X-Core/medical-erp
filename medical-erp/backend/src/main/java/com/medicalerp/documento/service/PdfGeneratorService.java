@@ -6,6 +6,7 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.properties.TextAlignment;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.documento.entity.Documento;
 import com.medicalerp.paciente.entity.Paciente;
 import com.medicalerp.seguridad.entity.Usuario;
@@ -43,7 +44,7 @@ public class PdfGeneratorService {
      */
     public String generatePdf(Documento documento) throws IOException {
         // Build directory path: uploads/pdfs/YYYY/MM/
-        String yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
+        String yearMonth = LocalDate.now(BusinessTime.ZONE).format(DateTimeFormatter.ofPattern("yyyy/MM"));
         String relativePath = "pdfs/" + yearMonth;
         Path directoryPath = Paths.get(uploadDir, relativePath);
 
@@ -76,7 +77,7 @@ public class PdfGeneratorService {
                     .setFontSize(12));
             document.add(new Paragraph("Titulo: " + documento.getTitulo())
                     .setFontSize(12));
-            document.add(new Paragraph("Fecha: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+            document.add(new Paragraph("Fecha: " + LocalDate.now(BusinessTime.ZONE).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
                     .setFontSize(12));
             document.add(new Paragraph(" "));
 
@@ -132,7 +133,7 @@ public class PdfGeneratorService {
                 }
                 document.add(new Paragraph("Fecha firma: " +
                         (documento.getFirmadoAt() != null
-                                ? documento.getFirmadoAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                                ? java.time.LocalDateTime.ofInstant(documento.getFirmadoAt(), BusinessTime.ZONE).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                                 : "N/A"))
                         .setFontSize(10));
             }

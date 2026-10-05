@@ -2,6 +2,7 @@ package com.medicalerp.contratopwa.service;
 
 import com.medicalerp.common.exception.BusinessRuleException;
 import com.medicalerp.common.exception.ResourceNotFoundException;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.common.util.SecurityUtils;
 import com.medicalerp.contacto.service.EmailService;
 import com.medicalerp.contratopwa.dto.ContratoPwaResponse;
@@ -23,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -95,13 +98,11 @@ public class ContratoPwaService {
         Paciente paciente = pacienteRepository.findByIdAndClinicaId(pacienteId, clinicaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
 
-        ConsentTemplate template = templateRepository.findByClinicaIdAndCodigoAndVersion(
-                clinicaId, templateCode, "1.0")
-                .orElseThrow(() -> new BusinessRuleException("TEMPLATE_NOT_FOUND",
-                        "Template de contrato no encontrado: " + templateCode));
+        ConsentTemplate template = resolveTemplate(clinicaId, templateCode, paciente);
+        boolean esEspanol = esTemplateEspanol(template);
 
         String htmlContent = templateService.loadTemplateContent(template.getId());
-        Map<String, String> variables = buildVariables(paciente);
+        Map<String, String> variables = buildVariables(paciente, esEspanol);
         String renderedHtml = replaceVariables(htmlContent, variables);
 
         return ContratoPwaResponse.builder()
@@ -146,15 +147,42 @@ public class ContratoPwaService {
             throw new BusinessRuleException("SESSION_FORBIDDEN", "No tienes acceso a esta sesión");
         }
 
+        Paciente paciente = pacienteRepository.findById(session.getPacienteId())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente", session.getPacienteId()));
+
+        enviarPdfContrato(paciente, session);
+    }
+
+    /**
+     * Envía por email el último contrato de membresía FIRMADO del paciente.
+     * Reutilizado desde el detalle de consentimientos para reenviar el PDF del contrato firmado.
+     */
+    public void enviarContratoPorEmail(Long pacienteId) {
+        Long clinicaId = securityUtils.getCurrentClinicaId();
+
+        Paciente paciente = pacienteRepository.findByIdAndClinicaId(pacienteId, clinicaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
+
+        List<ContratoSigningSession> firmadas = sessionRepository
+                .findByPacienteIdAndClinicaIdAndStatus(pacienteId, clinicaId, "FIRMADO");
+
+        if (firmadas.isEmpty()) {
+            throw new BusinessRuleException("CONTRACT_NOT_SIGNED", "El paciente no tiene un contrato de membresía firmado");
+        }
+
+        // Tomar la sesión firmada más reciente
+        ContratoSigningSession ultima = firmadas.get(firmadas.size() - 1);
+
+        enviarPdfContrato(paciente, ultima);
+    }
+
+    private void enviarPdfContrato(Paciente paciente, ContratoSigningSession session) {
         if (!"FIRMADO".equals(session.getStatus())) {
             throw new BusinessRuleException("CONTRACT_NOT_SIGNED", "El contrato aún no ha sido firmado");
         }
 
-        Paciente paciente = pacienteRepository.findById(session.getPacienteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente", session.getPacienteId()));
-
         byte[] pdfBytes = contratoStorageService.loadContratoPdf(
-                clinicaId, paciente.getId(), sessionId);
+                session.getClinicaId(), paciente.getId(), session.getId());
 
         if (pdfBytes == null || pdfBytes.length == 0) {
             throw new BusinessRuleException("PDF_NOT_FOUND", "No se encontró el PDF del contrato");
@@ -219,13 +247,11 @@ public class ContratoPwaService {
         Paciente paciente = pacienteRepository.findById(session.getPacienteId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", session.getPacienteId()));
 
-        ConsentTemplate template = templateRepository.findByClinicaIdAndCodigoAndVersion(
-                session.getClinicaId(), session.getTemplateCode(), "1.0")
-                .orElseThrow(() -> new BusinessRuleException("TEMPLATE_NOT_FOUND",
-                        "Template de contrato no encontrado: " + session.getTemplateCode()));
+        ConsentTemplate template = resolveTemplate(session.getClinicaId(), session.getTemplateCode(), paciente);
+        boolean esEspanol = esTemplateEspanol(template);
 
         String htmlContent = templateService.loadTemplateContent(template.getId());
-        Map<String, String> variables = buildVariables(paciente);
+        Map<String, String> variables = buildVariables(paciente, esEspanol);
         String renderedHtml = replaceVariables(htmlContent, variables);
 
         return ContratoPwaResponse.builder()
@@ -255,7 +281,7 @@ public class ContratoPwaService {
             MembresiaRequest membresiaReq = MembresiaRequest.builder()
                     .pacienteId(pacienteId)
                     .tipo("VITALICIA")
-                    .fechaInicio(java.time.LocalDate.now())
+                    .fechaInicio(LocalDate.now(BusinessTime.ZONE))
                     .fechaFin(java.time.LocalDate.of(2099, 12, 31))
                     .build();
             membresiaService.create(membresiaReq, clinicaId);
@@ -264,25 +290,23 @@ public class ContratoPwaService {
             log.warn("Error creando membresía (puede ya existir): {}", e.getMessage());
         }
 
-        // 2. Buscar template y generar consentimiento firmado
-        ConsentTemplate template = templateRepository.findByClinicaIdAndCodigoAndVersion(
-                clinicaId, session.getTemplateCode(), "1.0")
-                .orElseThrow(() -> new BusinessRuleException("TEMPLATE_NOT_FOUND",
-                        "Template no encontrado: " + session.getTemplateCode()));
-
+        // 2. Buscar template (variante ES si el paciente es de Perú) y generar consentimiento firmado
         Paciente paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
 
+        ConsentTemplate template = resolveTemplate(clinicaId, session.getTemplateCode(), paciente);
+        boolean esEspanol = esTemplateEspanol(template);
+
         // Usar el template del archivo para generar el PDF (garantiza CSS completo)
         String htmlContent = templateService.loadTemplateContent(template.getId());
-        Map<String, String> variables = buildVariables(paciente);
+        Map<String, String> variables = buildVariables(paciente, esEspanol);
         String renderedHtml = replaceVariables(htmlContent, variables);
 
         // Si el frontend envía HTML con firma, extraer la imagen de firma e insertarla en el template
         if (htmlContentFromFrontend != null && !htmlContentFromFrontend.isBlank()) {
             String firmaImg = extractFirmaFromHtml(htmlContentFromFrontend);
             if (firmaImg != null) {
-                renderedHtml = renderedHtml.replace("{{firma_imagen}}", firmaImg);
+                renderedHtml = injectFirmaIntoSigValue(renderedHtml, firmaImg);
             }
         }
 
@@ -303,7 +327,7 @@ public class ContratoPwaService {
         // 5. Actualizar sesión
         session.setStatus("FIRMADO");
         session.setConsentimientoId(firmaResp.getConsentimientoId());
-        session.setSignedAt(LocalDateTime.now());
+        session.setSignedAt(Instant.now());
         session.setContratoStoragePath(contratoPath);
         sessionRepository.save(session);
 
@@ -352,7 +376,42 @@ public class ContratoPwaService {
                 .build();
     }
 
-    private Map<String, String> buildVariables(Paciente paciente) {
+    /**
+     * Resuelve el template de contrato según el país del paciente.
+     *
+     * Si el paciente es de Perú ({@code direccionPais = "PE"}) y existe una variante
+     * {@code <codigo>_ES} activa para la clínica, se usa esa (contrato en español).
+     * En cualquier otro caso se usa el código base (inglés).
+     *
+     * Nota: la variante debe existir como fila en {@code consent_templates} con el mismo
+     * {@code version} ("1.0") y un {@code storage_path} apuntando al archivo ES.
+     */
+    private ConsentTemplate resolveTemplate(Long clinicaId, String codigoBase, Paciente paciente) {
+        String codigo = codigoBase;
+
+        if (paciente != null && "PE".equalsIgnoreCase(paciente.getDireccionPais())) {
+            String codigoEs = codigoBase + "_ES";
+            boolean existeEs = templateRepository
+                    .findByClinicaIdAndCodigoAndVersion(clinicaId, codigoEs, "1.0")
+                    .isPresent();
+            if (existeEs) {
+                codigo = codigoEs;
+                log.info("Usando template ES para paciente {} (país PE): {}", paciente.getId(), codigoEs);
+            }
+        }
+
+        final String codigoResuelto = codigo;
+        return templateRepository.findByClinicaIdAndCodigoAndVersion(clinicaId, codigoResuelto, "1.0")
+                .orElseThrow(() -> new BusinessRuleException("TEMPLATE_NOT_FOUND",
+                        "Template de contrato no encontrado: " + codigoResuelto));
+    }
+
+    private boolean esTemplateEspanol(ConsentTemplate template) {
+        return template != null && template.getCodigo() != null
+                && template.getCodigo().toUpperCase(java.util.Locale.ROOT).endsWith("_ES");
+    }
+
+    private Map<String, String> buildVariables(Paciente paciente, boolean esEspanol) {
         Map<String, String> vars = new LinkedHashMap<>();
         vars.put("nombre_paciente", paciente.getNombres());
         vars.put("apellido_paciente", paciente.getApellidoPaterno() != null ? paciente.getApellidoPaterno() : "");
@@ -364,13 +423,18 @@ public class ContratoPwaService {
         vars.put("fecha_nacimiento", paciente.getFechaNacimiento() != null
                 ? paciente.getFechaNacimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A");
         vars.put("direccion_completa", buildDireccion(paciente));
+        vars.put("direccion_calle", paciente.getDireccionLinea1() != null ? paciente.getDireccionLinea1() : "");
+        vars.put("direccion_ciudad", paciente.getCiudad() != null ? paciente.getCiudad() : "");
+        vars.put("direccion_estado", paciente.getEstadoProvincia() != null ? paciente.getEstadoProvincia() : "");
+        vars.put("direccion_codigo_postal", paciente.getCodigoPostal() != null ? paciente.getCodigoPostal() : "");
         vars.put("telefono", paciente.getTelefono() != null ? paciente.getTelefono() : "N/A");
         vars.put("email", paciente.getEmail() != null ? paciente.getEmail() : "N/A");
         vars.put("sexo", paciente.getSexo() != null ? paciente.getSexo() : "N/A");
 
-        java.time.LocalDate now = java.time.LocalDate.now();
+        java.time.LocalDate now = LocalDate.now(BusinessTime.ZONE);
         java.time.format.DateTimeFormatter dayFmt = java.time.format.DateTimeFormatter.ofPattern("d");
-        java.time.format.DateTimeFormatter monthFmt = java.time.format.DateTimeFormatter.ofPattern("MMMM", java.util.Locale.ENGLISH);
+        java.time.format.DateTimeFormatter monthFmt = java.time.format.DateTimeFormatter.ofPattern(
+                "MMMM", esEspanol ? java.util.Locale.of("es") : java.util.Locale.ENGLISH);
         java.time.format.DateTimeFormatter yearFmt = java.time.format.DateTimeFormatter.ofPattern("yyyy");
         vars.put("fecha_dia", now.format(dayFmt));
         vars.put("fecha_mes", now.format(monthFmt));
@@ -441,5 +505,58 @@ public class ContratoPwaService {
             return matcher.group(1);
         }
         return null;
+    }
+
+    /**
+     * Injects the signature image into the LAST .sig-value div in the rendered HTML.
+     * If the div contains text like "(Firmar en el kiosco)", it replaces the content.
+     * If no .sig-value is found, appends the signature at the end of the body.
+     */
+    private String injectFirmaIntoSigValue(String html, String firmaBase64) {
+        if (html == null || firmaBase64 == null) return html;
+
+        String firmaImgTag = "<img src=\"" + firmaBase64 + "\" " +
+                "style=\"width:100%;max-height:120px;display:block;margin:0 auto;\" />";
+
+        // Match the LAST div with class="sig-value" (or class containing sig-value)
+        // Pattern: <div class="sig-value"...>content</div>
+        java.util.regex.Pattern divPattern = java.util.regex.Pattern.compile(
+                "(<div[^>]*class=\"[^\"]*sig-value[^\"]*\"[^>]*>)(.*?)(</div>)",
+                java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.DOTALL);
+
+        java.util.regex.Matcher matcher = divPattern.matcher(html);
+        String result = html;
+        int lastStart = -1;
+        int lastEnd = -1;
+
+        // Find the LAST occurrence
+        while (matcher.find()) {
+            lastStart = matcher.start();
+            lastEnd = matcher.end();
+        }
+
+        if (lastStart >= 0) {
+            // Extract the opening tag from the original match
+            // Re-run matcher to get groups for the last match
+            matcher.reset();
+            String openTag = null;
+            while (matcher.find()) {
+                openTag = matcher.group(1);
+            }
+            if (openTag != null) {
+                result = result.substring(0, lastStart) +
+                        openTag + firmaImgTag + "</div>" +
+                        result.substring(lastEnd);
+            }
+        } else {
+            // Fallback: append before </body>
+            if (html.toLowerCase().contains("</body>")) {
+                result = html.replace("</body>", firmaImgTag + "</body>");
+            } else {
+                result = html + firmaImgTag;
+            }
+        }
+
+        return result;
     }
 }

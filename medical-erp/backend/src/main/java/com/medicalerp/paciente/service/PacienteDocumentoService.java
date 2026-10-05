@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -58,7 +58,7 @@ public class PacienteDocumentoService {
 
         PacienteDocumento documento = documentoRepository.findByIdAndClinicaId(id, clinicaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Documento", id));
-        documento.setDeletedAt(LocalDateTime.now());
+        documento.setDeletedAt(Instant.now());
         documentoRepository.save(documento);
     }
 

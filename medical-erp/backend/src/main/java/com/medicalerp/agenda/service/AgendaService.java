@@ -4,6 +4,7 @@ import com.medicalerp.common.exception.BusinessRuleException;
 import com.medicalerp.common.exception.DuplicateResourceException;
 import com.medicalerp.common.exception.ResourceNotFoundException;
 import com.medicalerp.common.util.Auditable;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.agenda.dto.*;
 import com.medicalerp.agenda.engine.AvailabilityEngine;
 import com.medicalerp.agenda.entity.Agenda;
@@ -305,6 +306,10 @@ public class AgendaService {
     }
 
     public List<SlotDisponibilidad> getDisponibilidad(Long usuarioId, LocalDate fecha, Integer duracion, boolean soloDisponibles) {
+        return getDisponibilidad(usuarioId, fecha, duracion, soloDisponibles, duracion);
+    }
+
+    public List<SlotDisponibilidad> getDisponibilidad(Long usuarioId, LocalDate fecha, Integer duracion, boolean soloDisponibles, Integer paso) {
         Agenda agenda = agendaRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Agenda del usuario", usuarioId));
 
@@ -312,9 +317,10 @@ public class AgendaService {
         List<Disponibilidad> disponibilidades = disponibilidadRepository
                 .findByAgendaIdAndDiaSemana(agenda.getId(), diaSemana);
         List<Bloqueo> bloqueos = bloqueoRepository.findByAgendaId(agenda.getId());
-        List<Cita> citas = citaRepository.findActivasByFechaBetween(fecha, fecha);
+        List<Cita> citas = citaRepository.findActivasByRangoFechaActivas(
+                fecha.atStartOfDay(), fecha.plusDays(1).atStartOfDay());
 
-        return availabilityEngine.calcularSlots(agenda, disponibilidades, bloqueos, citas, fecha, duracion, soloDisponibles);
+        return availabilityEngine.calcularSlots(agenda, disponibilidades, bloqueos, citas, fecha, duracion, soloDisponibles, paso);
     }
 
     /**
@@ -330,7 +336,7 @@ public class AgendaService {
 
         return availabilityEngine.encontrarPrimerSlot(
                 agenda, disponibilidades, bloqueos, citas,
-                LocalDate.now(), duracion, 30);
+                LocalDate.now(BusinessTime.ZONE), duracion, 30);
     }
 
     /**
@@ -341,14 +347,19 @@ public class AgendaService {
     }
 
     public List<SlotDisponibilidad> getDisponibilidadSemana(Long usuarioId, LocalDate inicio, LocalDate fin, Integer duracion, boolean soloDisponibles) {
+        return getDisponibilidadSemana(usuarioId, inicio, fin, duracion, soloDisponibles, duracion);
+    }
+
+    public List<SlotDisponibilidad> getDisponibilidadSemana(Long usuarioId, LocalDate inicio, LocalDate fin, Integer duracion, boolean soloDisponibles, Integer paso) {
         Agenda agenda = agendaRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Agenda del usuario", usuarioId));
 
         List<Disponibilidad> disponibilidades = disponibilidadRepository.findByAgendaId(agenda.getId());
         List<Bloqueo> bloqueos = bloqueoRepository.findByAgendaId(agenda.getId());
-        List<Cita> citas = citaRepository.findActivasByFechaBetween(inicio, fin);
+        List<Cita> citas = citaRepository.findActivasByRangoFechaActivas(
+                inicio.atStartOfDay(), fin.plusDays(1).atStartOfDay());
 
-        return availabilityEngine.calcularSlotsSemana(agenda, disponibilidades, bloqueos, citas, inicio, fin, duracion, soloDisponibles);
+        return availabilityEngine.calcularSlotsSemana(agenda, disponibilidades, bloqueos, citas, inicio, fin, duracion, soloDisponibles, paso);
     }
 
     /**

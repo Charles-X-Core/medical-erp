@@ -1,6 +1,7 @@
 package com.medicalerp.tratamiento.service;
 
 import com.medicalerp.common.exception.BusinessRuleException;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.common.util.SecurityUtils;
 import com.medicalerp.tratamiento.dto.*;
 import com.medicalerp.tratamiento.entity.ProtocoloClinico;
@@ -57,7 +58,7 @@ public class TreatmentWorkflowService {
             // Crear primera sesion
             SesionTratamientoRequest primeraSesion = SesionTratamientoRequest.builder()
                     .tipoSesionId(request.getTipoPrimeraSesionId())
-                    .fecha(java.time.LocalDateTime.now())
+                    .fecha(BusinessTime.currentDateTime())
                     .motivoVisita("Primera sesion de tratamiento")
                     .requiereCita(true)
                     .build();
@@ -83,7 +84,7 @@ public class TreatmentWorkflowService {
                             return entity;
                         }).toList())
                 .clinicaId(securityUtils.getCurrentClinicaId())
-                .now(java.time.LocalDateTime.now())
+                .now(BusinessTime.now())
                 .build();
 
         ClinicalEvaluation eval = ruleEngine.evaluate(tratamiento, context);
@@ -114,7 +115,7 @@ public class TreatmentWorkflowService {
                 .tratamiento(tratamiento)
                 .protocolo(protocoloService.findByTratamientoId(tratamientoId))
                 .clinicaId(securityUtils.getCurrentClinicaId())
-                .now(java.time.LocalDateTime.now())
+                .now(BusinessTime.now())
                 .build();
 
         ClinicalEvaluation eval = ruleEngine.evaluate(tratamiento, context);
@@ -174,7 +175,7 @@ public class TreatmentWorkflowService {
                 .tratamiento(tratamiento)
                 .protocolo(protocoloService.findByTratamientoId(id))
                 .clinicaId(securityUtils.getCurrentClinicaId())
-                .now(java.time.LocalDateTime.now())
+                .now(BusinessTime.now())
                 .build();
 
         ClinicalEvaluation eval = ruleEngine.evaluate(tratamiento, context);

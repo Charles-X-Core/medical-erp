@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Patient Response DTO (DOM-PAC-001)
@@ -49,8 +49,8 @@ public class PacienteResponse {
     private Double estatura;
     private String estado;
     private String pais;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     private java.util.List<PacienteDocumentoResponse> documentos;
     private java.util.List<PacienteSeguroResponse> seguros;

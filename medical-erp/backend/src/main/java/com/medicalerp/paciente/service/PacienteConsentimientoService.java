@@ -3,6 +3,7 @@ package com.medicalerp.paciente.service;
 import com.medicalerp.common.exception.ResourceNotFoundException;
 import com.medicalerp.common.util.SecurityUtils;
 import com.medicalerp.contacto.service.EmailService;
+import com.medicalerp.contratopwa.service.ContratoPwaService;
 import com.medicalerp.paciente.dto.PacienteConsentimientoRequest;
 import com.medicalerp.paciente.dto.PacienteConsentimientoResponse;
 import com.medicalerp.paciente.entity.Paciente;
@@ -16,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -31,6 +32,7 @@ public class PacienteConsentimientoService {
     private final SecurityUtils securityUtils;
     private final EmailService emailService;
     private final StoragePathBuilder pathBuilder;
+    private final ContratoPwaService contratoPwaService;
 
     @Transactional
     public PacienteConsentimientoResponse create(Long pacienteId, PacienteConsentimientoRequest request) {
@@ -64,7 +66,7 @@ public class PacienteConsentimientoService {
 
         PacienteConsentimiento consentimiento = consentimientoRepository.findByIdAndClinicaId(id, clinicaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Consentimiento", id));
-        consentimiento.setDeletedAt(LocalDateTime.now());
+        consentimiento.setDeletedAt(Instant.now());
         consentimientoRepository.save(consentimiento);
     }
 
@@ -89,6 +91,17 @@ public class PacienteConsentimientoService {
 
         Paciente paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
+
+        // Los consentimientos de tipo CONTRATO_MEMBRESIA reenvían el contrato firmado
+        // (el PDF de contrato con nombre "Contrato_Membresia_<nombre>.pdf").
+        // "CONTRATO_MEMBRESIA_ES" es la variante en español para pacientes peruanos;
+        // compara por prefijo para que ambas rutas usen el envío especializado.
+        String tipoConsentimiento = consentimiento.getTipo() != null ? consentimiento.getTipo() : "";
+        if (tipoConsentimiento.toUpperCase().startsWith("CONTRATO_MEMBRESIA")) {
+            contratoPwaService.enviarContratoPorEmail(pacienteId);
+            log.info("Contrato de membresía reenviado por email a paciente {} (consentimiento {})", pacienteId, consentimientoId);
+            return;
+        }
 
         String email = paciente.getEmail();
         if (email == null || email.isBlank()) {

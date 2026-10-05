@@ -42,10 +42,14 @@ public class TratamientoRequest {
 
     private BigDecimal costoEstimado;
 
+    private String modoCosto;
+
     private String observaciones;
 
     private Boolean iniciarAhora;
 
     private Long tipoPrimeraSesionId;
+
+    private Boolean requiereMedicacion;
 
 }

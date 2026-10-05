@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "contrato_signing_sessions")
@@ -40,10 +40,10 @@ public class ContratoSigningSession {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "signed_at")
-    private LocalDateTime signedAt;
+    private Instant signedAt;
 
     @Column(name = "contrato_storage_path", length = 500)
     private String contratoStoragePath;

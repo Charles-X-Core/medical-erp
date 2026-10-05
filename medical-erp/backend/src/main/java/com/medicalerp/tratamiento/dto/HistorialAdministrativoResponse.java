@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Historial Administrativo Response DTO (DOM-TRAT-007)
@@ -27,6 +27,6 @@ public class HistorialAdministrativoResponse {
     private String motivo;
     private Long usuarioId;
     private String usuarioNombre;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
 }

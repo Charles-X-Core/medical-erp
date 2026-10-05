@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,8 +24,10 @@ public class ConsultaResponse {
     private Long pacienteId;
     private String pacienteNombre;
     private Long citaId;
+    private Long tratamientoId;
     private LocalDateTime fecha;
     private String motivo;
+    private String motivoInicial;
     private String tiempoEnfermedad;
     private String signosSintomas;
     private String relatoCronologico;
@@ -34,8 +37,8 @@ public class ConsultaResponse {
     private PlanTratamiento planTratamiento;
     private String notas;
     private Boolean firmado;
-    private LocalDateTime firmadoAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant firmadoAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

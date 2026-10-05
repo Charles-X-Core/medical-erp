@@ -8,6 +8,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -57,6 +58,9 @@ public class Cita {
     @Column(name = "tratamiento_id")
     private Long tratamientoId;
 
+    @Column(name = "sesion_id")
+    private Long sesionId;
+
     @Column(name = "motivo_editado", length = 500)
     private String motivoEditado;
 
@@ -71,16 +75,16 @@ public class Cita {
     private String notas;
 
     @Column(name = "asistio_confirmed_at")
-    private LocalDateTime asistioConfirmedAt;
+    private Instant asistioConfirmedAt;
 
     @Column(name = "inicio_atencion")
-    private LocalDateTime inicioAtencion;
+    private Instant inicioAtencion;
 
     @Column(name = "fin_atencion")
-    private LocalDateTime finAtencion;
+    private Instant finAtencion;
 
     @Column(name = "cancelado_at")
-    private LocalDateTime canceladoAt;
+    private Instant canceladoAt;
 
     @Column(name = "cancelado_motivo", length = 500)
     private String canceladoMotivo;
@@ -94,11 +98,11 @@ public class Cita {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Transient
     public LocalDate getFecha() {
@@ -120,7 +124,7 @@ public class Cita {
 
     public void setHora(LocalTime hora) {
         if (fechaHora == null) {
-            fechaHora = LocalDateTime.of(LocalDate.now(), hora);
+            fechaHora = LocalDateTime.of(java.time.LocalDate.now(com.medicalerp.common.util.BusinessTime.ZONE), hora);
         } else {
             fechaHora = fechaHora.toLocalDate().atTime(hora);
         }

@@ -8,6 +8,7 @@ import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.medicalerp.common.exception.BusinessRuleException;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.paciente.entity.PacienteConsentimiento;
 import com.medicalerp.paciente.entity.consentimiento.ConsentTemplate;
 import com.medicalerp.paciente.repository.consentimiento.ConsentTemplateRepository;
@@ -141,7 +142,7 @@ public class ConsentimientoDocumentService {
                 }
 
                 document.add(new Paragraph("Fecha firma: " +
-                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
+                        BusinessTime.currentDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
                         .setFontSize(10));
             }
 

@@ -7,8 +7,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Tratamiento Entity (DOM-TRAT-001)
@@ -74,6 +74,9 @@ public class Tratamiento {
     @Builder.Default
     private BigDecimal costoTotal = BigDecimal.ZERO;
 
+    @Column(name = "modo_costo", length = 20)
+    private String modoCosto;
+
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
 
@@ -86,6 +89,10 @@ public class Tratamiento {
     @Column(name = "motivo_pausa", length = 500)
     private String motivoPausa;
 
+    @Column(name = "requiere_medicacion")
+    @Builder.Default
+    private Boolean requiereMedicacion = false;
+
     @Column(name = "usuario_asignado_id")
     private Long usuarioAsignadoId;
 
@@ -96,14 +103,14 @@ public class Tratamiento {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     @Transient
     public Integer getSesionesRestantes() {

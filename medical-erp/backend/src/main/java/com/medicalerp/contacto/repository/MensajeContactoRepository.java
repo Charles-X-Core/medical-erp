@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -23,7 +23,7 @@ public interface MensajeContactoRepository extends JpaRepository<MensajeContacto
     List<MensajeContacto> findByEmail(String email);
 
     @Query("SELECT COUNT(m) FROM MensajeContacto m WHERE m.ipAddress = :ip AND m.createdAt > :since")
-    long countByIpAddressSince(@Param("ip") String ip, @Param("since") LocalDateTime since);
+    long countByIpAddressSince(@Param("ip") String ip, @Param("since") Instant since);
 
     @Modifying
     @Query("UPDATE MensajeContacto m SET m.estado = :estado, m.readAt = CASE WHEN :estado = 'leido' THEN CURRENT_TIMESTAMP ELSE m.readAt END, m.repliedAt = CASE WHEN :estado = 'respondido' THEN CURRENT_TIMESTAMP ELSE m.repliedAt END WHERE m.id = :id")

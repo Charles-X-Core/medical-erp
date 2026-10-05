@@ -29,6 +29,8 @@ public class CitaRequest {
 
     private Long tratamientoId;
 
+    private Long sesionId;
+
     @NotNull(message = "La fecha es requerida")
     private LocalDate fecha;
 

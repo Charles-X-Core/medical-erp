@@ -15,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -81,7 +81,7 @@ public class MensajeContactoService {
         }
 
         entity.setEstado("leido");
-        entity.setReadAt(LocalDateTime.now());
+        entity.setReadAt(Instant.now());
         MensajeContacto updated = repository.save(entity);
         log.info("Message id={} marked as read", id);
         return mapper.toResponse(updated);
@@ -93,7 +93,7 @@ public class MensajeContactoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Mensaje de contacto no encontrado: " + id));
 
         entity.setEstado("respondido");
-        entity.setRepliedAt(LocalDateTime.now());
+        entity.setRepliedAt(Instant.now());
         MensajeContacto updated = repository.save(entity);
         log.info("Message id={} marked as replied", id);
         return mapper.toResponse(updated);

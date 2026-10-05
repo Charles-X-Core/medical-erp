@@ -2,6 +2,7 @@ package com.medicalerp.cita.service;
 
 import com.medicalerp.cita.entity.Cita;
 import com.medicalerp.cita.repository.CitaRepository;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.notificacion.dto.NotificacionRequest;
 import com.medicalerp.notificacion.service.NotificacionService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,38 +24,39 @@ public class NoShowScheduler {
     private final CitaRepository citaRepository;
     private final NotificacionService notificacionService;
 
-    /** Estados que pueden marcar no_show: paciente no llegó ni fue atendido */
+    /** Estados que pueden marcar no_show: la doctora no confirmó e inició la atención a tiempo */
     private static final List<String> ESTADOS_NO_SHOW = List.of(
-            "solicitada", "pendiente", "programada", "confirmada"
+            "solicitada", "pendiente", "programada", "confirmada", "asistio", "llegada"
     );
-
-    private static final int BUFFER_MINUTES = 30;
 
     /**
      * Every 5 minutes, mark citations from today as no_show if:
      * 1. They are in an active state (not started, not cancelled, not completed)
-     * 2. Their scheduled time + duration + 30min buffer has passed
+     * 2. Their start time (fechaHora) + duration + 40% margin has passed
+     *    and the doctor did NOT start attention (no 'en_atencion' + inicioAtencion).
      *
-     * Note: 'asistio' and 'llegada' are excluded — the patient arrived,
-     * so this is NOT a no-show even if the doctor hasn't started yet.
+     * The 40% margin is counted from the START time, not the end, so a late patient
+     * still has a window to be attended before the citation is locked.
      */
     @Scheduled(fixedRate = 300000)
     @Transactional
     public void marcarNoShows() {
-        LocalDate today = LocalDate.now();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = LocalDate.now(BusinessTime.ZONE);
+        Instant now = Instant.now();
 
         // Get all active citas for today
-        List<Cita> activas = citaRepository.findActivasByFecha(today, ESTADOS_NO_SHOW);
+        LocalDateTime inicio = today.atStartOfDay();
+        LocalDateTime fin = today.plusDays(1).atStartOfDay();
+        List<Cita> activas = citaRepository.findActivasByRangoFecha(inicio, fin, ESTADOS_NO_SHOW);
 
         int marked = 0;
         for (Cita cita : activas) {
             if (cita.getFechaHora() == null || cita.getHora() == null) continue;
 
-            // Correct cutoff: start time + duration + buffer
+            // Ventana desde la HORA DE INICIO: fechaHora + duracion + 40% de la duracion
             int duracion = cita.getDuracionMinutos() != null ? cita.getDuracionMinutos() : 30;
-            LocalDateTime finCita = cita.getFechaHora().plusMinutes(duracion);
-            LocalDateTime cutoff = finCita.plusMinutes(BUFFER_MINUTES);
+            int margen = (int) Math.round(duracion * 0.4);
+            Instant cutoff = BusinessTime.toInstant(cita.getFechaHora().plusMinutes(duracion + margen));
 
             if (now.isAfter(cutoff)) {
                 try {
@@ -62,10 +64,13 @@ public class NoShowScheduler {
                     citaRepository.save(cita);
 
                     // Send in-app notification to assigned doctor
+                    // Using crearSistema() instead of crear() because the scheduler runs
+                    // without an authenticated user. crearSistema() runs in a separate
+                    // transaction (REQUIRES_NEW) so notification failures don't roll back
+                    // the no_show status change.
                     if (cita.getUsuario() != null) {
                         try {
                             NotificacionRequest notif = NotificacionRequest.builder()
-                                    .usuarioDestinoId(cita.getUsuario().getId())
                                     .tipo("NO_SHOW")
                                     .titulo("Paciente no asistió")
                                     .mensaje(String.format("%s no asistió a su cita de las %s",
@@ -74,19 +79,18 @@ public class NoShowScheduler {
                                     .referenciaTipo("CITA")
                                     .referenciaId(cita.getId())
                                     .build();
-                            notificacionService.crear(notif);
+                            notificacionService.crearSistema(cita.getUsuario().getId(), notif);
                         } catch (Exception e) {
                             log.error("Error sending no-show notification for cita {}: {}", cita.getId(), e.getMessage());
                         }
                     }
 
-                    log.info("Auto-marked no_show: cita {} ({}) a las {} (fin: {}, cutoff: {}, now: {})",
+                    log.info("Auto-marked no_show: cita {} ({}) a las {} (cutoff: {}, now: {})",
                             cita.getId(),
                             cita.getPaciente().getNombreCompleto(),
                             cita.getHora(),
-                            finCita.toLocalTime(),
-                            cutoff.toLocalTime(),
-                            now.toLocalTime());
+                            BusinessTime.toLocalDateTime(cutoff).toLocalTime(),
+                            BusinessTime.toLocalDateTime(now).toLocalTime());
                     marked++;
                 } catch (Exception e) {
                     log.error("Error marking no_show for cita {}: {}", cita.getId(), e.getMessage());

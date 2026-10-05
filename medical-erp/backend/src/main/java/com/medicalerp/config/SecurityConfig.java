@@ -46,6 +46,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/contact").permitAll()
+                .requestMatchers("/api/v1/evidencias/file/**").permitAll()
+                .requestMatchers("/api/v1/evidencias/download/**").permitAll()
+                .requestMatchers("/api/v1/consultas/*/pdf").permitAll()
+                .requestMatchers("/api/v1/recetas/*/pdf").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated()
             )

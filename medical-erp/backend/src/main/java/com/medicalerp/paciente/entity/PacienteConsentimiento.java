@@ -7,8 +7,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Where;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "paciente_consentimientos")
@@ -58,7 +58,7 @@ public class PacienteConsentimiento {
     private String pacienteSnapshot;
 
     @Column(name = "firma_fecha")
-    private LocalDateTime firmaFecha;
+    private Instant firmaFecha;
 
     @Column(name = "storage_path", length = 500)
     private String storagePath;
@@ -84,9 +84,9 @@ public class PacienteConsentimiento {
     private Long consultaId;
 
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

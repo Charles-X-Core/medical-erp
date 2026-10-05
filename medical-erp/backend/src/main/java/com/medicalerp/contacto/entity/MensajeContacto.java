@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * MensajeContacto Entity (DOM-CON-002)
@@ -49,13 +49,13 @@ public class MensajeContacto {
     private String userAgent;
 
     @Column(name = "read_at")
-    private LocalDateTime readAt;
+    private Instant readAt;
 
     @Column(name = "replied_at")
-    private LocalDateTime repliedAt;
+    private Instant repliedAt;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
 }

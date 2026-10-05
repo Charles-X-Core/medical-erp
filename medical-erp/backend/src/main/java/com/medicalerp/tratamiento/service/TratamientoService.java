@@ -2,6 +2,7 @@ package com.medicalerp.tratamiento.service;
 
 import com.medicalerp.common.exception.BusinessRuleException;
 import com.medicalerp.common.exception.ResourceNotFoundException;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.common.util.SecurityUtils;
 import com.medicalerp.tratamiento.dto.*;
 import com.medicalerp.tratamiento.entity.Tratamiento;
@@ -145,7 +146,7 @@ public class TratamientoService {
 
         String estadoAnterior = tratamiento.getEstado().name();
         tratamiento.setEstado(EstadoTratamiento.EN_CURSO);
-        tratamiento.setFechaInicio(LocalDate.now());
+        tratamiento.setFechaInicio(LocalDate.now(BusinessTime.ZONE));
         historialAdminService.registrar(id, tratamiento.getClinicaId(),
                 TipoCambioAdministrativo.CAMBIO_ESTADO, "estado",
                 estadoAnterior, "EN_CURSO", null, usuarioId);
@@ -222,7 +223,7 @@ public class TratamientoService {
 
         String estadoAnterior = tratamiento.getEstado().name();
         tratamiento.setEstado(EstadoTratamiento.FINALIZADO);
-        tratamiento.setFechaFin(LocalDate.now());
+        tratamiento.setFechaFin(LocalDate.now(BusinessTime.ZONE));
         tratamiento.setResultadoFinal(resultadoFinal);
         historialAdminService.registrar(id, tratamiento.getClinicaId(),
                 TipoCambioAdministrativo.CAMBIO_ESTADO, "estado",

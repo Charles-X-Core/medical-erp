@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * EvidenciaTratamiento Entity (DOM-TRAT-004)
@@ -24,8 +24,11 @@ public class EvidenciaTratamiento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "sesion_id", nullable = false)
+    @Column(name = "sesion_id")
     private Long sesionId;
+
+    @Column(name = "tratamiento_id")
+    private Long tratamientoId;
 
     @Column(name = "clinica_id", nullable = false)
     private Long clinicaId;
@@ -51,6 +54,6 @@ public class EvidenciaTratamiento {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
 }

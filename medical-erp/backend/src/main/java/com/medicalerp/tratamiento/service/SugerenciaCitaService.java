@@ -19,6 +19,7 @@ import com.medicalerp.tratamiento.entity.SesionTratamiento;
 import com.medicalerp.tratamiento.entity.Tratamiento;
 import com.medicalerp.tratamiento.repository.SesionTratamientoRepository;
 import com.medicalerp.tratamiento.repository.TratamientoRepository;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.seguridad.entity.Usuario;
 import com.medicalerp.seguridad.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -67,14 +68,14 @@ public class SugerenciaCitaService {
             // Si permiteInicioInmediato es true, puede iniciar hoy
             // Si es false, debe esperar al menos 1 día
             if (Boolean.TRUE.equals(protocolo.getPermiteInicioInmediato())) {
-                fechaMinima = LocalDate.now();
+                fechaMinima = LocalDate.now(BusinessTime.ZONE);
             } else {
-                fechaMinima = LocalDate.now().plusDays(1);
+                fechaMinima = LocalDate.now(BusinessTime.ZONE).plusDays(1);
             }
         }
 
-        if (fechaMinima.isBefore(LocalDate.now())) {
-            fechaMinima = LocalDate.now();
+        if (fechaMinima.isBefore(LocalDate.now(BusinessTime.ZONE))) {
+            fechaMinima = LocalDate.now(BusinessTime.ZONE);
         }
 
         int duracionSesion = protocolo.getDuracionSesionMinutos() != null ? protocolo.getDuracionSesionMinutos() : 60;

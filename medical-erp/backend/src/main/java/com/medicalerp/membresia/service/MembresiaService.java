@@ -1,6 +1,7 @@
 package com.medicalerp.membresia.service;
 
 import com.medicalerp.common.exception.ResourceNotFoundException;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.membresia.dto.MembresiaRequest;
 import com.medicalerp.membresia.dto.MembresiaResponse;
 import com.medicalerp.membresia.entity.Membresia;
@@ -62,7 +63,7 @@ public class MembresiaService {
         membresia.setFechaInicio(request.getFechaInicio());
         membresia.setFechaFin(request.getFechaFin());
 
-        if (request.getFechaFin() != null && request.getFechaFin().isBefore(LocalDate.now())) {
+        if (request.getFechaFin() != null && request.getFechaFin().isBefore(LocalDate.now(BusinessTime.ZONE))) {
             membresia.setEstado("vencida");
         }
 
@@ -79,7 +80,7 @@ public class MembresiaService {
 
     private MembresiaResponse toResponse(Membresia m) {
         boolean vigente = m.getEstado().equals("activa") &&
-                (m.getFechaFin() == null || !m.getFechaFin().isBefore(LocalDate.now()));
+                (m.getFechaFin() == null || !m.getFechaFin().isBefore(LocalDate.now(BusinessTime.ZONE)));
         return MembresiaResponse.builder()
                 .id(m.getId())
                 .pacienteId(m.getPaciente().getId())

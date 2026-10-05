@@ -22,4 +22,7 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
     @Query("SELECT c FROM Consulta c WHERE c.historia.paciente.id = :pacienteId ORDER BY c.fecha DESC")
     List<Consulta> findByPacienteId(@Param("pacienteId") Long pacienteId);
 
+    @Query("SELECT c FROM Consulta c WHERE c.historia.paciente.id = :pacienteId AND c.signosVitales IS NOT NULL AND c.signosVitales <> '' ORDER BY c.fecha DESC")
+    List<Consulta> findConSignosVitalesByPacienteId(@Param("pacienteId") Long pacienteId);
+
 }

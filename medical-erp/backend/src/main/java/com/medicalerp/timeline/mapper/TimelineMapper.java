@@ -1,8 +1,12 @@
 package com.medicalerp.timeline.mapper;
 
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.timeline.dto.TimelineEvent;
 import com.medicalerp.timeline.enums.TimelineTipo;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * TimelineMapper
@@ -29,7 +33,7 @@ public class TimelineMapper {
                 .id(tratamiento.getId())
                 .tipo(TimelineTipo.TRATAMIENTO)
                 .estadoOriginal(tratamiento.getEstado().name())
-                .fecha(tratamiento.getCreatedAt())
+                .fecha(toLocalDateTime(tratamiento.getCreatedAt()))
                 .titulo("Tratamiento: " + tratamiento.getTipoTratamiento())
                 .descripcion(tratamiento.getObjetivo())
                 .referenciaId(tratamiento.getId())
@@ -53,11 +57,15 @@ public class TimelineMapper {
                 .id(cita.getId())
                 .tipo(TimelineTipo.CITA)
                 .estadoOriginal(cita.getEstado())
-                .fecha(cita.getCreatedAt())
+                .fecha(toLocalDateTime(cita.getCreatedAt()))
                 .titulo("Cita" + (cita.getTipoCita() != null ? ": " + cita.getTipoCita().getNombre() : ""))
                 .descripcion(cita.getMotivo())
                 .referenciaId(cita.getId())
                 .build();
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        return instant != null ? LocalDateTime.ofInstant(instant, BusinessTime.ZONE) : null;
     }
 
 }

@@ -11,6 +11,7 @@ import com.medicalerp.agenda.repository.TipoCitaRepository;
 import com.medicalerp.common.exception.BusinessRuleException;
 import com.medicalerp.common.exception.ResourceNotFoundException;
 import com.medicalerp.common.util.Auditable;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.common.util.SecurityUtils;
 import com.medicalerp.contacto.service.EmailService;
 import com.medicalerp.cita.dto.CitaRequest;
@@ -24,6 +25,11 @@ import com.medicalerp.paciente.entity.Paciente;
 import com.medicalerp.paciente.repository.PacienteRepository;
 import com.medicalerp.seguridad.entity.Usuario;
 import com.medicalerp.seguridad.repository.UsuarioRepository;
+import com.medicalerp.tratamiento.entity.SesionTratamiento;
+import com.medicalerp.tratamiento.entity.Tratamiento;
+import com.medicalerp.tratamiento.repository.SesionTratamientoRepository;
+import com.medicalerp.tratamiento.repository.TratamientoRepository;
+import com.medicalerp.tratamiento.util.TratamientoNombres;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,6 +37,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -57,6 +64,8 @@ public class CitaService {
     private final EmailService emailService;
     private final NotificacionService notificacionService;
     private final SecurityUtils securityUtils;
+    private final TratamientoRepository tratamientoRepository;
+    private final SesionTratamientoRepository sesionTratamientoRepository;
 
     private static final List<String> ESTADOS_FINALES = Arrays.asList("cancelada", "completada", "no_show");
     private static final List<String> ESTADOS_MODIFICABLES = Arrays.asList("pendiente", "programada", "confirmada", "asistio", "llegada", "en_atencion", "solicitada", "reprogramada");
@@ -83,14 +92,6 @@ public class CitaService {
         cita.setUsuario(usuario);
         cita.setDuracionMinutos(duracion);
         cita.setEstado("pendiente");
-
-        // Ensure motivo has a value (DB column was previously NOT NULL)
-        if (cita.getMotivo() == null || cita.getMotivo().isBlank()) {
-            TipoCita tipoCitaDefault = request.getTipoCitaId() != null
-                    ? tipoCitaRepository.findById(request.getTipoCitaId()).orElse(null)
-                    : null;
-            cita.setMotivo(tipoCitaDefault != null ? tipoCitaDefault.getNombre() : "Consulta");
-        }
 
         // MapStruct ignores fechaHora (no matching field in CitaRequest), so set it manually
         if (request.getFecha() != null && request.getHora() != null) {
@@ -123,7 +124,35 @@ public class CitaService {
             }
         }
 
+        // Vincular cita <-> sesión de tratamiento (si aplica) y autocompletar motivo/nº sesión
+        String motivoAuto = vincularSesionTratamiento(cita, request);
+
+        // Asegurar motivo: si llegó vacío, usar el autogenerado del tratamiento o el tipo de cita
+        if (cita.getMotivo() == null || cita.getMotivo().isBlank()) {
+            if (motivoAuto != null) {
+                cita.setMotivo(motivoAuto);
+            } else {
+                TipoCita tipoCitaDefault = request.getTipoCitaId() != null
+                        ? tipoCitaRepository.findById(request.getTipoCitaId()).orElse(null)
+                        : null;
+                cita.setMotivo(tipoCitaDefault != null ? tipoCitaDefault.getNombre() : "Consulta");
+            }
+        }
+
         Cita saved = citaRepository.save(cita);
+
+        // Vincular en el sentido inverso (sesión -> cita) una vez que la cita tiene id.
+        if (saved.getSesionId() != null) {
+            try {
+                SesionTratamiento sesion = sesionTratamientoRepository.findById(saved.getSesionId()).orElse(null);
+                if (sesion != null && sesion.getCitaId() == null) {
+                    sesion.setCitaId(saved.getId());
+                    sesionTratamientoRepository.save(sesion);
+                }
+            } catch (Exception e) {
+                log.error("Error vinculando sesion {} a cita {}: {}", saved.getSesionId(), saved.getId(), e.getMessage());
+            }
+        }
 
         // Send notifications (async, don't block the response)
         try {
@@ -133,6 +162,127 @@ public class CitaService {
         }
 
         return citaMapper.toResponse(saved);
+    }
+
+    /**
+     * Cita "walk-in" (consulta instantánea): la doctora inicia una atención sin cita previa.
+     *
+     * Se crea directamente en estado {@code en_atencion} con hora actual (zona de negocio),
+     * sin validar agenda/disponibilidad — el paciente llegó y hay que atenderlo.
+     * El registro queda en la agenda para que el histórico sea visible.
+     *
+     * ÚNICA condición: el paciente NO debe tener ya una cita viva hoy. Si la tiene,
+     * se rechaza con BusinessRuleException (HTTP 422) porque en ese caso el camino
+     * correcto es "Atención con cita", que sí respeta la hora de la cita agendada.
+     */
+    @Transactional
+    @Auditable
+    public CitaResponse crearWalkIn(Long pacienteId, String motivo) {
+        Long clinicaId = securityUtils.getCurrentClinicaId();
+        securityUtils.validateClinicaAccessOnWrite(clinicaId);
+
+        Paciente paciente = pacienteRepository.findById(pacienteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente", pacienteId));
+
+        Long usuarioId = securityUtils.getCurrentUserId();
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", usuarioId));
+
+        LocalDate fecha = BusinessTime.today();
+        LocalTime hora = LocalTime.now(BusinessTime.ZONE);
+
+        // El paciente ya tiene cita hoy: no se permite la atención instantánea.
+        List<Cita> citasVivas = citaRepository.findByPacienteIdAndRangoFechaAndEstadoIn(
+                pacienteId,
+                fecha.atStartOfDay(),
+                fecha.plusDays(1).atStartOfDay(),
+                ESTADOS_ACTIVOS);
+        if (!citasVivas.isEmpty()) {
+            Cita existente = citasVivas.get(0);
+            log.warn("Walk-in rechazado: paciente={} ya tiene cita {} hoy a las {}",
+                    pacienteId, existente.getId(), existente.getHora());
+            throw new BusinessRuleException("PACIENTE_TIENE_CITA_HOY",
+                    "El paciente ya tiene una cita hoy a las "
+                            + (existente.getHora() != null ? existente.getHora().toString().substring(0, 5) : "--:--")
+                            + ". Use «Atención con cita» para respetar la hora agendada.");
+        }
+
+        Cita cita = new Cita();
+        cita.setPaciente(paciente);
+        cita.setUsuario(usuario);
+        cita.setFechaHora(fecha.atTime(hora));
+        cita.setDuracionMinutos(30);
+        cita.setEstado("en_atencion");
+        cita.setInicioAtencion(Instant.now());
+        cita.setPrioridad("NORMAL");
+        cita.setMotivo(motivo != null && !motivo.isBlank() ? motivo : "Atención directa");
+
+        Cita saved = citaRepository.save(cita);
+        log.info("Cita walk-in creada: paciente={}, usuario={}, fecha={}, hora={}",
+                pacienteId, usuarioId, fecha, hora);
+        return citaMapper.toResponse(saved);
+    }
+
+    /**
+     * Vincula la cita con la sesión de tratamiento que corresponde (vínculo bidireccional
+     * citas.sesion_id <-> sesiones_tratamiento.cita_id) y autocompleta el motivo con el
+     * nombre del tratamiento y el número de sesión que toca.
+     *
+     * @return el motivo autogenerado para la cita, o null si no aplica tratamiento.
+     */
+    private String vincularSesionTratamiento(Cita cita, CitaRequest request) {
+        SesionTratamiento sesion = null;
+        Tratamiento tratamiento = null;
+
+        // Si viene sesionId explícito, derivar el tratamiento desde la sesión.
+        if (request.getSesionId() != null) {
+            sesion = sesionTratamientoRepository.findById(request.getSesionId()).orElse(null);
+            if (sesion != null && request.getTratamientoId() == null) {
+                tratamiento = tratamientoRepository.findById(sesion.getTratamientoId()).orElse(null);
+            }
+        }
+
+        // Si no, usar el tratamientoId explícito del request.
+        if (request.getTratamientoId() != null) {
+            tratamiento = tratamientoRepository.findById(request.getTratamientoId()).orElse(null);
+            if (sesion == null) {
+                // Buscar la siguiente sesión del tratamiento sin cita vinculada (la más baja).
+                sesion = sesionTratamientoRepository.findByTratamientoIdOrderByNumeroSesion(tratamiento.getId())
+                        .stream()
+                        .filter(s -> s.getCitaId() == null)
+                        .findFirst()
+                        .orElse(null);
+            }
+        }
+
+        if (tratamiento == null && sesion != null) {
+            tratamiento = tratamientoRepository.findById(sesion.getTratamientoId()).orElse(null);
+        }
+
+        if (tratamiento == null) {
+            return null;
+        }
+
+        // Siempre setear el tratamientoId en la cita (vínculo directo).
+        cita.setTratamientoId(tratamiento.getId());
+
+        Integer totalPlaneadas = tratamiento.getSesionesPlaneadas() != null
+                ? tratamiento.getSesionesPlaneadas() : 1;
+
+        if (sesion != null) {
+            cita.setSesionId(sesion.getId());
+            if (cita.getNotas() == null || cita.getNotas().isBlank()) {
+                cita.setNotas("Sesión " + (sesion.getNumeroSesion() != null ? sesion.getNumeroSesion() : "?")
+                        + " de " + totalPlaneadas + " — " + TratamientoNombres.nombre(tratamiento.getTipoTratamiento()));
+            }
+        }
+
+        // Autogenerar motivo con el nombre (completo) del tratamiento y el número de sesión que toca.
+        int numeroSesion = sesion != null && sesion.getNumeroSesion() != null
+                ? sesion.getNumeroSesion()
+                : (tratamiento.getSesionesRealizadas() != null ? tratamiento.getSesionesRealizadas() + 1 : 1);
+
+        return TratamientoNombres.nombre(tratamiento.getTipoTratamiento()) + " — Sesión " + numeroSesion + " de " + totalPlaneadas;
     }
 
     public CitaResponse getById(Long id) {
@@ -146,10 +296,14 @@ public class CitaService {
             return citaRepository.findByUsuarioId(usuarioId, pageable).map(citaMapper::toResponse);
         }
         if (fecha != null && estado != null) {
-            return citaRepository.findByFecha(fecha, pageable).map(citaMapper::toResponse);
+            LocalDateTime inicio = fecha.atStartOfDay();
+            LocalDateTime fin = fecha.plusDays(1).atStartOfDay();
+            return citaRepository.findByRangoFecha(inicio, fin, pageable).map(citaMapper::toResponse);
         }
         if (fecha != null) {
-            return citaRepository.findByFecha(fecha, pageable).map(citaMapper::toResponse);
+            LocalDateTime inicio = fecha.atStartOfDay();
+            LocalDateTime fin = fecha.plusDays(1).atStartOfDay();
+            return citaRepository.findByRangoFecha(inicio, fin, pageable).map(citaMapper::toResponse);
         }
         if (estado != null) {
             return citaRepository.findByEstado(estado, pageable).map(citaMapper::toResponse);
@@ -158,14 +312,17 @@ public class CitaService {
     }
 
     public List<CitaResponse> getHoy() {
-        return citaRepository.findByFechaAndEstadoNot(LocalDate.now(), "cancelada")
+        LocalDate hoy = LocalDate.now(BusinessTime.ZONE);
+        LocalDateTime inicio = hoy.atStartOfDay();
+        LocalDateTime fin = hoy.plusDays(1).atStartOfDay();
+        return citaRepository.findByRangoFechaAndEstadoNot(inicio, fin, "cancelada")
                 .stream()
                 .map(citaMapper::toResponse)
                 .toList();
     }
 
     public List<CitaResponse> getProximas() {
-        return citaRepository.findProximas(LocalDateTime.now())
+        return citaRepository.findProximas(BusinessTime.toLocalDateTime(Instant.now()))
                 .stream()
                 .map(citaMapper::toResponse)
                 .toList();
@@ -239,7 +396,7 @@ public class CitaService {
         }
 
         cita.setEstado("cancelada");
-        cita.setCanceladoAt(LocalDateTime.now());
+        cita.setCanceladoAt(Instant.now());
         cita.setCanceladoMotivo(motivo != null ? motivo : "Solicitud rechazada");
         Cita saved = citaRepository.save(cita);
 
@@ -300,8 +457,9 @@ public class CitaService {
         LocalDateTime finNuevo = cita.getFechaHora().plusMinutes(nuevaDuracion);
 
         // Find the next cita after this one for the same doctor
-        List<Cita> siguientes = citaRepository.findActivasByUsuarioAndFecha(
-                cita.getUsuario().getId(), cita.getFecha())
+        LocalDate fechaCita = cita.getFecha();
+        List<Cita> siguientes = citaRepository.findActivasByUsuarioAndRangoFecha(
+                cita.getUsuario().getId(), fechaCita.atStartOfDay(), fechaCita.plusDays(1).atStartOfDay())
                 .stream()
                 .filter(c -> !c.getId().equals(citaId))
                 .filter(c -> c.getHora().isAfter(cita.getHora()))
@@ -343,7 +501,7 @@ public class CitaService {
         }
 
         cita.setEstado("asistio");
-        cita.setAsistioConfirmedAt(LocalDateTime.now());
+        cita.setAsistioConfirmedAt(Instant.now());
         Cita saved = citaRepository.save(cita);
         return citaMapper.toResponse(saved);
     }
@@ -357,18 +515,20 @@ public class CitaService {
         String estado = cita.getEstado();
         if ("en_atencion".equals(estado)) {
             if (cita.getInicioAtencion() == null) {
-                cita.setInicioAtencion(LocalDateTime.now());
+                cita.setInicioAtencion(Instant.now());
                 citaRepository.save(cita);
             }
             return citaMapper.toResponse(cita);
         }
-        if (!"confirmada".equals(estado) && !"asistio".equals(estado) && !"llegada".equals(estado) && !"pendiente".equals(estado)) {
+        // La llave para iniciar atención es que la doctora haya CONFIRMADO la cita
+        // (o ya tenga asistencia registrada). No se puede iniciar sin confirmar.
+        if (!"confirmada".equals(estado) && !"asistio".equals(estado) && !"llegada".equals(estado)) {
             throw new BusinessRuleException("BR-CIT-EN-001",
-                    "Solo se puede iniciar atención en citas confirmadas, pendientes o con asistencia registrada");
+                    "Solo se puede iniciar atención en cita confirmada o con asistencia registrada. Primero debe confirmar la cita");
         }
 
         cita.setEstado("en_atencion");
-        cita.setInicioAtencion(LocalDateTime.now());
+        cita.setInicioAtencion(Instant.now());
         Cita saved = citaRepository.save(cita);
         return citaMapper.toResponse(saved);
     }
@@ -385,7 +545,7 @@ public class CitaService {
         }
 
         cita.setEstado("completada");
-        cita.setFinAtencion(LocalDateTime.now());
+        cita.setFinAtencion(Instant.now());
         Cita saved = citaRepository.save(cita);
         return citaMapper.toResponse(saved);
     }
@@ -407,8 +567,9 @@ public class CitaService {
         // Validate extension doesn't conflict with subsequent citas
         if (cita.getUsuario() != null && cita.getFecha() != null && cita.getHora() != null) {
             LocalDateTime finNueva = cita.getFechaHora().plusMinutes(nuevaDuracion);
-            List<Cita> siguientes = citaRepository.findActivasByUsuarioAndFecha(
-                    cita.getUsuario().getId(), cita.getFecha())
+            LocalDate fechaCita = cita.getFecha();
+            List<Cita> siguientes = citaRepository.findActivasByUsuarioAndRangoFecha(
+                    cita.getUsuario().getId(), fechaCita.atStartOfDay(), fechaCita.plusDays(1).atStartOfDay())
                     .stream()
                     .filter(c -> !c.getId().equals(id))
                     .filter(c -> c.getHora().isAfter(cita.getHora()))
@@ -434,8 +595,9 @@ public class CitaService {
         if (cita.getUsuario() != null && cita.getFecha() != null) {
             LocalDateTime finNueva = cita.getFechaHora().plusMinutes(nuevaDuracion);
 
-            List<Cita> siguientes = citaRepository.findActivasByUsuarioAndFecha(
-                    cita.getUsuario().getId(), cita.getFecha())
+            LocalDate fechaCitaExt = cita.getFecha();
+            List<Cita> siguientes = citaRepository.findActivasByUsuarioAndRangoFecha(
+                    cita.getUsuario().getId(), fechaCitaExt.atStartOfDay(), fechaCitaExt.plusDays(1).atStartOfDay())
                     .stream()
                     .filter(c -> !c.getId().equals(id))
                     .filter(c -> c.getHora().isAfter(cita.getHora()))
@@ -504,9 +666,11 @@ public class CitaService {
 
         // Validate availability for new slot (exclude this citation)
         if (cita.getUsuario() != null) {
+            LocalDate fechaCita = cita.getFecha();
             LocalTime horaFin = nuevaHora.plusMinutes(cita.getDuracionMinutos());
             boolean conflicto = citaRepository.countConflictingCita(
-                    cita.getUsuario().getId(), cita.getFecha(),
+                    cita.getUsuario().getId(),
+                    fechaCita.atStartOfDay(), fechaCita.plusDays(1).atStartOfDay(),
                     nuevaHora, horaFin, cita.getId()) > 0;
             if (conflicto) {
                 throw new BusinessRuleException("APPOINTMENT_CONFLICT",
@@ -546,12 +710,43 @@ public class CitaService {
                     "La cita no está en estado no_show");
         }
 
-        LocalDateTime ahora = LocalDateTime.now();
+        // Ventana de reactivación: 40% de la duración, contada desde la HORA DE INICIO (fechaHora).
+        // Si pasó ese margen, la cita queda bloqueada definitivamente.
         int duracion = cita.getDuracionMinutos() != null ? cita.getDuracionMinutos() : 30;
-        LocalDateTime finCita = cita.getFechaHora().plusMinutes(duracion);
-        if (ahora.isAfter(finCita.plusMinutes(30))) {
+        int margen = (int) Math.round(duracion * 0.4);
+        Instant ahora = Instant.now();
+        Instant inicioCita = BusinessTime.toInstant(cita.getFechaHora());
+        Instant hitoBloqueo = inicioCita.plusSeconds((duracion + margen) * 60L);
+
+        if (ahora.isAfter(hitoBloqueo)) {
             throw new BusinessRuleException("NO_SHOW_LOCKED",
-                    "No se puede desmarcar — ya pasó el tiempo de la cita");
+                    "No se puede desmarcar — la cita quedó bloqueada por no presentarse a tiempo");
+        }
+
+        // Si la doctora tiene una cita posterior que comienza antes de que termine la sesión
+        // de este paciente (que llegó tarde), es mejor reprogramar.
+        if (cita.getUsuario() != null && cita.getFecha() != null && cita.getHora() != null) {
+            Long doctorId = cita.getUsuario().getId();
+            java.time.LocalDate fecha = cita.getFecha();
+            List<Cita> siguientes = citaRepository.findActivasByUsuarioAndRangoFecha(
+                    doctorId, fecha.atStartOfDay(), fecha.plusDays(1).atStartOfDay())
+                    .stream()
+                    .filter(c -> !c.getId().equals(id))
+                    .filter(c -> c.getEstado() != null && !ESTADOS_FINALES.contains(c.getEstado()))
+                    .filter(c -> c.getHora() != null && c.getHora().isAfter(cita.getHora()))
+                    .sorted(java.util.Comparator.comparing(Cita::getHora))
+                    .toList();
+
+            Instant finNueva = inicioCita.plusSeconds(duracion * 60L);
+            for (Cita siguiente : siguientes) {
+                if (finNueva.isAfter(BusinessTime.toInstant(siguiente.getFechaHora()))) {
+                    throw new BusinessRuleException("NO_SHOW_REPROGRAMAR",
+                            "Hay una cita del doctor a las "
+                                    + siguiente.getHora().toString().substring(0, 5)
+                                    + ". Se recomienda reprogramar esta cita en lugar de atender");
+                }
+                break;
+            }
         }
 
         cita.setEstado("confirmada");
@@ -590,12 +785,12 @@ public class CitaService {
         }
 
         // Block cancellation of citations from past days (allow today's past citations)
-        if (cita.getFecha().isBefore(LocalDate.now())) {
+        if (cita.getFecha().isBefore(LocalDate.now(BusinessTime.ZONE))) {
             throw new BusinessRuleException("PAST_APPOINTMENT", "No se puede cancelar una cita de días anteriores");
         }
 
         cita.setEstado("cancelada");
-        cita.setCanceladoAt(LocalDateTime.now());
+        cita.setCanceladoAt(Instant.now());
         cita.setCanceladoMotivo(motivo);
         Cita saved = citaRepository.save(cita);
         return citaMapper.toResponse(saved);
@@ -696,13 +891,25 @@ public class CitaService {
         String hora = cita.getHora() != null ? cita.getHora().toString().substring(0, 5) : "";
         String pacienteNombre = paciente.getNombreCompleto();
         String tipoCitaNombre = cita.getTipoCita() != null ? cita.getTipoCita().getNombre() : "Consulta";
+        String motivo = cita.getMotivo();
 
         // Email confirmation to patient
         String pacienteEmail = paciente.getEmail();
         if (pacienteEmail != null && doctora != null) {
-            emailService.sendCitaConfirmacionPaciente(
-                    pacienteEmail, pacienteNombre, fecha, hora,
-                    doctora.getNombre(), tipoCitaNombre);
+            if (cita.getTratamientoId() != null) {
+                // Cita de sesión de tratamiento → correo personalizado.
+                emailService.sendCitaSesion(
+                        pacienteEmail, pacienteNombre, fecha, hora,
+                        doctora.getNombre(), motivo != null ? motivo : tipoCitaNombre);
+                // Aviso a la doctora.
+                emailService.sendCitaSesionDoctora(
+                        doctora.getEmail(), doctora.getNombre(), pacienteNombre, fecha, hora,
+                        motivo != null ? motivo : tipoCitaNombre);
+            } else {
+                emailService.sendCitaConfirmacionPaciente(
+                        pacienteEmail, pacienteNombre, fecha, hora,
+                        doctora.getNombre(), tipoCitaNombre);
+            }
         }
     }
 
@@ -759,7 +966,8 @@ public class CitaService {
 
         // 5. Check no Cita conflict
         boolean conflicto = citaRepository.countConflictingCita(
-                usuarioId, fecha, hora, horaFin, excludeId != null ? excludeId : 0L) > 0;
+                usuarioId, fecha.atStartOfDay(), fecha.plusDays(1).atStartOfDay(),
+                hora, horaFin, excludeId != null ? excludeId : 0L) > 0;
         if (conflicto) {
             throw new BusinessRuleException("APPOINTMENT_CONFLICT",
                     "Horario no disponible para el profesional");
@@ -768,9 +976,9 @@ public class CitaService {
 
     private void validateFechaNoPasada(LocalDate fecha, LocalTime hora) {
         if (fecha == null || hora == null) return;
-        LocalDateTime fechaHora = fecha.atTime(hora);
-        LocalDateTime ahora = LocalDateTime.now().withSecond(0).withNano(0);
-        LocalDateTime tolerancia = ahora.minusMinutes(5);
+        Instant fechaHora = BusinessTime.toInstant(fecha.atTime(hora));
+        Instant ahora = Instant.now();
+        Instant tolerancia = ahora.minusSeconds(5 * 60);
         if (fechaHora.isBefore(tolerancia)) {
             throw new BusinessRuleException("PAST_DATE", "No se pueden agendar citas en el pasado");
         }
@@ -794,7 +1002,7 @@ public class CitaService {
         List<Bloqueo> allBloqueos = bloqueoRepository.findByAgendaId(agenda.getId());
 
         // Search up to 7 days from fechaMinima
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(BusinessTime.ZONE);
         LocalDate searchStart = fechaMinima.isAfter(today) ? fechaMinima : today;
 
         for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
@@ -807,8 +1015,9 @@ public class CitaService {
 
             if (disponibilidades.isEmpty()) continue;
 
-            // Get existing citas for this day (use findByFechaAndEstadoNot, then filter by usuarioId)
-            List<Cita> citasDelDia = citaRepository.findByFechaAndEstadoNot(fecha, "cancelada")
+            // Get existing citas for this day (use findByRangoFechaAndEstadoNot, then filter by usuarioId)
+            List<Cita> citasDelDia = citaRepository.findByRangoFechaAndEstadoNot(
+                    fecha.atStartOfDay(), fecha.plusDays(1).atStartOfDay(), "cancelada")
                     .stream()
                     .filter(c -> c.getUsuario() != null && c.getUsuario().getId().equals(usuarioId))
                     .toList();

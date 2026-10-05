@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Documento Response DTO (DOM-DOC-001)
@@ -29,9 +29,9 @@ public class DocumentoResponse {
     private String archivoNombre;
     private String hashSha256;
     private Boolean firmado;
-    private LocalDateTime firmadoAt;
+    private Instant firmadoAt;
     private String estado;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

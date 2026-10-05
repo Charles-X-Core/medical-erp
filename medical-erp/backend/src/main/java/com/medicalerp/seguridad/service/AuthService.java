@@ -3,6 +3,7 @@ package com.medicalerp.seguridad.service;
 import com.medicalerp.common.exception.DuplicateResourceException;
 import com.medicalerp.common.exception.OtpVerificationException;
 import com.medicalerp.common.exception.ResourceNotFoundException;
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.clinica.entity.Clinica;
 import com.medicalerp.clinica.repository.ClinicaRepository;
 import com.medicalerp.seguridad.config.JwtUtils;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.annotation.PostConstruct;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,7 +48,7 @@ public class AuthService {
     private static final int IP_RATE_WINDOW_MINUTES = 15;
 
     // Rate limiting: IP -> list of timestamps
-    private final ConcurrentHashMap<String, java.util.List<LocalDateTime>> ipLoginAttempts = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, java.util.List<Instant>> ipLoginAttempts = new ConcurrentHashMap<>();
 
     private final AuthenticationManager authenticationManager;
     private final TransactionTemplate transactionTemplate;
@@ -210,8 +212,8 @@ public class AuthService {
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", request.getEmail()));
 
-        if (usuario.getLockedUntil() != null && usuario.getLockedUntil().isAfter(LocalDateTime.now())) {
-            long minutesLeft = java.time.Duration.between(LocalDateTime.now(), usuario.getLockedUntil()).toMinutes() + 1;
+        if (usuario.getLockedUntil() != null && BusinessTime.toInstant(usuario.getLockedUntil()).isAfter(Instant.now())) {
+            long minutesLeft = java.time.Duration.between(Instant.now(), BusinessTime.toInstant(usuario.getLockedUntil())).toMinutes() + 1;
             throw new org.springframework.security.access.AccessDeniedException(
                     "Cuenta bloqueada temporalmente. Intente de nuevo en " + minutesLeft + " minutos.");
         }
@@ -270,14 +272,14 @@ public class AuthService {
 
     private void checkIpRateLimit(String ipAddress) {
         if (ipAddress == null) return;
-        LocalDateTime windowStart = LocalDateTime.now().minusMinutes(IP_RATE_WINDOW_MINUTES);
-        java.util.List<LocalDateTime> attempts = ipLoginAttempts.computeIfAbsent(ipAddress, k -> new java.util.ArrayList<>());
+        Instant windowStart = Instant.now().minusSeconds(IP_RATE_WINDOW_MINUTES * 60L);
+        java.util.List<Instant> attempts = ipLoginAttempts.computeIfAbsent(ipAddress, k -> new java.util.ArrayList<>());
         attempts.removeIf(t -> t.isBefore(windowStart));
         if (attempts.size() >= IP_RATE_LIMIT) {
             log.warn("Rate limit excedido para IP: {}", ipAddress);
             throw new BadCredentialsException("Demasiados intentos de inicio de sesión. Espere unos minutos.");
         }
-        attempts.add(LocalDateTime.now());
+        attempts.add(Instant.now());
     }
 
     private void handleFailedLogin(Usuario usuario, String ipAddress) {
@@ -289,7 +291,7 @@ public class AuthService {
             if (u == null) return;
             u.setFailedLoginAttempts(currentAttempts);
             if (currentAttempts >= MAX_LOGIN_ATTEMPTS) {
-                u.setLockedUntil(LocalDateTime.now().plusMinutes(LOCKOUT_MINUTES));
+                u.setLockedUntil(BusinessTime.currentDateTime().plusMinutes(LOCKOUT_MINUTES));
                 log.warn("Cuenta bloqueada por {} intentos fallidos: email={}, ip={}", currentAttempts, email, ipAddress);
             } else {
                 log.warn("Login fallido ({}/{}): email={}, ip={}", currentAttempts, MAX_LOGIN_ATTEMPTS, email, ipAddress);

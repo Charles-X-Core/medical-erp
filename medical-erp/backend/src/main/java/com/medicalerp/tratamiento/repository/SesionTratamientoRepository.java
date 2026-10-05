@@ -26,4 +26,7 @@ public interface SesionTratamientoRepository extends JpaRepository<SesionTratami
 
     List<SesionTratamiento> findByTratamientoIdIn(List<Long> tratamientoIds);
 
+    @Query("SELECT s FROM SesionTratamiento s JOIN Tratamiento t ON s.tratamientoId = t.id WHERE t.pacienteId = :pacienteId AND s.signosVitales IS NOT NULL AND s.signosVitales <> '' ORDER BY s.fecha DESC")
+    List<SesionTratamiento> findConSignosVitalesByPacienteId(@Param("pacienteId") Long pacienteId);
+
 }

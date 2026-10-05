@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * MensajeContacto Response DTO (DOM-CON-002)
@@ -24,8 +24,8 @@ public class MensajeContactoResponse {
     private String mensaje;
     private String estado;
     private String ipAddress;
-    private LocalDateTime readAt;
-    private LocalDateTime repliedAt;
-    private LocalDateTime createdAt;
+    private Instant readAt;
+    private Instant repliedAt;
+    private Instant createdAt;
 
 }

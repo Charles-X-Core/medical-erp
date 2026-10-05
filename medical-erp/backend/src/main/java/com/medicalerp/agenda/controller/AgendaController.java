@@ -112,9 +112,10 @@ public class AgendaController {
             @PathVariable Long usuarioId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
             @RequestParam(defaultValue = "30") Integer duracion,
-            @RequestParam(defaultValue = "false") boolean soloDisponibles) {
+            @RequestParam(defaultValue = "false") boolean soloDisponibles,
+            @RequestParam(defaultValue = "0") Integer paso) {
         return ResponseEntity.ok(ApiResponse.success(
-                agendaService.getDisponibilidad(usuarioId, fecha, duracion, soloDisponibles)));
+                agendaService.getDisponibilidad(usuarioId, fecha, duracion, soloDisponibles, paso)));
     }
 
     @GetMapping("/{usuarioId}/next-available")
@@ -133,9 +134,10 @@ public class AgendaController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin,
             @RequestParam(defaultValue = "30") Integer duracion,
-            @RequestParam(defaultValue = "false") boolean soloDisponibles) {
+            @RequestParam(defaultValue = "false") boolean soloDisponibles,
+            @RequestParam(defaultValue = "0") Integer paso) {
         return ResponseEntity.ok(ApiResponse.success(
-                agendaService.getDisponibilidadSemana(usuarioId, inicio, fin, duracion, soloDisponibles)));
+                agendaService.getDisponibilidadSemana(usuarioId, inicio, fin, duracion, soloDisponibles, paso)));
     }
 
     @GetMapping("/doctoras")

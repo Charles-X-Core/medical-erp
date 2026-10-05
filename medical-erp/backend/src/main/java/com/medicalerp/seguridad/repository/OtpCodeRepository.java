@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -20,13 +20,13 @@ public interface OtpCodeRepository extends JpaRepository<OtpCode, Long> {
 
     @Modifying
     @Query("DELETE FROM OtpCode o WHERE o.expiraAt < :now")
-    int deleteAllExpired(@Param("now") LocalDateTime now);
+    int deleteAllExpired(@Param("now") Instant now);
 
     @Modifying
     @Query("DELETE FROM OtpCode o WHERE o.createdAt < :olderThan")
-    int deleteAllOlderThan(@Param("olderThan") LocalDateTime olderThan);
+    int deleteAllOlderThan(@Param("olderThan") Instant olderThan);
 
     @Query("SELECT COUNT(o) FROM OtpCode o WHERE o.email = :email AND o.createdAt >= :since")
-    long countRecentByEmail(@Param("email") String email, @Param("since") LocalDateTime since);
+    long countRecentByEmail(@Param("email") String email, @Param("since") Instant since);
 
 }

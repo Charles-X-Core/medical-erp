@@ -118,4 +118,11 @@ public class ContratoPwaController {
         contratoPwaService.enviarPorEmail(sessionId);
         return ResponseEntity.ok(ApiResponse.success("Email enviado", "Contrato enviado por email al paciente"));
     }
+
+    @PostMapping("/paciente/{pacienteId}/enviar-email")
+    @PreAuthorize("hasRole('DOCTORA') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> enviarContratoPorEmail(@PathVariable Long pacienteId) {
+        contratoPwaService.enviarContratoPorEmail(pacienteId);
+        return ResponseEntity.ok(ApiResponse.success("Email enviado", "Contrato de membresía enviado por email al paciente"));
+    }
 }

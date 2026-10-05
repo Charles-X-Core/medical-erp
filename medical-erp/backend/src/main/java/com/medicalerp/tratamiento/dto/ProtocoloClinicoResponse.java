@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Protocolo Clinico Response DTO (DOM-TRAT-002)
@@ -22,7 +22,7 @@ public class ProtocoloClinicoResponse {
     private Integer frecuenciaDias;
     private Integer duracionSesionMinutos;
     private String notasProtocolo;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

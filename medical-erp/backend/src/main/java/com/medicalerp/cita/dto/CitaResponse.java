@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.LocalTime;
 
 /**
@@ -32,18 +32,19 @@ public class CitaResponse {
     private String motivo;
     private String motivoEditado;
     private Long tratamientoId;
+    private Long sesionId;
     private String estado;
     private Long consultaId;
     private String notas;
-    private LocalDateTime asistioConfirmedAt;
-    private LocalDateTime inicioAtencion;
-    private LocalDateTime finAtencion;
-    private LocalDateTime canceladoAt;
+    private Instant asistioConfirmedAt;
+    private Instant inicioAtencion;
+    private Instant finAtencion;
+    private Instant canceladoAt;
     private String canceladoMotivo;
     private Long reprogramadaDe;
     private Long solicitadaPorId;
     private String solicitadaPorNombre;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

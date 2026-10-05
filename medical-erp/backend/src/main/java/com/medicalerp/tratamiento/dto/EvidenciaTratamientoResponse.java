@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Evidencia Tratamiento Response DTO (DOM-TRAT-004)
@@ -19,6 +19,7 @@ public class EvidenciaTratamientoResponse {
 
     private Long id;
     private Long sesionId;
+    private Long tratamientoId;
     private Long clinicaId;
     private TipoEvidencia tipo;
     private String archivoRuta;
@@ -26,6 +27,6 @@ public class EvidenciaTratamientoResponse {
     private String archivoMimeType;
     private Long archivoTamano;
     private String descripcion;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
 }

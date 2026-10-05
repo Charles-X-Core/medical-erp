@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Tipo Cita Response DTO (DOM-AGE-001)
@@ -27,7 +27,7 @@ public class TipoCitaResponse {
     private Boolean activo;
     private Long usuarioId;
     private String usuarioNombre;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 }

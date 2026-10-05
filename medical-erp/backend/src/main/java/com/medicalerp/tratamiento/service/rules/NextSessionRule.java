@@ -1,5 +1,6 @@
 package com.medicalerp.tratamiento.service.rules;
 
+import com.medicalerp.common.util.BusinessTime;
 import com.medicalerp.tratamiento.dto.TratamientoAlertaResponse;
 import com.medicalerp.tratamiento.entity.SesionTratamiento;
 import com.medicalerp.tratamiento.entity.Tratamiento;
@@ -56,7 +57,7 @@ public class NextSessionRule implements ClinicalRule {
             LocalDate fechaProxima = context.getUltimaSesion().getFecha().toLocalDate()
                     .plusDays(context.getProtocolo().getFrecuenciaDias());
 
-            if (fechaProxima.isBefore(LocalDate.now()) || fechaProxima.isEqual(LocalDate.now())) {
+            if (fechaProxima.isBefore(LocalDate.now(BusinessTime.ZONE)) || fechaProxima.isEqual(LocalDate.now(BusinessTime.ZONE))) {
                 return ClinicalEvaluation.builder()
                         .proximaAccion(ProximaAccion.PROGRAMAR)
                         .mensaje("Sesion pendiente desde " + fechaProxima)

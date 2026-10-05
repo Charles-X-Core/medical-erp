@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -172,7 +173,7 @@ public class ConsentimientoSignService {
             log.error("Error serializando snapshot del paciente: {}", e.getMessage());
             saved.setPacienteSnapshot("{}");
         }
-        saved.setFirmaFecha(LocalDateTime.now());
+        saved.setFirmaFecha(Instant.now());
         saved.setStoragePath(result.getStoragePath());
         saved.setNombreArchivo(result.getNombreArchivo());
         saved.setHashDocumento(result.getHashDocumento());
@@ -204,6 +205,10 @@ public class ConsentimientoSignService {
                 ? paciente.getFechaNacimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                 : "N/A");
         vars.put("direccion_completa", buildDireccion(paciente));
+        vars.put("direccion_calle", paciente.getDireccionLinea1() != null ? paciente.getDireccionLinea1() : "");
+        vars.put("direccion_ciudad", paciente.getCiudad() != null ? paciente.getCiudad() : "");
+        vars.put("direccion_estado", paciente.getEstadoProvincia() != null ? paciente.getEstadoProvincia() : "");
+        vars.put("direccion_codigo_postal", paciente.getCodigoPostal() != null ? paciente.getCodigoPostal() : "");
         vars.put("telefono", paciente.getTelefono() != null ? paciente.getTelefono() : "N/A");
         vars.put("email", paciente.getEmail() != null ? paciente.getEmail() : "N/A");
         vars.put("sexo", paciente.getSexo() != null ? paciente.getSexo() : "N/A");
@@ -335,7 +340,7 @@ public class ConsentimientoSignService {
         private boolean integro;
         private String nombreArchivo;
         private Integer tamanoArchivo;
-        private LocalDateTime firmaFecha;
+        private java.time.Instant firmaFecha;
         private EstadoConsentimientoDocumento estadoDocumento;
     }
 }
