@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Clock, AlertTriangle, CheckCircle, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import agendaService from '../../services/agendaService';
+import { horaMostrar, horaMostrarMin } from '../../utils/zonaHoraria';
 
 export default function SessionExpiredModal({ open, cita, onFinalized, onExtended, onDismiss }) {
   const { t } = useTranslation('clinical');
@@ -23,10 +24,10 @@ export default function SessionExpiredModal({ open, cita, onFinalized, onExtende
   if (!open || !cita) return null;
 
   const duracion = cita.duracionMinutos || 30;
-  const horaInicio = cita.hora?.substring(0, 5) || '??:??';
-  const [h, m] = horaInicio.split(':').map(Number);
-  const finMin = h * 60 + m + duracion;
-  const horaFin = `${String(Math.floor(finMin / 60)).padStart(2, '0')}:${String(finMin % 60).padStart(2, '0')}`;
+  const horaInicio = (horaMostrar(cita.hora, cita.fecha) || '').substring(0, 5) || '??:??';
+  const [h, m] = String(cita.hora || '').split(':').map(Number);
+  const finMin = (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0) + duracion;
+  const horaFin = horaMostrarMin(finMin, cita.fecha);
 
   const handleFinalize = async () => {
     setAction('finalizing');

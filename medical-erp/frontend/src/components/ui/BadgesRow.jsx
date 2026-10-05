@@ -1,3 +1,5 @@
+import { formatCurrency } from '../../utils/currency';
+
 export default function BadgesRow({ 
   tratamientos = 0, 
   recetas = 0, 
@@ -24,7 +26,7 @@ export default function BadgesRow({
   if (pagosTotal > 0) {
     badges.push(
       <span key="pagos" className="badge badge--pagos" onClick={onClick}>
-        💰 S/ {pagosTotal.toLocaleString()}
+        💰 {formatCurrency(pagosTotal)}
       </span>
     );
   }

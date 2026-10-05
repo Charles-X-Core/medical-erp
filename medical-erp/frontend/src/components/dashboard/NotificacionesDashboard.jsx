@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Bell, CheckCheck } from 'lucide-react';
 import notificacionService from '../../services/notificacionService';
+import { parseLADateTime } from '../../utils/laTimezone';
+import { zonaIANA } from '../../utils/zonaHoraria';
 
 function formatTime(fecha) {
   if (!fecha) return '';
-  const d = new Date(fecha);
-  return d.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const d = parseLADateTime(fecha) || new Date(fecha);
+  return d.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: zonaIANA() });
 }
 
 // ============================================

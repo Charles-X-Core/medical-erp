@@ -116,7 +116,7 @@ export default function PacienteDetailPage() {
             <div className="detail-card">
               <h4>{t('personal_data')}</h4>
               <p><strong>{t('first_names')}:</strong> {paciente.nombres}</p>
-              <p><strong>{t('apellidos')}:</strong> {paciente.apellidoPaterno} {paciente.apellidoMaterno}</p>
+              <p><strong>{t('apellido')}:</strong> {paciente.apellidoPaterno}</p>
               <p><strong>ID:</strong> {paciente.licenciaConducir || '-'}</p>
               <p><strong>{t('gender')}:</strong> {paciente.sexo || '-'}</p>
               <p><strong>{t('birth_date_short')}:</strong> {paciente.fechaNacimiento || '-'}</p>
@@ -128,8 +128,11 @@ export default function PacienteDetailPage() {
               <h4>{t('contact_info')}</h4>
               <p><strong>{tco('phone')}:</strong> {paciente.telefono || '-'}</p>
               <p><strong>{tco('email')}:</strong> {paciente.email || '-'}</p>
-              <p><strong>{t('ciudad_estado')}:</strong> {paciente.ciudadEstado || '-'}</p>
-              <p><strong>{tco('address')}:</strong> {paciente.direccion || '-'}</p>
+              <p><strong>{t('street')}:</strong> {paciente.direccionLinea1 || '-'}</p>
+              <p><strong>{t('city')}:</strong> {paciente.ciudad || '-'}</p>
+              <p><strong>{t('state')}:</strong> {paciente.estadoProvincia || '-'}</p>
+              <p><strong>{t('zip_code')}:</strong> {paciente.codigoPostal || '-'}</p>
+              <p><strong>{t('country')}:</strong> {paciente.direccionPais || 'US'}</p>
               <p><strong>{t('lugar_nacimiento')}:</strong> {paciente.lugarNacimiento || '-'}</p>
               <p><strong>{t('procedencia')}:</strong> {paciente.lugarProcedencia || '-'}</p>
               <p><strong>{t('occupation')}:</strong> {paciente.ocupacion || '-'}</p>

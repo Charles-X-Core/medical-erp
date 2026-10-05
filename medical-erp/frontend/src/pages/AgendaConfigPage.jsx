@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { formatLADate } from '../utils/laTimezone';
 import {
   CalendarDays,
   Clock,
@@ -438,11 +439,7 @@ export default function AgendaConfigPage() {
                   >
                     <div className="agenda-config-bloqueo-card__info">
                       <span className="agenda-config-bloqueo-card__dates">
-                        {new Date(bloqueo.fechaInicio).toLocaleDateString('es-ES', {
-                          weekday: 'short',
-                          day: 'numeric',
-                          month: 'short',
-                        })}
+                        {formatLADate(bloqueo.fechaInicio)}
                         {' '}
                         {formatTime(bloqueo.fechaInicio?.substring(11, 16))}
                         {' - '}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CalendarDays, Clock } from 'lucide-react';
+import { zonaIANA } from '../../utils/zonaHoraria';
 
 function useCurrentTime() {
   const [time, setTime] = useState(new Date());
@@ -17,14 +18,17 @@ export default function DashboardHeader({ config, fecha }) {
   const locale = i18n.language?.startsWith('es') ? 'es-ES' : 'en-US';
 
   const fechaLabel = fecha
-    ? new Date(fecha + 'T00:00:00').toLocaleDateString(locale, {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-      })
+    ? (() => {
+        const [y, m, d] = String(fecha).split('-').map(Number);
+        return new Date(y, m - 1, d, 12, 0, 0).toLocaleDateString(locale, {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+        });
+      })()
     : '';
 
-  const timeStr = currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const timeStr = currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: zonaIANA() });
 
   return (
     <div className="dashboard-header">

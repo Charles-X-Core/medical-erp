@@ -18,7 +18,8 @@
     "react-dom": "^19.2.7",
     "react-i18next": "^17.0.12",
     "react-router-dom": "^7.18.1",
-    "sass": "^1.101.7"
+    "sass": "^1.101.7",
+    "signature_pad": "^5.1.4"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.3",

@@ -2,15 +2,16 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Users, ChevronRight, Clock, AlertTriangle } from 'lucide-react';
 import { getAppointmentStatus } from '../../utils/citaTimeUtils';
+import { horaMostrar } from '../../utils/zonaHoraria';
 
 function formatNombre(nombre) {
   if (!nombre) return 'Client';
   return nombre;
 }
 
-function formatHora(hora) {
+function formatHora(hora, fecha) {
   if (!hora) return '--:--';
-  return hora.substring(0, 5);
+  return horaMostrar(hora, fecha).substring(0, 5);
 }
 
 export default function ColaPacientes({ citas = [], loading = false }) {
@@ -80,7 +81,7 @@ export default function ColaPacientes({ citas = [], loading = false }) {
               >
                 <div className="dashboard-cola__item-time">
                   <Clock size={14} />
-                  <span>{formatHora(cita.hora)}</span>
+                  <span>{formatHora(cita.hora, cita.fecha)}</span>
                 </div>
                 <div className="dashboard-cola__item-info">
                   <span className="dashboard-cola__item-name">{formatNombre(cita.pacienteNombre)}</span>

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, Search, Calendar, Stethoscope, Pill, FileText, Eye, ChevronDown, ChevronUp, Filter, Activity, Heart, Thermometer, Wind } from 'lucide-react';
+import { Loader2, Search, Calendar, Stethoscope, Pill, FileText, ChevronDown, ChevronUp, Filter, Activity, Heart, Thermometer, Wind } from 'lucide-react';
 import { consultasService } from '../../services/consultasService';
 import { historiaClinicaService } from '../../services/historiaClinicaService';
 import { getTreatmentLabel } from '../../config/attentionTypes';
+import { parseLADateTime } from '../../utils/laTimezone';
+import { zonaIANA } from '../../utils/zonaHoraria';
 
 const parseJson = (d) => {
   if (!d) return [];
@@ -29,7 +30,6 @@ function VitalBadge({ label, value, unit, icon: Icon, warning }) {
 
 export default function TabClinico({ pacienteId, historiaId }) {
   const { t } = useTranslation('patients');
-  const navigate = useNavigate();
   const [consultas, setConsultas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
@@ -69,8 +69,8 @@ export default function TabClinico({ pacienteId, historiaId }) {
 
   const formatTime = (dateStr) => {
     if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const d = parseLADateTime(dateStr) || new Date(dateStr);
+    return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: zonaIANA() });
   };
 
   const matchesSearch = (c) => {
@@ -194,6 +194,11 @@ export default function TabClinico({ pacienteId, historiaId }) {
                     {c.firmado && (
                       <span className="consulta-badge consulta-badge--firmado">{t('consulta_signed', { ns: 'clinical' })}</span>
                     )}
+                    {c.tratamientoId && (
+                      <span className="consulta-badge consulta-badge--tratamiento">
+                        <Pill size={12} /> {t('desemboco_tratamiento')}
+                      </span>
+                    )}
                     {c.tipoTratamiento && (
                       <span className="consulta-badge consulta-badge--tratamiento">
                         <Pill size={12} /> {getTreatmentLabel(c.tipoTratamiento)}
@@ -293,12 +298,6 @@ export default function TabClinico({ pacienteId, historiaId }) {
 
                     {/* Acciones */}
                     <div className="consulta-card__actions">
-                      <button
-                        className="btn btn--ghost btn--sm"
-                        onClick={(e) => { e.stopPropagation(); navigate(`/consultas/${c.id}`); }}
-                      >
-                        <Eye size={14} /> {t('ver_detalle')}
-                      </button>
                       <a
                         className="btn btn--ghost btn--sm"
                         href={`/api/v1/consultas/${c.id}/pdf`}

@@ -11,6 +11,7 @@ import PasoTratamientos from '../components/sesion/PasoTratamientos';
 import PasoResumen from '../components/sesion/PasoResumen';
 import { pacienteService } from '../services/pacienteService';
 import { consultasService } from '../services/consultasService';
+import { toLocalDateTime } from '../utils/laTimezone';
 
 const INITIAL_STATE = {
   paciente: null,
@@ -159,7 +160,7 @@ export default function SesionClinicaPage() {
 
       const consultaData = {
         historiaId,
-        fecha: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+        fecha: toLocalDateTime(),
         motivo: formData.enfermedad.motivo,
         tiempoEnfermedad: formData.enfermedad.tiempoEnfermedad,
         signosSintomas: formData.enfermedad.signosSintomas,

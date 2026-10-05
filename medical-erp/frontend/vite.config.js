@@ -68,8 +68,9 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://erp.myoptimalhealthnow.com',
         changeOrigin: true,
+        secure: true,
       }
     }
   },

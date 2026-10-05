@@ -20,7 +20,11 @@ import NowLine from '../components/agenda/NowLine';
 import CitaPopover from '../components/agenda/CitaPopover';
 import AgendaOnboardingModal from '../components/agenda/AgendaOnboardingModal';
 import CitaBlock, { DragCitaCtx } from '../components/agenda/CitaBlock';
+import AvisoZonaCalifornia from '../components/common/AvisoZonaCalifornia';
 import QuickFilters from '../components/agenda/QuickFilters';
+import { getLADateString } from '../utils/laTimezone';
+import { horaMostrar, horaMostrarMin, rangoHoras } from '../utils/zonaHoraria';
+import { useToast } from '../context/ToastContext';
 
 const HORA_INICIO = 8;
 const HORA_FIN = 23;
@@ -46,17 +50,17 @@ function getStartOfWeek(date) {
   const day = d.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
+  d.setHours(12, 0, 0, 0);
   return d;
 }
 
 function formatDateKey(date) {
-  return date.toISOString().split('T')[0];
+  return date.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
 }
 
-function formatTime(timeStr) {
+function formatTime(timeStr, fecha) {
   if (!timeStr) return '';
-  return timeStr.substring(0, 5);
+  return horaMostrar(timeStr, fecha).substring(0, 5);
 }
 
 function parseTime(timeStr) {
@@ -263,43 +267,43 @@ function NotificationsPanel() {
 }
 
 // --- Config Tab ---
-function ConfigTab({ agendaId, usuarioId }) {
+function ConfigTab({ agendaId, usuarioId, onSaved }) {
   const { t } = useTranslation('agenda');
+  const toast = useToast();
   const [activeConfigTab, setActiveConfigTab] = useState('disponibilidad');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState({ type: '', text: '' });
   const [disponibilidades, setDisponibilidades] = useState([]);
-  const [bloqueos, setBloqueos] = useState([]);
   const [tiposCita, setTiposCita] = useState([]);
-  const [newBloqueo, setNewBloqueo] = useState({ fechaInicio: '', horaInicio: '08:00', fechaFin: '', horaFin: '09:00', motivo: '' });
-  const [expandedBloqueo, setExpandedBloqueo] = useState(null);
   const [newTipo, setNewTipo] = useState({ nombre: '', duracionMinutos: 30, bufferMinutos: 0, prioridadDefault: 'NORMAL', requiereTratamiento: false, descripcion: '' });
 
   const DIAS_LABELS_SHORT = useMemo(() => getDiasLabels(t), [t]);
+  const DIAS_LABELS_FULL = useMemo(() => getDiasLabelsFull(t), [t]);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        if (agendaId) {
-          const [agRes, bloqRes, tipRes] = await Promise.all([
-            agendaService.getAgendaByUsuario(usuarioId),
-            agendaService.getBloqueos(agendaId),
-            agendaService.getTiposCita(),
-          ]);
-          if (agRes.success && agRes.data?.disponibilidades) setDisponibilidades(agRes.data.disponibilidades);
-          if (bloqRes.success) setBloqueos(bloqRes.data || []);
-          if (tipRes.success) setTiposCita(tipRes.data || []);
-        }
-      } catch { /* */ }
-      setLoading(false);
-    };
-    load();
+  const todayDay = new Date(getLADateString() + 'T12:00:00').getDay();
+
+  const showMsg = (type, text) => {
+    toast(type, text);
+  };
+
+  const loadData = useCallback(async () => {
+    if (!agendaId) return;
+    setLoading(true);
+    try {
+      const [agRes, tipRes] = await Promise.all([
+        agendaService.getAgendaByUsuario(usuarioId),
+        agendaService.getTiposCita(),
+      ]);
+      if (agRes.success && agRes.data?.disponibilidades) setDisponibilidades(agRes.data.disponibilidades);
+      if (tipRes.success) setTiposCita(tipRes.data || []);
+    } catch { /* */ }
+    setLoading(false);
   }, [agendaId, usuarioId]);
 
+  useEffect(() => { loadData(); }, [loadData]);
+
   const handleSaveDisponibilidades = async () => {
-    setSaving(true); setMsg({ type: '', text: '' });
+    setSaving(true);
     try {
       const normalized = disponibilidades.map((d) => ({
         diaSemana: d.diaSemana,
@@ -310,7 +314,7 @@ function ConfigTab({ agendaId, usuarioId }) {
       for (const d of normalized) {
         if (d.horaInicio >= d.horaFin) {
           const diaLabel = DIAS_LABELS_SHORT[d.diaSemana];
-          setMsg({ type: 'error', text: `${t('en_dia', { dia: diaLabel })} ${t('hora_fin_posterior', { horaInicio: d.horaInicio, horaFin: d.horaFin })}` });
+          showMsg('error', `${t('en_dia', { dia: diaLabel })} ${t('hora_fin_posterior', { horaInicio: d.horaInicio, horaFin: d.horaFin })}`);
           setSaving(false);
           return;
         }
@@ -320,7 +324,7 @@ function ConfigTab({ agendaId, usuarioId }) {
           if (normalized[i].diaSemana === normalized[j].diaSemana) {
             if (normalized[i].horaInicio < normalized[j].horaFin && normalized[j].horaInicio < normalized[i].horaFin) {
               const diaLabel = DIAS_LABELS_SHORT[normalized[i].diaSemana];
-              setMsg({ type: 'error', text: `${t('en_dia', { dia: diaLabel })} ${t('horas_superponen')}` });
+              showMsg('error', `${t('en_dia', { dia: diaLabel })} ${t('horas_superponen')}`);
               setSaving(false);
               return;
             }
@@ -329,14 +333,19 @@ function ConfigTab({ agendaId, usuarioId }) {
       }
 
       const res = await agendaService.updateDisponibilidades(agendaId, normalized);
-      if (res.success) setMsg({ type: 'success', text: t('disponibilidades_guardadas') });
-      else setMsg({ type: 'error', text: res.message || t('error_guardar_slot') });
-    } catch { setMsg({ type: 'error', text: t('error_conexion') }); }
+      if (res.success) {
+        showMsg('success', t('disponibilidades_guardadas'));
+        await loadData();
+        onSaved?.();
+      } else showMsg('error', res.message || t('error_guardar_slot'));
+    } catch { showMsg('error', t('error_conexion')); }
     setSaving(false);
   };
 
   const addSlot = (dia) => {
-    setDisponibilidades([...disponibilidades, { diaSemana: dia, horaInicio: '09:00', horaFin: '10:00' }]);
+    const existing = disponibilidades.filter((d) => d.diaSemana === dia);
+    const lastEnd = existing.length > 0 ? existing[existing.length - 1].horaFin : '09:00';
+    setDisponibilidades([...disponibilidades, { diaSemana: dia, horaInicio: lastEnd, horaFin: lastEnd.length >= 5 ? `${String(parseInt(lastEnd.split(':')[0]) + 1).padStart(2, '0')}:00` : '10:00' }]);
   };
 
   const removeSlot = (idx) => {
@@ -349,31 +358,30 @@ function ConfigTab({ agendaId, usuarioId }) {
     setDisponibilidades(updated);
   };
 
-  const handleCreateBloqueo = async () => {
-    if (!newBloqueo.fechaInicio || !newBloqueo.fechaFin) return;
-    const inicio = `${newBloqueo.fechaInicio}T${newBloqueo.horaInicio}:00`;
-    const fin = `${newBloqueo.fechaFin}T${newBloqueo.horaFin}:00`;
-    try {
-      const res = await agendaService.crearBloqueo(agendaId, { fechaInicio: inicio, fechaFin: fin, motivo: newBloqueo.motivo });
-      if (res.success) {
-        setBloqueos([...bloqueos, res.data]);
-        setNewBloqueo({ fechaInicio: '', horaInicio: '08:00', fechaFin: '', horaFin: '09:00', motivo: '' });
-      }
-    } catch { /* */ }
-  };
-
-  const handleDeleteBloqueo = async (id) => {
-    await agendaService.eliminarBloqueo(id);
-    setBloqueos(bloqueos.filter((b) => b.id !== id));
-  };
-
   const handleCreateTipo = async () => {
-    if (!newTipo.nombre) return;
+    const nombre = (newTipo.nombre || '').trim();
+    if (!nombre) return;
+    const duracion = Number(newTipo.duracionMinutos);
+    const buffer = Number(newTipo.bufferMinutos) || 0;
+    if (!duracion || duracion < 15 || duracion > 480) {
+      showMsg('error', t('duracion_invalida'));
+      return;
+    }
+    if (buffer < 0 || buffer > 60) {
+      showMsg('error', t('buffer_invalido'));
+      return;
+    }
     try {
-      const res = await agendaService.crearTipoCita(newTipo);
+      const res = await agendaService.crearTipoCita({
+        ...newTipo,
+        nombre,
+        duracionMinutos: Math.trunc(duracion),
+        bufferMinutos: Math.trunc(buffer),
+      });
       if (res.success) {
         setTiposCita([...tiposCita, res.data]);
         setNewTipo({ nombre: '', duracionMinutos: 30, bufferMinutos: 0, prioridadDefault: 'NORMAL', requiereTratamiento: false, descripcion: '' });
+        showMsg('success', t('tipo_cita_creado'));
       }
     } catch { /* */ }
   };
@@ -383,48 +391,66 @@ function ConfigTab({ agendaId, usuarioId }) {
     setTiposCita(tiposCita.filter((tipo) => tipo.id !== id));
   };
 
+  const getPrioridadColor = (p) => {
+    if (p === 'URGENTE') return { bg: 'rgba(239,68,68,0.1)', border: '#EF4444', text: '#EF4444' };
+    if (p === 'ALTA') return { bg: 'rgba(249,115,22,0.1)', border: '#F97316', text: '#F97316' };
+    return { bg: 'rgba(59,130,246,0.1)', border: '#3B82F6', text: '#3B82F6' };
+  };
+
   if (loading) return <div className="agenda-page__loading"><Loader2 size={24} className="spinner" /><p>{t('cargando_config')}</p></div>;
 
   return (
     <div className="agenda-config">
       <div className="agenda-config__tabs">
-        <button className={`agenda-config__tab ${activeConfigTab === 'disponibilidad' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('disponibilidad')}>{t('mi_disponibilidad')}</button>
-        <button className={`agenda-config__tab ${activeConfigTab === 'bloqueos' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('bloqueos')}>{t('mis_bloqueos')}</button>
-        <button className={`agenda-config__tab ${activeConfigTab === 'tipos' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('tipos')}>{t('mis_tipos_cita')}</button>
+        <button className={`agenda-config__tab ${activeConfigTab === 'disponibilidad' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('disponibilidad')}>
+          <Clock size={15} /> {t('mi_disponibilidad')}
+        </button>
+        <button className={`agenda-config__tab ${activeConfigTab === 'tipos' ? 'agenda-config__tab--active' : ''}`} onClick={() => setActiveConfigTab('tipos')}>
+          <CalendarDays size={15} /> {t('mis_tipos_cita')}
+        </button>
       </div>
-
-      {msg.text && <div className={`agenda-config__msg agenda-config__msg--${msg.type}`}>{msg.text}</div>}
 
       {activeConfigTab === 'disponibilidad' && (
         <div className="agenda-config__section">
+          <AvisoZonaCalifornia />
           <div className="agenda-config__section-header">
             <h3>{t('horario_semanal')}</h3>
             <button className="agenda-config__save-btn" onClick={handleSaveDisponibilidades} disabled={saving}>
               <Save size={16} /> {saving ? t('guardando') : t('guardar')}
             </button>
           </div>
-          <div className="agenda-config__grid">
+          <div className="agenda-config__day-list">
             {DIAS_LABORALES.map((dia) => {
-              const DIAS_LABELS_FULL = getDiasLabelsFull(t);
+              const daySlots = disponibilidades.filter((d) => d.diaSemana === dia);
+              const isToday = dia === todayDay;
               return (
-                <div key={dia} className="agenda-config__day">
-                  <div className="agenda-config__day-header">{DIAS_LABELS_FULL[dia]}</div>
-                  <div className="agenda-config__day-slots">
-                    {disponibilidades.filter((d) => d.diaSemana === dia).map((slot, idx) => {
-                      const globalIdx = disponibilidades.indexOf(slot);
-                      return (
-                        <div key={idx} className="agenda-config__slot-row">
-                          <input type="time" value={slot.horaInicio} onChange={(e) => updateSlot(globalIdx, 'horaInicio', e.target.value)} className="agenda-config__time-input" />
-                          <span>-</span>
-                          <input type="time" value={slot.horaFin} onChange={(e) => updateSlot(globalIdx, 'horaFin', e.target.value)} className="agenda-config__time-input" />
-                          <button className="agenda-config__slot-remove" onClick={() => removeSlot(globalIdx)}><Trash2 size={14} /></button>
-                        </div>
-                      );
-                    })}
-                    {disponibilidades.filter((d) => d.diaSemana === dia).length === 0 && (
+                <div key={dia} className={`agenda-config__day-row ${isToday ? 'agenda-config__day-row--today' : ''}`}>
+                  <div className="agenda-config__day-label">
+                    <span className="agenda-config__day-name">{DIAS_LABELS_FULL[dia]}</span>
+                    {isToday && <span className="agenda-config__today-badge">{t('today')}</span>}
+                  </div>
+                  <div className="agenda-config__day-content">
+                    {daySlots.length === 0 ? (
                       <span className="agenda-config__day-empty">{t('sin_horario')}</span>
+                    ) : (
+                      <div className="agenda-config__pills">
+                        {daySlots.map((slot, idx) => {
+                          const globalIdx = disponibilidades.indexOf(slot);
+                          return (
+                            <div key={idx} className="agenda-config__time-pill">
+                              <Clock size={12} />
+                              <input type="time" value={slot.horaInicio} onChange={(e) => updateSlot(globalIdx, 'horaInicio', e.target.value)} className="agenda-config__pill-input" />
+                              <span className="agenda-config__pill-sep">—</span>
+                              <input type="time" value={slot.horaFin} onChange={(e) => updateSlot(globalIdx, 'horaFin', e.target.value)} className="agenda-config__pill-input" />
+                              <button className="agenda-config__pill-remove" onClick={() => removeSlot(globalIdx)}><Trash2 size={12} /></button>
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
-                    <button className="agenda-config__add-btn" onClick={() => addSlot(dia)}><Plus size={14} /> {t('agregar')}</button>
+                    <button className="agenda-config__add-pill" onClick={() => addSlot(dia)}>
+                      <Plus size={13} /> {t('agregar')}
+                    </button>
                   </div>
                 </div>
               );
@@ -433,49 +459,27 @@ function ConfigTab({ agendaId, usuarioId }) {
         </div>
       )}
 
-      {activeConfigTab === 'bloqueos' && (
-        <div className="agenda-config__section">
-          <h3>{t('bloqueos_tiempo')}</h3>
-          <div className="agenda-config__bloqueo-form">
-            <div className="agenda-config__bloqueo-fields">
-              <div className="agenda-config__field"><label>{t('inicio')}</label><input type="date" value={newBloqueo.fechaInicio} onChange={(e) => setNewBloqueo({ ...newBloqueo, fechaInicio: e.target.value })} className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>{t('hora')}</label><input type="time" value={newBloqueo.horaInicio} onChange={(e) => setNewBloqueo({ ...newBloqueo, horaInicio: e.target.value })} className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>{t('fin')}</label><input type="date" value={newBloqueo.fechaFin} onChange={(e) => setNewBloqueo({ ...newBloqueo, fechaFin: e.target.value })} className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>{t('hora')}</label><input type="time" value={newBloqueo.horaFin} onChange={(e) => setNewBloqueo({ ...newBloqueo, horaFin: e.target.value })} className="agenda-config__input" /></div>
-            </div>
-            <div className="agenda-config__field" style={{ gridColumn: '1 / -1' }}>
-              <label>{t('motivo')}</label>
-              <input type="text" value={newBloqueo.motivo} onChange={(e) => setNewBloqueo({ ...newBloqueo, motivo: e.target.value })} placeholder={t('ej_almuerzo')} className="agenda-config__input" />
-            </div>
-            <button className="agenda-config__save-btn" onClick={handleCreateBloqueo}><Plus size={16} /> {t('agregar_bloqueo')}</button>
-          </div>
-          <div className="agenda-config__bloqueos-list">
-            {bloqueos.map((b) => (
-              <div key={b.id} className="agenda-config__bloqueo-card">
-                <div className="agenda-config__bloqueo-header" onClick={() => setExpandedBloqueo(expandedBloqueo === b.id ? null : b.id)}>
-                  <span>{b.fechaInicio?.replace('T', ' ')} - {b.fechaFin?.replace('T', ' ')}</span>
-                  <div className="agenda-config__bloqueo-actions">
-                    <span className="agenda-config__bloqueo-motivo">{b.motivo || t('sin_motivo')}</span>
-                    <button className="agenda-config__slot-remove" onClick={(e) => { e.stopPropagation(); handleDeleteBloqueo(b.id); }}><Trash2 size={14} /></button>
-                    {expandedBloqueo === b.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </div>
-                </div>
-              </div>
-            ))}
-            {bloqueos.length === 0 && <p className="agenda-config__empty-text">{t('sin_bloqueos_registrados')}</p>}
-          </div>
-        </div>
-      )}
-
       {activeConfigTab === 'tipos' && (
         <div className="agenda-config__section">
-          <h3>{t('mis_tipos_cita')}</h3>
-          <div className="agenda-config__bloqueo-form">
-            <div className="agenda-config__bloqueo-fields">
-              <div className="agenda-config__field"><label>{t('nombre')}</label><input type="text" value={newTipo.nombre} onChange={(e) => setNewTipo({ ...newTipo, nombre: e.target.value })} placeholder={t('ej_consulta_general')} className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>{t('duracion_min')}</label><input type="number" value={newTipo.duracionMinutos} onChange={(e) => setNewTipo({ ...newTipo, duracionMinutos: parseInt(e.target.value) || 30 })} min="15" max="480" className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>{t('buffer_min')}</label><input type="number" value={newTipo.bufferMinutos} onChange={(e) => setNewTipo({ ...newTipo, bufferMinutos: parseInt(e.target.value) || 0 })} min="0" max="60" className="agenda-config__input" /></div>
-              <div className="agenda-config__field"><label>{t('prioridad')}</label>
+          <div className="agenda-config__section-header">
+            <h3>{t('mis_tipos_cita')}</h3>
+          </div>
+          <div className="agenda-config__tipo-form">
+            <div className="agenda-config__tipo-form-grid">
+              <div className="agenda-config__field">
+                <label>{t('nombre')}</label>
+                <input type="text" value={newTipo.nombre} onChange={(e) => setNewTipo({ ...newTipo, nombre: e.target.value })} placeholder={t('ej_consulta_general')} className="agenda-config__input" />
+              </div>
+              <div className="agenda-config__field">
+                <label>{t('duracion_min')}</label>
+                <input type="number" value={newTipo.duracionMinutos} onChange={(e) => setNewTipo({ ...newTipo, duracionMinutos: parseInt(e.target.value) || 30 })} min="15" max="480" className="agenda-config__input" />
+              </div>
+              <div className="agenda-config__field">
+                <label>{t('buffer_min')}</label>
+                <input type="number" value={newTipo.bufferMinutos} onChange={(e) => setNewTipo({ ...newTipo, bufferMinutos: parseInt(e.target.value) || 0 })} min="0" max="60" className="agenda-config__input" />
+              </div>
+              <div className="agenda-config__field">
+                <label>{t('prioridad')}</label>
                 <select value={newTipo.prioridadDefault} onChange={(e) => setNewTipo({ ...newTipo, prioridadDefault: e.target.value })} className="agenda-config__input">
                   <option value="NORMAL">{t('normal')}</option>
                   <option value="ALTA">{t('alta')}</option>
@@ -483,151 +487,165 @@ function ConfigTab({ agendaId, usuarioId }) {
                 </select>
               </div>
             </div>
-            <div className="agenda-config__field" style={{ gridColumn: '1 / -1' }}>
+            <div className="agenda-config__field">
               <label>{t('descripcion')}</label>
               <input type="text" value={newTipo.descripcion} onChange={(e) => setNewTipo({ ...newTipo, descripcion: e.target.value })} placeholder={t('descripcion_placeholder')} className="agenda-config__input" />
             </div>
             <button className="agenda-config__save-btn" onClick={handleCreateTipo}><Plus size={16} /> {t('crear_tipo')}</button>
           </div>
-          <div className="agenda-config__bloqueos-list">
-            {tiposCita.map((tipo) => (
-              <div key={tipo.id} className="agenda-config__bloqueo-card">
-                <div className="agenda-config__bloqueo-header">
-                  <span>{tipo.nombre} - {tipo.duracionMinutos}min {tipo.bufferMinutos > 0 ? `+ ${tipo.bufferMinutos}min ${t('buffer_min_label')}` : ''}</span>
-                  <div className="agenda-config__bloqueo-actions">
-                    <span className="agenda-config__bloqueo-motivo">{tipo.prioridadDefault || t('normal')}</span>
-                    <button className="agenda-config__slot-remove" onClick={() => handleDeleteTipo(tipo.id)}><Trash2 size={14} /></button>
+
+          {tiposCita.length === 0 ? (
+            <div className="agenda-config__empty-state">
+              <CalendarDays size={40} />
+              <p>{t('sin_tipos_cita')}</p>
+            </div>
+          ) : (
+            <div className="agenda-config__tipo-grid">
+              {tiposCita.map((tipo) => {
+                const pc = getPrioridadColor(tipo.prioridadDefault);
+                return (
+                  <div key={tipo.id} className="agenda-config__tipo-card" style={{ borderLeftColor: pc.border }}>
+                    <div className="agenda-config__tipo-header">
+                      <span className="agenda-config__tipo-name">{tipo.nombre}</span>
+                      <button className="agenda-config__tipo-delete" onClick={() => handleDeleteTipo(tipo.id)} title={t('eliminar')}><Trash2 size={14} /></button>
+                    </div>
+                    <div className="agenda-config__tipo-badges">
+                      <span className="agenda-config__tipo-badge agenda-config__tipo-badge--duration"><Clock size={12} /> {tipo.duracionMinutos} min</span>
+                      {tipo.bufferMinutos > 0 && <span className="agenda-config__tipo-badge agenda-config__tipo-badge--buffer">+{tipo.bufferMinutos} min {t('buffer_min_label')}</span>}
+                      <span className="agenda-config__tipo-badge" style={{ background: pc.bg, color: pc.text }}>{tipo.prioridadDefault || t('normal')}</span>
+                    </div>
+                    {tipo.descripcion && <p className="agenda-config__tipo-desc">{tipo.descripcion}</p>}
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-// --- Reajuste Modal ---
-function ReajusteModal({ cita, conflictos, fecha, horaActual, todasLasCitas, onConfirm, onCancel }) {
+// --- Ajuste de hora del movimiento (unificado: prevé conflictos y ofrece horarios libres) ---
+function AjusteHoraModal({ cita, fecha, horaBase, duracion = 30, todasLasCitas = [], error, onConfirm, onCancel }) {
   const { t } = useTranslation('agenda');
-  const [horaSeleccionada, setHoraSeleccionada] = useState(horaActual);
+  const [minuto, setMinuto] = useState(0);
+  const MINUTOS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+  const horaFinal = `${horaBase}:${String(minuto).padStart(2, '0')}`;
+  const fechaLabel = `${fecha} · ${horaMostrarMin(parseInt(horaBase, 10) * 60, fecha)}`;
 
-  const latestConflictEnd = useMemo(() => {
-    return conflictos.reduce((maxEnd, c) => {
-      const end = parseTime(c.hora) + (c.duracionMinutos || 30);
-      return Math.max(maxEnd, end);
-    }, 0);
-  }, [conflictos]);
+  const hayConflicto = (m) => {
+    const startMin = parseTime(`${horaBase}:${String(m).padStart(2, '0')}`);
+    const endMin = startMin + duracion;
+    return (todasLasCitas || []).some((c) => {
+      if (c.id === cita.id) return false;
+      if (c.fecha !== fecha) return false;
+      if (c.estado === 'cancelada') return false;
+      const cStart = parseTime(c.hora);
+      const cEnd = cStart + (c.duracionMinutos || 30);
+      return startMin < cEnd && endMin > cStart;
+    });
+  };
 
-  const duracion = cita.duracionMinutos || 30;
-
-  const horas = useMemo(() => {
-    const cellStart = parseTime(horaActual);
-    const cellEnd = cellStart + 60;
-    const result = [];
-    for (let mins = cellStart; mins < cellEnd; mins += 5) {
-      if (mins < latestConflictEnd) continue;
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-      const newStart = mins;
-      const newEnd = newStart + duracion;
-      const hasConflict = (todasLasCitas || []).some(c => {
-        if (c.id === cita.id) return false;
-        if (c.fecha !== fecha) return false;
-        if (c.estado === 'cancelada') return false;
-        const cStart = parseTime(c.hora);
-        const cEnd = cStart + (c.duracionMinutos || 30);
-        return newStart < cEnd && newEnd > cStart;
-      });
-      if (!hasConflict) result.push(timeStr);
-    }
-    return result;
-  }, [horaActual, latestConflictEnd, todasLasCitas, cita, fecha, duracion]);
-
-  useEffect(() => {
-    if (horas.length > 0 && !horas.includes(horaSeleccionada)) {
-      setHoraSeleccionada(horas[0]);
-    }
-  }, [horas, horaSeleccionada]);
-
-  const [selH, selM] = horaSeleccionada.split(':').map(Number);
-  const finMin = selH * 60 + selM + duracion;
-  const finH = Math.floor(finMin / 60);
-  const finM = finMin % 60;
-  const horaFinStr = `${String(finH).padStart(2, '0')}:${String(finM).padStart(2, '0')}`;
-
-  const conflictLabel = conflictos.length === 1
-    ? t('conflicto_cita', { count: conflictos.length })
-    : t('conflicto_citas', { count: conflictos.length });
+  const conflictoMinimo = hayConflicto(minuto);
+  const horariosLibres = MINUTOS.filter((m) => !hayConflicto(m));
+  const conflictos = (todasLasCitas || []).filter((c) => {
+    if (c.id === cita.id || c.fecha !== fecha || c.estado === 'cancelada') return false;
+    const startMin = parseTime(horaFinal);
+    const endMin = startMin + duracion;
+    const cStart = parseTime(c.hora);
+    const cEnd = cStart + (c.duracionMinutos || 30);
+    return startMin < cEnd && endMin > cStart;
+  });
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal-content reajuste-modal" onClick={e => e.stopPropagation()}>
-        <div className="reajuste-modal__header">
-          <h3><AlertCircle size={20} /> {t('ajustar_horario')}</h3>
-          <button className="reajuste-modal__close" onClick={onCancel}><X size={20} /></button>
+      <div className="modal-content ajuste-hora-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="ajuste-hora-modal__header">
+          <h3><Clock size={20} /> {t('ajustar_hora')}</h3>
+          <button className="ajuste-hora-modal__close" onClick={onCancel}><X size={20} /></button>
         </div>
-        <div className="reajuste-modal__body">
-          <div className="reajuste-modal__conflict-info">
-            <AlertTriangle size={16} />
-            <span>{conflictLabel}</span>
+        <div className="ajuste-hora-modal__body">
+          <div className="ajuste-hora-modal__info">
+            <span className="ajuste-hora-modal__paciente">{cita.pacienteNombre}</span>
+            <span className="ajuste-hora-modal__fecha">{t('ajustar_hora_para', { fecha: fechaLabel })}</span>
           </div>
-          {conflictos.map(c => (
-            <div key={c.id} className="reajuste-modal__conflict-item">
-              <span>{c.pacienteNombre}</span>
-              <span>{c.hora?.substring(0, 5)} - {(() => {
-                const [h, m] = c.hora.split(':').map(Number);
-                const end = h * 60 + m + (c.duracionMinutos || 30);
-                return `${String(Math.floor(end / 60)).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
-              })()}</span>
-            </div>
-          ))}
-          <div className="reajuste-modal__field">
-            <label><Clock size={14} /> {t('nueva_hora_para', { nombre: cita.pacienteNombre })}</label>
-            {horas.length === 0 ? (
-              <div className="reajuste-modal__slots-empty">
-                <AlertCircle size={16} />
-                <span>{t('sin_horarios_disp_celda')}</span>
+          <label className="ajuste-hora-modal__label">{t('elegir_hora')}</label>
+          <div className="ajuste-hora-modal__minutos">
+            {MINUTOS.map((m) => {
+              const conflicto = hayConflicto(m);
+              const clase = m === minuto
+                ? (conflicto ? 'ajuste-hora-modal__minuto--active-conflicto' : 'ajuste-hora-modal__minuto--active')
+                : (conflicto ? 'ajuste-hora-modal__minuto--conflicto' : '');
+              return (
+                <button
+                  key={m}
+                  className={`ajuste-hora-modal__minuto ${clase}`}
+                  onClick={() => setMinuto(m)}
+                >
+                  {horaMostrarMin(parseInt(horaBase, 10) * 60 + m, fecha)}
+                </button>
+              );
+            })}
+          </div>
+          <div className="ajuste-hora-modal__preview">
+            <span>{horaMostrar(horaFinal, fecha)} · {duracion} {t('min')}</span>
+          </div>
+
+          {conflictoMinimo && (
+            <div className="ajuste-hora-modal__conflictos">
+              <div className="ajuste-hora-modal__conflictos-title">
+                <AlertTriangle size={15} /> {t('conflicto_cita', { count: conflictos.length })}
               </div>
-            ) : (
-              <select value={horaSeleccionada} onChange={e => setHoraSeleccionada(e.target.value)}>
-                {horas.map(h => (
-                  <option key={h} value={h}>{h}</option>
+              {conflictos.map((c) => (
+                <div key={c.id} className="ajuste-hora-modal__conflicto">
+                  <span>{c.pacienteNombre}</span>
+                  <span>{rangoHoras(c.hora, c.duracionMinutos, c.fecha)}</span>
+                </div>
+              ))}
+              <label className="ajuste-hora-modal__label">{t('horarios_libres')}</label>
+              <div className="ajuste-hora-modal__libres">
+                {horariosLibres.length === 0 ? (
+                  <span className="ajuste-hora-modal__sin-libres">{t('sin_horarios_disp_celda')}</span>
+                ) : horariosLibres.map((m) => (
+                  <button
+                    key={m}
+                    className={`ajuste-hora-modal__libre ${m === minuto ? 'ajuste-hora-modal__libre--active' : ''}`}
+                    onClick={() => setMinuto(m)}
+                  >
+                    {horaMostrarMin(parseInt(horaBase, 10) * 60 + m, fecha)}
+                  </button>
                 ))}
-              </select>
-            )}
-          </div>
-          <div className="reajuste-modal__preview">
-            <span>{horaSeleccionada} - {horaFinStr} ({duracion} min)</span>
-          </div>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="ajuste-hora-modal__error"><AlertCircle size={15} /> {error}</div>
+          )}
         </div>
-        <div className="reajuste-modal__footer">
-          <button className="btn btn--ghost" onClick={onCancel}>{t('cancel')}</button>
-          <button
-            className="btn btn--primary"
-            onClick={() => onConfirm(horaSeleccionada)}
-            disabled={horas.length === 0}
-          >
-            {t('confirmar_horario')}
-          </button>
+        <div className="ajuste-hora-modal__footer">
+          <button className="btn btn--ghost" onClick={onCancel}>{t('cancelar')}</button>
+          <button className="btn btn--primary" disabled={conflictoMinimo} onClick={() => onConfirm(minuto)}>{t('confirmar')}</button>
         </div>
       </div>
     </div>
   );
 }
 
+// --- Ajuste de hora del movimiento (unificado: prevé conflictos y ofrece horarios libres) ---
 // --- Main AgendaPage ---
 export default function AgendaPage() {
   const { t } = useTranslation('agenda');
   const { user } = useAuth();
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [ajusteHoraError, setAjusteHoraError] = useState('');
   const [view, setView] = useState('semanal');
   const [currentDate, setCurrentDate] = useState(() => {
-    const s = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-    return new Date(s.getFullYear(), s.getMonth(), s.getDate());
+    const s = getLADateString().split('-').map(Number);
+    return new Date(s[0], s[1] - 1, s[2], 12, 0, 0);
   });
   const [citas, setCitas] = useState([]);
   const [slots, setSlots] = useState([]);
@@ -636,7 +654,7 @@ export default function AgendaPage() {
   const [selectedCita, setSelectedCita] = useState(null);
   const [activeCita, setActiveCita] = useState(null);
   const [resizeCita, setResizeCita] = useState(null);
-  const [reajusteData, setReajusteData] = useState(null);
+  const [ajusteHora, setAjusteHora] = useState(null);
   const [showScheduler, setShowScheduler] = useState(false);
   const [schedulerPaciente, setSchedulerPaciente] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -691,13 +709,13 @@ export default function AgendaPage() {
       if (slotsResult.status === 'fulfilled') {
         const slotsData = slotsResult.value;
         if (slotsData?.timeout) {
-          setError(t('timeout_slots'));
+          toast('error', t('timeout_slots'));
           setWeekSlots([]);
         } else if (slotsData?.success) {
           setWeekSlots(slotsData.data || []);
         }
       }
-    } catch { setError(t('error_agenda')); }
+    } catch { toast('error', t('error_agenda')); }
     finally { setLoading(false); }
   }, [weekDays, weekStart, weekEnd, user?.id, t]);
 
@@ -730,8 +748,8 @@ export default function AgendaPage() {
   const goToPrevDay = () => { const d = new Date(currentDate); d.setDate(d.getDate() - 1); setCurrentDate(d); };
   const goToNextDay = () => { const d = new Date(currentDate); d.setDate(d.getDate() + 1); setCurrentDate(d); };
   const goToToday = () => {
-    const s = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-    setCurrentDate(new Date(s.getFullYear(), s.getMonth(), s.getDate()));
+    const s = getLADateString().split('-').map(Number);
+    setCurrentDate(new Date(s[0], s[1] - 1, s[2], 12, 0, 0));
   };
 
   const scrollToHour = useCallback((hour) => {
@@ -774,20 +792,32 @@ export default function AgendaPage() {
     if (!over || !active.data?.current?.cita) return;
     const cita = active.data.current.cita;
     const [_, newDateKey, newHour] = over.id.split('::');
-    const newHora = `${String(newHour).padStart(2, '0')}:00`;
+    const horaBase = String(newHour).padStart(2, '0');
+    const newHora = `${horaBase}:00`;
     if (cita.fecha === newDateKey && cita.hora === newHora) return;
 
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-    const today = now.toISOString().split('T')[0];
-    if (newDateKey < today) { setError(t('fecha_pasada_label')); return; }
+    const today = getLADateString();
+    if (newDateKey < today) { toast('error', t('fecha_pasada_label')); return; }
+
+    setAjusteHoraError('');
+    setAjusteHora({ cita, nuevaFecha: newDateKey, horaBase });
+  };
+
+  const handleAjusteConfirm = async (minuto) => {
+    if (!ajusteHora) return;
+    const { cita, nuevaFecha, horaBase } = ajusteHora;
+    const nuevaHora = `${horaBase}:${String(minuto).padStart(2, '0')}`;
+
+    const today = getLADateString();
+    if (nuevaFecha < today) { setAjusteHoraError(t('fecha_pasada_label')); return; }
 
     const duracion = cita.duracionMinutos || 30;
-    const newStartMin = parseTime(newHora);
+    const newStartMin = parseTime(nuevaHora);
     const newEndMin = newStartMin + duracion;
 
     const conflictos = citas.filter(c => {
       if (c.id === cita.id) return false;
-      if (c.fecha !== newDateKey) return false;
+      if (c.fecha !== nuevaFecha) return false;
       if (c.estado === 'cancelada') return false;
       const cStart = parseTime(c.hora);
       const cEnd = cStart + (c.duracionMinutos || 30);
@@ -795,19 +825,22 @@ export default function AgendaPage() {
     });
 
     if (conflictos.length > 0) {
-      setReajusteData({ cita, nuevaFecha: newDateKey, nuevaHora: newHora, conflictos });
+      setAjusteHoraError(t('conflicto_existe'));
       return;
     }
 
     try {
       await agendaService.updateCita(cita.id, {
         pacienteId: cita.pacienteId, usuarioId: cita.usuarioId,
-        fecha: newDateKey, hora: newHora + ':00',
+        fecha: nuevaFecha, hora: nuevaHora + ':00',
         duracionMinutos: duracion, motivo: cita.motivo || t('reprogramada'),
         tipoCitaId: cita.tipoCitaId, prioridad: cita.prioridad, notas: cita.notas,
       });
+      setAjusteHora(null);
+      setAjusteHoraError('');
+      toast('success', t('cita_movida'));
       loadWeek();
-    } catch { setError(t('error_mover')); }
+    } catch { setAjusteHoraError(t('error_mover')); }
   };
 
   const handleResizeCita = async (cita, nuevaDuracion) => {
@@ -824,35 +857,8 @@ export default function AgendaPage() {
         notas: cita.notas,
       });
       loadWeek();
-    } catch { setError(t('error_duracion')); }
-  };
-
-  const handleReajusteConfirm = async (nuevaHora) => {
-    if (!reajusteData) return;
-    const { cita, nuevaFecha } = reajusteData;
-
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-    const today = now.toISOString().split('T')[0];
-    if (nuevaFecha < today) {
-      setError(t('fecha_pasada_label'));
-      return;
-    }
-
-    try {
-      await agendaService.updateCita(cita.id, {
-        pacienteId: cita.pacienteId,
-        usuarioId: cita.usuarioId,
-        fecha: nuevaFecha,
-        hora: nuevaHora + ':00',
-        duracionMinutos: cita.duracionMinutos || 30,
-        motivo: cita.motivo || t('reprogramada'),
-        tipoCitaId: cita.tipoCitaId,
-        prioridad: cita.prioridad,
-        notas: cita.notas,
-      });
-      setReajusteData(null);
-      loadWeek();
-    } catch { setError(t('error_reprogramar')); }
+      toast('success', t('duracion_actualizada'));
+    } catch { toast('error', t('error_duracion')); }
   };
 
   const handleCitaClick = (cita) => {
@@ -911,7 +917,8 @@ export default function AgendaPage() {
               <button className="agenda-nav__btn" onClick={view === 'semanal' ? goToNextWeek : goToNextDay}><ChevronRight size={18} /></button>
               <QuickFilters onFilter={(f) => {
                 if (f.id === 'hoy') { goToToday(); return; }
-                const d = new Date();
+                const s = getLADateString().split('-').map(Number);
+                const d = new Date(s[0], s[1] - 1, s[2], 12, 0, 0);
                 setView('diaria');
                 setCurrentDate(d);
                 setTimeout(() => scrollToHour(f.hour), 100);
@@ -938,7 +945,7 @@ export default function AgendaPage() {
       <div className="agenda-page__main">
         <div className="agenda-page__content">
         {/* Config Tab */}
-        {view === 'config' && <ConfigTab agendaId={agendaData?.id} usuarioId={user?.id} />}
+        {view === 'config' && <ConfigTab agendaId={agendaData?.id} usuarioId={user?.id} onSaved={loadWeek} />}
 
         {/* Weekly View with Drag & Drop */}
         {view === 'semanal' && (
@@ -980,7 +987,7 @@ export default function AgendaPage() {
                             </div>
                           )}
                           {layouted.map((cita, idx) => (
-                            <DraggableCita key={cita.id} cita={cita} index={idx} canDrag={primaryRole === 'doctora'}>
+                            <DraggableCita key={cita.id} cita={cita} index={idx} canDrag={primaryRole === 'doctora' && !['no_show', 'cancelada', 'completada', 'reprogramada'].includes(cita.estado)}>
                               <CitaPopover cita={cita} col={cita._col || 0} numCols={cita._numCols || 1}>
                                 <CitaBlock
                                   cita={cita}
@@ -1006,7 +1013,7 @@ export default function AgendaPage() {
             <DragOverlay>
               {activeCita ? (
                 <div className="agenda-week__cita agenda-week__cita--dragging" style={{ backgroundColor: getCitaBg(activeCita.estado), borderLeft: `3px solid ${getCitaColor(activeCita.estado)}`, width: '120px', height: '30px', opacity: 0.9, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-                  <span className="agenda-week__cita-time">{formatTime(activeCita.hora)}</span>
+                  <span className="agenda-week__cita-time">{formatTime(activeCita.hora, activeCita.fecha)}</span>
                   <span className="agenda-week__cita-name">{activeCita.pacienteNombre}</span>
                 </div>
               ) : null}
@@ -1027,7 +1034,7 @@ export default function AgendaPage() {
 
                 return (
                   <div key={slot.minutos} className="agenda-day__slot">
-                    <div className="agenda-day__slot-time">{slot.hora}</div>
+                    <div className="agenda-day__slot-time">{horaMostrar(slot.hora, formatDateKey(currentDate))}</div>
                     <div className="agenda-day__slot-content">
                       {slotData && !slotCita && (
                         <div className="agenda-day__slot-bg" style={{ backgroundColor: getSlotBg(slotData.estado), border: getSlotBorder(slotData.estado) }}>
@@ -1042,7 +1049,7 @@ export default function AgendaPage() {
                           onClick={() => handleCitaClick(slotCita)}
                         >
                           <div className="agenda-day__cita-header">
-                            <span className="agenda-day__cita-time">{formatTime(slotCita.hora)}</span>
+                            <span className="agenda-day__cita-time">{formatTime(slotCita.hora, slotCita.fecha)}</span>
                             <span className="agenda-day__cita-estado" style={{ color: getCitaColor(slotCita.estado), backgroundColor: getCitaBg(slotCita.estado) }}>{getEstadoLabel(slotCita.estado, t)}</span>
                           </div>
                           <div className="agenda-day__cita-body">
@@ -1076,16 +1083,17 @@ export default function AgendaPage() {
         />
       )}
 
-      {/* Reajuste Modal - when drag creates conflict */}
-      {reajusteData && (
-        <ReajusteModal
-          cita={reajusteData.cita}
-          conflictos={reajusteData.conflictos}
-          fecha={reajusteData.nuevaFecha}
-          horaActual={reajusteData.nuevaHora}
+      {/* Ajuste de hora al mover cita (unificado: prevé conflicto y lista horarios libres) */}
+      {ajusteHora && (
+        <AjusteHoraModal
+          cita={ajusteHora.cita}
+          fecha={ajusteHora.nuevaFecha}
+          horaBase={ajusteHora.horaBase}
+          duracion={ajusteHora.cita.duracionMinutos || 30}
           todasLasCitas={citas}
-          onConfirm={handleReajusteConfirm}
-          onCancel={() => setReajusteData(null)}
+          error={ajusteHoraError}
+          onConfirm={handleAjusteConfirm}
+          onCancel={() => { setAjusteHora(null); setAjusteHoraError(''); }}
         />
       )}
 

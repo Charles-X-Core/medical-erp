@@ -28,6 +28,20 @@ export const evidenciaService = {
     });
   },
 
+  async uploadTratamiento(tratamientoId, tipo, descripcion, files) {
+    const formData = new FormData();
+    formData.append('tipo', tipo);
+    if (descripcion) formData.append('descripcion', descripcion);
+    for (const file of files) {
+      formData.append('files', file);
+    }
+    return apiClient(`/api/v1/evidencias/tratamiento/${tratamientoId}`, {
+      method: 'POST',
+      body: formData,
+      isFormData: true,
+    });
+  },
+
   async sendToPatient(evidenciaId, asunto, mensaje) {
     return apiClient(`/api/v1/evidencias/${evidenciaId}/enviar-paciente`, {
       method: 'POST',
@@ -36,10 +50,10 @@ export const evidenciaService = {
   },
 
   getFileUrl(fileName) {
-    return `/api/v1/evidencias/file/${encodeURIComponent(fileName)}`;
+    return `/api/v1/evidencias/file/${fileName}`;
   },
 
   getDownloadUrl(fileName) {
-    return `/api/v1/evidencias/download/${encodeURIComponent(fileName)}`;
+    return `/api/v1/evidencias/download/${fileName}`;
   },
 };

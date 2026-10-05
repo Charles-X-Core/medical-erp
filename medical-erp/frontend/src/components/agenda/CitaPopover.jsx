@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, User, FileText, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { rangoHoras } from '../../utils/zonaHoraria';
 
 const ESTADO_KEYS = {
   solicitada: 'estado_solicitada', pendiente: 'estado_pendiente', programada: 'estado_programada',
@@ -39,14 +40,8 @@ function formatFechaDisplay(fechaStr, t) {
   return `${d} de ${t(MONTH_KEYS[m - 1], { ns: 'agenda' })}`;
 }
 
-function formatTimeRange(hora, duracionMinutos) {
-  if (!hora) return '';
-  const start = hora.substring(0, 5);
-  const [h, m] = hora.split(':').map(Number);
-  const endMin = h * 60 + m + (duracionMinutos || 30);
-  const endH = Math.floor(endMin / 60);
-  const endM = endMin % 60;
-  return `${start} - ${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+function formatTimeRange(hora, duracionMinutos, fecha) {
+  return rangoHoras(hora, duracionMinutos || 30, fecha);
 }
 
 export default function CitaPopover({ cita, children, col = 0, numCols = 1 }) {
@@ -131,7 +126,7 @@ export default function CitaPopover({ cita, children, col = 0, numCols = 1 }) {
           <div className="cita-popover__details">
             <div className="cita-popover__row">
               <Clock size={13} />
-              <span>{formatFechaDisplay(cita.fecha, t)} &middot; {formatTimeRange(cita.hora, cita.duracionMinutos)}</span>
+              <span>{formatFechaDisplay(cita.fecha, t)} &middot; {formatTimeRange(cita.hora, cita.duracionMinutos, cita.fecha)}</span>
             </div>
             {cita.tipoCitaNombre && (
               <div className="cita-popover__row">

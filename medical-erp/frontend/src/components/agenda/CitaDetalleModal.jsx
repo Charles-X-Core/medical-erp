@@ -6,6 +6,8 @@ import agendaService from '../../services/agendaService';
 import { getCitaEstado } from '../../utils/citaEstados';
 import { useAuth } from '../../hooks/useAuth';
 import { getPrimaryRole } from '../../utils/roleUtils';
+import { parseLADateTime, nowLA } from '../../utils/laTimezone';
+import { horaMostrar, horaMostrarMin, rangoHoras } from '../../utils/zonaHoraria';
 import ConfirmModal from '../ConfirmModal';
 
 const DURACIONES = [15, 20, 30, 45, 60, 90, 120];
@@ -48,8 +50,8 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
       setExtending(false);
 
       if (cita.estado === 'en_atencion' && cita.inicioAtencion) {
-        const inicio = new Date(cita.inicioAtencion).getTime();
-        const now = Date.now();
+        const inicio = parseLADateTime(cita.inicioAtencion).getTime();
+        const now = nowLA().getTime();
         const elapsed = Math.max(0, Math.floor((now - inicio) / 1000));
         setElapsedSeconds(elapsed);
         startTimerFromElapsed(elapsed);
@@ -233,11 +235,10 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
   if (!cita) return null;
 
   const estado = getCitaEstado(cita.estado);
-  const horaInicio = cita.hora?.substring(0, 5) || '—';
-  const h = parseInt(horaInicio.split(':')[0], 10);
-  const m = parseInt(horaInicio.split(':')[1], 10);
-  const finMin = h * 60 + duracion;
-  const horaFin = `${String(Math.floor(finMin / 60)).padStart(2, '0')}:${String(finMin % 60).padStart(2, '0')}`;
+  const horaInicio = (horaMostrar(cita.hora, cita.fecha) || '').substring(0, 5) || '—';
+  const [hRaw, mRaw] = String(cita.hora || '').split(':').map(Number);
+  const finMin = (Number.isFinite(hRaw) ? hRaw : 0) * 60 + (Number.isFinite(mRaw) ? mRaw : 0) + duracion;
+  const horaFin = horaMostrarMin(finMin, cita.fecha);
 
   const isEnAtencion = cita.estado === 'en_atencion';
   const isConfirmada = cita.estado === 'confirmada';
@@ -258,10 +259,10 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
     const finMinutes = h * 60 + mi + duracion + 30;
     const finH = Math.floor(finMinutes / 60);
     const finM = finMinutes % 60;
-    const nowLA = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    const nowLADate = nowLA();
     const [y, mo, d] = cita.fecha.split('-').map(Number);
     const finCita = new Date(y, mo - 1, d, finH, finM);
-    return nowLA > finCita;
+    return nowLADate > finCita;
   })();
   const canMarkNoShow = !isFinal && !isNoShow;
   const canUnmarkNoShow = isNoShow && !noShowLocked;
@@ -430,7 +431,7 @@ export default function CitaDetalleModal({ cita, onClose, onRefresh }) {
                 <p>{t('extender_afecta', { duration: duracion })}</p>
                 {extensionInfo.citasAfectadas?.map((c) => (
                   <p key={c.citaId} className="cita-detalle-modal__conflict-detail">
-                    {c.pacienteNombre} ({c.horaInicio} - {c.horaFin})
+                    {c.pacienteNombre} ({rangoHoras(c.horaInicio, c.duracionMinutos || 30, cita.fecha)})
                   </p>
                 ))}
               </div>

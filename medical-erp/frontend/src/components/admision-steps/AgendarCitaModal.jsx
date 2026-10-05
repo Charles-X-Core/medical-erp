@@ -3,6 +3,7 @@ import { X, Calendar, Clock, User, FileText, CheckCircle, AlertCircle, Loader2, 
 import { useTranslation } from 'react-i18next';
 import agendaService from '../../services/agendaService';
 import { getLADateString } from '../../utils/laTimezone';
+import { horaMostrar, horaMostrarMin } from '../../utils/zonaHoraria';
 
 function extractList(data) {
   if (!data) return [];
@@ -63,6 +64,21 @@ function formatDiaLargo(date) {
   return `${DIAS_CORTOS[(date.getDay() + 6) % 7]} ${date.getDate()} de ${MESES[date.getMonth()]}`;
 }
 
+// Agrupa los slots por hora para mostrarlos como una grilla de chips ordenada.
+function agruparPorHora(slots) {
+  const grupos = [];
+  const mapa = new Map();
+  for (const slot of slots) {
+    const hora = normalizeTime(slot.inicio).substring(0, 2);
+    if (!mapa.has(hora)) {
+      mapa.set(hora, []);
+      grupos.push(hora);
+    }
+    mapa.get(hora).push(slot);
+  }
+  return grupos.map(hora => ({ hora, slots: mapa.get(hora) }));
+}
+
 export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCreada }) {
   const { t } = useTranslation('agenda');
   const { t: tPatients } = useTranslation('patients');
@@ -85,13 +101,18 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
   const [error, setError] = useState('');
   const [exito, setExito] = useState(false);
 
-  const weekDates = getWeekDates(new Date(Date.now() + weekOffset * 7 * 24 * 60 * 60 * 1000));
+  const weekDates = getWeekDates((() => {
+    const s = getLADateString().split('-').map(Number);
+    return new Date(s[0], s[1] - 1, s[2] + weekOffset * 7, 12, 0, 0);
+  })());
 
   const tipoSeleccionado = useMemo(() => {
     return tiposCita.find(tipo => tipo.id?.toString() === tipoCitaId?.toString()) || null;
   }, [tiposCita, tipoCitaId]);
 
   const duracion = tipoSeleccionado?.duracionMinutos || 30;
+  // Grilla de inicios de turno cada 5 min (independiente de la duración de la cita).
+  const paso = 5;
 
   useEffect(() => {
     if (isOpen) {
@@ -177,9 +198,9 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
     if (!doctoraId || !fechaStr) return;
     setLoadingDay(true);
     try {
-      const res = await agendaService.getDisponibilidadDia(doctoraId, fechaStr, duracion, true);
+      const res = await agendaService.getDisponibilidadDia(doctoraId, fechaStr, duracion, true, paso);
       const allSlots = extractList(res);
-      console.log('[AgendarCita] Day API:', { fechaStr, doctoraId, duracion, totalSlots: allSlots.length });
+      console.log('[AgendarCita] Day API:', { fechaStr, doctoraId, duracion, paso, totalSlots: allSlots.length });
       setSlotsPorDia(prev => ({ ...prev, [fechaStr]: allSlots }));
     } catch (err) {
       console.error('[AgendarCita] Error:', err);
@@ -187,7 +208,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
     } finally {
       setLoadingDay(false);
     }
-  }, [doctoraId, duracion]);
+  }, [doctoraId, duracion, paso]);
 
   const slotsDelDia = useMemo(() => {
     if (!diaSeleccionado) return [];
@@ -248,7 +269,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
             <div className="agendar-v2__exito">
               <CheckCircle size={48} />
               <h4>{t('cita_agendada_correctamente')}</h4>
-              <p>{fullName} — {diaSeleccionado} {slotSeleccionado ? `${t('a_las')} ${normalizeTime(slotSeleccionado.inicio)}` : ''}</p>
+              <p>{fullName} — {diaSeleccionado} {slotSeleccionado ? `${t('a_las')} ${horaMostrar(normalizeTime(slotSeleccionado.inicio), slotSeleccionado.fecha || diaSeleccionado)}` : ''}</p>
             </div>
           ) : (
             <>
@@ -303,7 +324,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
 
                 <div className="agendar-v2__dias">
                   {weekDates.map((d, i) => {
-                    const fechaStr = d.toISOString().split('T')[0];
+                    const fechaStr = d.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
                     const slots = slotsPorDia[fechaStr];
                     const loaded = slots !== undefined;
                     const disponibles = loaded ? slots.filter(s => !isPastSlot(fechaStr, s.inicio)).length : 0;
@@ -355,32 +376,33 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
                     </div>
                   ) : (
                     <div className="agendar-v2__slots">
-                      {slotsDelDia.map((slot, i) => {
-                        const estado = slot.estado;
-                        const esDisponible = estado === 'DISPONIBLE';
-                        const esSeleccionado = slotSeleccionado?.inicio === slot.inicio && slotSeleccionado?.fecha === slot.fecha;
-                        const inicio = normalizeTime(slot.inicio);
-                        const fin = normalizeTime(slot.fin);
-                        const esPasado = isPastSlot(diaSeleccionado, slot.inicio);
-                        const deshabilitado = !esDisponible || esPasado;
-                        return (
-                          <button
-                            key={i}
-                            className={`agendar-v2__slot agendar-v2__slot--${estado.toLowerCase()} ${esSeleccionado ? 'agendar-v2__slot--selected' : ''} ${esPasado ? 'agendar-v2__slot--pasado' : ''}`}
-                            disabled={deshabilitado}
-                            onClick={() => !deshabilitado && setSlotSeleccionado(slot)}
-                            style={deshabilitado ? { pointerEvents: 'none' } : undefined}
-                          >
-                            <span className="agendar-v2__slot-hora">{inicio} — {fin}</span>
-                            <span className="agendar-v2__slot-estado">
-                              {esDisponible ? t('disponible') :
-                               estado === 'OCUPADO' ? t('ocupado_descripcion', { descripcion: slot.descripcion || '' }) :
-                               estado === 'BLOQUEADO' ? t('bloqueado_descripcion', { descripcion: slot.descripcion || '' }) :
-                               estado === 'EN_BUFFER' ? t('preparacion') : t('no_disponible')}
-                            </span>
-                          </button>
-                        );
-                      })}
+                      {agruparPorHora(slotsDelDia).map(({ hora, slots }) => (
+                        <div key={hora} className="agendar-v2__hora-grupo">
+                          <span className="agendar-v2__hora-titulo">{horaMostrarMin(parseInt(hora, 10) * 60, diaSeleccionado)}</span>
+                          <div className="agendar-v2__hora-chips">
+                            {slots.map((slot, i) => {
+                              const estado = slot.estado;
+                              const esDisponible = estado === 'DISPONIBLE';
+                              const esSeleccionado = slotSeleccionado?.inicio === slot.inicio && slotSeleccionado?.fecha === slot.fecha;
+                              const inicio = normalizeTime(slot.inicio);
+                              const esPasado = isPastSlot(diaSeleccionado, slot.inicio);
+                              const deshabilitado = !esDisponible || esPasado;
+                              return (
+                                <button
+                                  key={i}
+                                  className={`agendar-v2__slot agendar-v2__slot--${estado.toLowerCase()} ${esSeleccionado ? 'agendar-v2__slot--selected' : ''} ${esPasado ? 'agendar-v2__slot--pasado' : ''}`}
+                                  disabled={deshabilitado}
+                                  onClick={() => !deshabilitado && setSlotSeleccionado(slot)}
+                                  style={deshabilitado ? { pointerEvents: 'none' } : undefined}
+                                  title={`${horaMostrar(inicio, slot.fecha || diaSeleccionado)} — ${horaMostrar(normalizeTime(slot.fin), slot.fecha || diaSeleccionado)}`}
+                                >
+                                  <span className="agendar-v2__slot-hora">{horaMostrar(inicio, slot.fecha || diaSeleccionado)}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -414,7 +436,7 @@ export default function AgendarCitaModal({ isOpen, onClose, paciente, onCitaCrea
                     <span>·</span>
                     <span>{formatDiaLargo(new Date(diaSeleccionado + 'T12:00:00'))}</span>
                     <span>·</span>
-                    <span>{normalizeTime(slotSeleccionado.inicio)}</span>
+                    <span>{horaMostrar(slotSeleccionado.inicio, slotSeleccionado.fecha || diaSeleccionado)}</span>
                   </div>
                   <div className="agendar-v2__resumen-linea agendar-v2__resumen-linea--sub">
                     {doctoraName} · {duracion} {t('minutos')}

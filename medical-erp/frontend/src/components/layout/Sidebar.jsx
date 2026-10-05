@@ -14,7 +14,9 @@ import {
   X,
   Database,
   Globe,
+  Clock,
 } from 'lucide-react';
+import { useZona, setZona } from '../../utils/zonaHoraria';
 
 export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
   const { user, logout } = useAuth();
@@ -48,6 +50,9 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
     const newLang = i18n.language === 'en' ? 'es' : 'en';
     i18n.changeLanguage(newLang);
   };
+
+  const zona = useZona();
+  const toggleZona = () => setZona(zona === 'CA' ? 'PE' : 'CA');
 
   const currentLang = i18n.language?.startsWith('es') ? 'es' : 'en';
 
@@ -84,6 +89,18 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
       </div>
 
       <div className="sidebar__footer">
+        {!collapsed && (
+          <button
+            className="sidebar__tz-toggle"
+            onClick={toggleZona}
+            title={zona === 'PE' ? t('zona_ca') : t('zona_pe')}
+            aria-label={zona === 'PE' ? t('zona_ca') : t('zona_pe')}
+            aria-pressed={zona === 'PE'}
+          >
+            <Clock size={16} />
+            <span>{zona === 'PE' ? 'PE' : 'CA'}</span>
+          </button>
+        )}
         {!collapsed && (
           <button
             className="sidebar__lang-toggle"

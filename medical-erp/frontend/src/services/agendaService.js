@@ -5,6 +5,10 @@ const agendaService = {
     return apiClient('/api/v1/citas/hoy');
   },
 
+  async getCitaById(id) {
+    return apiClient(`/api/v1/citas/${id}`);
+  },
+
   async getCitasProximas() {
     return apiClient('/api/v1/citas/proximas');
   },
@@ -23,7 +27,7 @@ const agendaService = {
     const fechaFin = new Date(fin);
 
     while (fecha <= fechaFin) {
-      const fechaKey = fecha.toISOString().split('T')[0];
+      const fechaKey = fecha.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
       promises.push(
         apiClient(`/api/v1/citas?fecha=${fechaKey}`).catch(() => ({
           success: false,
@@ -41,15 +45,17 @@ const agendaService = {
     return { success: true, data: allCitas };
   },
 
-  async getSlots(usuarioId, fecha, duracion = 30) {
+  async getSlots(usuarioId, fecha, duracion = 30, paso = 0) {
+    const pasoParam = paso && paso > 0 ? `&paso=${paso}` : '';
     return apiClient(
-      `/api/v1/agenda/${usuarioId}/disponibilidad?fecha=${fecha}&duracion=${duracion}`
+      `/api/v1/agenda/${usuarioId}/disponibilidad?fecha=${fecha}&duracion=${duracion}${pasoParam}`
     );
   },
 
-  async getDisponibilidad(fecha, doctoraId, duracion = 30) {
-    if (!doctoraId) return apiClient(`/api/v1/agenda/disponibilidad?fecha=${fecha}&duracion=${duracion}`);
-    return apiClient(`/api/v1/agenda/${doctoraId}/disponibilidad?fecha=${fecha}&duracion=${duracion}`);
+  async getDisponibilidad(fecha, doctoraId, duracion = 30, paso = 0) {
+    const pasoParam = paso && paso > 0 ? `&paso=${paso}` : '';
+    if (!doctoraId) return apiClient(`/api/v1/agenda/disponibilidad?fecha=${fecha}&duracion=${duracion}${pasoParam}`);
+    return apiClient(`/api/v1/agenda/${doctoraId}/disponibilidad?fecha=${fecha}&duracion=${duracion}${pasoParam}`);
   },
 
   // --- Agenda CRUD ---
@@ -93,7 +99,7 @@ const agendaService = {
 
   // --- Citas ---
 
-  async crearCita({ pacienteId, usuarioId, fecha, hora, duracionMinutos, tipoCitaId, motivo, notas, prioridad }) {
+  async crearCita({ pacienteId, usuarioId, fecha, hora, duracionMinutos, tipoCitaId, tratamientoId, sesionId, motivo, notas, prioridad }) {
     const payload = {
       pacienteId,
       usuarioId,
@@ -101,13 +107,26 @@ const agendaService = {
       hora,
       duracionMinutos: duracionMinutos || 30,
       tipoCitaId: tipoCitaId || undefined,
-      motivo: motivo || 'Consulta',
+      tratamientoId: tratamientoId || undefined,
+      sesionId: sesionId || undefined,
+      // Si es cita de tratamiento, dejar que el backend autocomplete el motivo
+      // (nombre completo del tratamiento + n° de sesión). Si no, usar el motivo o 'Consulta'.
+      motivo: tratamientoId ? (motivo || undefined) : (motivo || 'Consulta'),
       notas: notas || undefined,
       prioridad: prioridad || 'NORMAL',
     };
     return apiClient('/api/v1/citas', {
       method: 'POST',
       body: JSON.stringify(payload),
+    });
+  },
+
+  // Cita walk-in: inicia atención sin cita previa (backend la crea en "en_atencion").
+  async crearWalkIn(pacienteId, motivo) {
+    const params = new URLSearchParams({ pacienteId: String(pacienteId) });
+    if (motivo) params.set('motivo', motivo);
+    return apiClient('/api/v1/citas/walk-in?' + params.toString(), {
+      method: 'POST',
     });
   },
 
@@ -150,12 +169,13 @@ const agendaService = {
   },
 
   // Disponibilidad semanal (con timeout de 20s)
-  getDisponibilidadSemana: async (usuarioId, inicio, fin, duracion = 30, soloDisponibles = false) => {
+  getDisponibilidadSemana: async (usuarioId, inicio, fin, duracion = 30, soloDisponibles = false, paso = 0) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
     try {
+      const pasoParam = paso && paso > 0 ? `&paso=${paso}` : '';
       const response = await apiClient(
-        `/api/v1/agenda/${usuarioId}/disponibilidad-semana?inicio=${inicio}&fin=${fin}&duracion=${duracion}&soloDisponibles=${soloDisponibles}`,
+        `/api/v1/agenda/${usuarioId}/disponibilidad-semana?inicio=${inicio}&fin=${fin}&duracion=${duracion}&soloDisponibles=${soloDisponibles}${pasoParam}`,
         { signal: controller.signal }
       );
       return response;
@@ -172,12 +192,13 @@ const agendaService = {
   },
 
   // Disponibilidad por día (con timeout de 15s)
-  getDisponibilidadDia: async (usuarioId, fecha, duracion = 30, soloDisponibles = true) => {
+  getDisponibilidadDia: async (usuarioId, fecha, duracion = 30, soloDisponibles = true, paso = 0) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
     try {
+      const pasoParam = paso && paso > 0 ? `&paso=${paso}` : '';
       const response = await apiClient(
-        `/api/v1/agenda/${usuarioId}/disponibilidad?fecha=${fecha}&duracion=${duracion}&soloDisponibles=${soloDisponibles}`,
+        `/api/v1/agenda/${usuarioId}/disponibilidad?fecha=${fecha}&duracion=${duracion}&soloDisponibles=${soloDisponibles}${pasoParam}`,
         { signal: controller.signal }
       );
       return response;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Loader2, User, FileText, Activity, Shield, Image, Clock, Calendar } from 'lucide-react';
+import { Loader2, User, FileText, Activity, Shield, Image, Clock, Calendar, Pill } from 'lucide-react';
 import { pacienteService } from '../services/pacienteService';
 import { historiaClinicaService } from '../services/historiaClinicaService';
 import PacienteFormModal from '../components/paciente360/PacienteFormModal';
@@ -13,6 +13,7 @@ import TabClinico from '../components/paciente360/TabClinico';
 import TabTratamientos from '../components/paciente360/TabTratamientos';
 import TabConsentimientos from '../components/paciente360/TabConsentimientos';
 import TabArchivos from '../components/paciente360/TabArchivos';
+import TabRecetas from '../components/paciente360/TabRecetas';
 import TabTimeline from '../components/paciente360/TabTimeline';
 import CitaSchedulerModal from '../components/agenda/CitaSchedulerModal';
 
@@ -30,12 +31,13 @@ export default function Paciente360Page() {
   const [showScheduler, setShowScheduler] = useState(false);
 
   const TABS = [
-    { id: 'general', label: t('workspace_attention'), icon: User },
-    { id: 'clinico', label: t('workspace_history'), icon: FileText },
-    { id: 'tratamientos', label: t('workspace_treatments'), icon: Activity },
-    { id: 'consentimientos', label: 'Consentimientos', icon: Shield },
-    { id: 'archivos', label: 'Archivos Clínicos', icon: Image },
-    { id: 'timeline', label: 'Timeline', icon: Clock },
+    { id: 'general', label: t('tab_resumen'), icon: User },
+    { id: 'clinico', label: t('tab_historia_clinica'), icon: FileText },
+    { id: 'tratamientos', label: t('tab_tratamientos'), icon: Activity },
+    { id: 'recetas', label: t('tab_recetas', 'Recetario'), icon: Pill },
+    { id: 'consentimientos', label: t('tab_consentimientos'), icon: Shield },
+    { id: 'archivos', label: t('tab_archivos_clinicos'), icon: Image },
+    { id: 'timeline', label: t('tab_timeline'), icon: Clock },
   ];
 
   const load = useCallback(async () => {
@@ -88,9 +90,10 @@ export default function Paciente360Page() {
       <div className="workspace__body">
         <WorkspaceTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
         <div className="workspace__content">
-          {activeTab === 'general' && <ResumenTab paciente={paciente} historia={historia} pacienteId={id} />}
+          {activeTab === 'general' && <ResumenTab paciente={paciente} historia={historia} pacienteId={id} onPacienteUpdated={setPaciente} />}
           {activeTab === 'clinico' && <TabClinico pacienteId={id} historiaId={historia?.id} />}
           {activeTab === 'tratamientos' && <TabTratamientos pacienteId={id} historiaId={historia?.id} />}
+          {activeTab === 'recetas' && <TabRecetas pacienteId={id} />}
           {activeTab === 'consentimientos' && <TabConsentimientos pacienteId={id} />}
           {activeTab === 'archivos' && <TabArchivos pacienteId={id} />}
           {activeTab === 'timeline' && <TabTimeline pacienteId={id} />}

@@ -14,11 +14,18 @@ import AgendaPage from './pages/AgendaPage';
 import CentroDatosPage from './pages/CentroDatosPage';
 import FirmaPage from './pages/FirmaPage';
 import ContratoPWA from './pages/ContratoPWA';
+import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import SessionTimerProvider from './context/SessionTimerProvider';
+import { useZona } from './utils/zonaHoraria';
 
 function App() {
+  // Al alternar CA/PE la raíz se re-renderiza y toda la app repinta las horas
+  useZona();
+
   return (
-    <Routes>
+    <SessionTimerProvider>
+      <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/otp" element={<OtpPage />} />
 
@@ -57,7 +64,11 @@ function App() {
       <Route path="/dashboard" element={<Navigate to="/inicio" replace />} />
       <Route path="/recepcion" element={<Navigate to="/admision" replace />} />
       <Route path="/" element={<Navigate to="/inicio" replace />} />
-    </Routes>
+
+      {/* 404 catch-all */}
+      <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </SessionTimerProvider>
   );
 }
 

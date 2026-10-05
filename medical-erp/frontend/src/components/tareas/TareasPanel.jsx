@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardList, CheckCircle, Clock, AlertCircle, User, ChevronRight } from 'lucide-react';
 import { tareaService } from '../../services/tareaService';
+import { parseLADateTime } from '../../utils/laTimezone';
+import { zonaIANA } from '../../utils/zonaHoraria';
 
 const TIPO_LABELS = {
   BUSCAR_CITA: { label: 'Buscar Cita', color: '#3B82F6' },
@@ -68,7 +70,7 @@ export default function TareasPanel({ rol = 'doctora' }) {
                   </span>
                   <span className="tareas-panel__card-time">
                     <Clock size={12} />
-                    {new Date(t.createdAt).toLocaleString('es-PE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
+                    {(parseLADateTime(t.createdAt) || new Date(t.createdAt)).toLocaleString('es-PE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', timeZone: zonaIANA() })}
                   </span>
                 </div>
                 <h4 className="tareas-panel__card-title">{t.titulo}</h4>

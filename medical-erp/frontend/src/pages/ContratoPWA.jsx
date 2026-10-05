@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { contratoPwaService } from '../services/contratoPwaService';
 import HtmlDocViewer from '../components/common/HtmlDocViewer';
-import { FileText, Send, CheckCircle, AlertTriangle, RotateCcw, LogOut, Clock, Download, X, Smartphone, ChevronDown } from 'lucide-react';
+import { FileText, Send, CheckCircle, AlertTriangle, RotateCcw, LogOut, Clock, Download, X, Smartphone, ChevronDown, ExternalLink } from 'lucide-react';
+import { zonaIANA } from '../utils/zonaHoraria';
 
 const POLL_INTERVAL = 3000;
 
@@ -241,9 +242,11 @@ export default function ContratoPWA() {
         {renderInstallBanner()}
         <div className="contrato-pwa__login">
           <div className="contrato-pwa__login-header">
-            <FileText size={48} className="contrato-pwa__icon" />
-            <h1>{t('instalarContrato')}</h1>
-            <p>{t('kioscoFirma')}</p>
+            <div className="contrato-pwa__logo-circle">
+              <img src="/logo.ico" alt="Logo" className="contrato-pwa__logo" />
+            </div>
+            <h1>{t('ohNowTitle', 'Optimal Health NOW')}</h1>
+            <p>{t('contract_signing', 'Contract Signing')}</p>
           </div>
           <form onSubmit={handleLogin} className="contrato-pwa__login-form">
             {error && <div className="contrato-pwa__error"><AlertTriangle size={16} /> {error}</div>}
@@ -259,6 +262,12 @@ export default function ContratoPWA() {
               <Send size={18} /> {t('iniciar_kiosco')}
             </button>
           </form>
+          <div className="contrato-pwa__login-footer">
+            <a href="https://erp.myoptimalhealthnow.com/login" className="contrato-pwa__erp-link">
+              <ExternalLink size={14} />
+              {t('goToErp', 'Sign In to ERP')}
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -330,7 +339,7 @@ export default function ContratoPWA() {
           <h2>{t('contract_firma_completada')}</h2>
           <p>{t('contract_exito_text')}</p>
           <span className="contrato-pwa__exito-time">
-            <Clock size={14} /> {new Date().toLocaleString('es-PE')}
+            <Clock size={14} /> {new Date().toLocaleString('es-PE', { timeZone: zonaIANA() })}
           </span>
         </div>
       </div>

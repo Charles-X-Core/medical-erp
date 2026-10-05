@@ -1,6 +1,10 @@
 import { Trash2, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function DiagnosticoForm({ diagnosticos = [], onChange }) {
+  const { t } = useTranslation('clinical');
+  const { t: tPatients } = useTranslation('patients');
+
   const handleAdd = () => {
     onChange([...diagnosticos, { codigo: '', descripcion: '', principal: false }]);
   };
@@ -17,38 +21,40 @@ export default function DiagnosticoForm({ diagnosticos = [], onChange }) {
   return (
     <div className="form-section">
       <div className="form-section__header">
-        <h3 className="form-section__title">Diagnósticos</h3>
+        <h3 className="form-section__title">{t('diagnostico')}</h3>
         <button type="button" className="btn btn--secondary btn--sm" onClick={handleAdd}>
-          <Plus size={16} /> Agregar diagnóstico
+          <Plus size={16} /> {tPatients('agregar_diagnostico')}
         </button>
       </div>
 
-      {diagnosticos.length === 0 && <p className="form-section__empty">No hay diagnósticos registrados</p>}
+      {diagnosticos.length === 0 && <p className="form-section__empty">{tPatients('sin_diagnosticos')}</p>}
 
       {diagnosticos.map((diag, index) => (
         <div key={index} className="form-row form-row--bordered">
           <div className="form-field form-field--small">
-            <label className="form-label">Código (CIE-10)</label>
+            <label className="form-label">CIE-10</label>
             <input
               type="text"
-              className="form-input"
+              className="form-input form-input--lg"
+              placeholder="e.g. M54.5"
               value={diag.codigo || ''}
               onChange={(e) => handleChange(index, 'codigo', e.target.value)}
             />
           </div>
 
           <div className="form-field">
-            <label className="form-label">Descripción</label>
+            <label className="form-label">{t('diagnostico')}</label>
             <input
               type="text"
-              className="form-input"
+              className="form-input form-input--lg"
+              placeholder={t('diagnostico_placeholder')}
               value={diag.descripcion || ''}
               onChange={(e) => handleChange(index, 'descripcion', e.target.value)}
             />
           </div>
 
           <div className="form-field form-field--checkbox">
-            <label className="form-label">Principal</label>
+            <label className="form-label">{tPatients('principal')}</label>
             <input
               type="checkbox"
               checked={diag.principal || false}

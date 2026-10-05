@@ -1,10 +1,11 @@
 import { Calendar, Send, Eye, Home, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { formatNombre } from '../../utils/fullName';
 
 export default function PanelAccionesPostAdmision({ paciente, onAgendarCita, onEnviarContrato, onVerPaciente, onVolver }) {
   const { t } = useTranslation('patients');
   const { t: tCommon } = useTranslation('common');
-  const fullName = `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`.trim();
+  const fullName = formatNombre(paciente);
 
   return (
     <div className="post-admision">

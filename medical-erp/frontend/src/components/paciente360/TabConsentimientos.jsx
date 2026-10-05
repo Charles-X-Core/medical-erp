@@ -5,19 +5,20 @@ import {
   Eye, Send
 } from 'lucide-react';
 import { pacienteConsentimientoService } from '../../services/pacienteSubServices';
+import { zonaIANA } from '../../utils/zonaHoraria';
 import { pacienteService } from '../../services/pacienteService';
 import EnviarConsentimientoModal from './EnviarConsentimientoModal';
+import { formatLADate, parseLADateTime } from '../../utils/laTimezone';
 
 function formatFecha(dateStr) {
   if (!dateStr) return '—';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  return formatLADate(dateStr, 'es-ES');
 }
 
 function formatFechaHora(dateStr) {
   if (!dateStr) return '—';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const d = parseLADateTime(dateStr) || new Date(dateStr);
+    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: zonaIANA() });
 }
 
 export default function TabConsentimientos({ pacienteId }) {

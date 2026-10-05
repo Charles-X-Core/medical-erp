@@ -1,12 +1,33 @@
 import apiClient from './apiClient';
 
 export const recetaService = {
-  async listByPaciente(pacienteId, params = {}) {
-    const query = new URLSearchParams(params).toString();
-    try {
-      return await apiClient(`/api/v1/recetas/paciente/${pacienteId}${query ? `?${query}` : ''}`);
-    } catch {
-      return { success: false, data: [] };
-    }
+  async create(data) {
+    return apiClient('/api/v1/recetas', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getByPaciente(pacienteId) {
+    return apiClient(`/api/v1/recetas/paciente/${pacienteId}`);
+  },
+
+  async getBySesion(sesionId) {
+    return apiClient(`/api/v1/recetas/sesion/${sesionId}`);
+  },
+
+  async getByTratamiento(tratamientoId) {
+    return apiClient(`/api/v1/recetas/tratamiento/${tratamientoId}`);
+  },
+
+  getPdfUrl(recetaId) {
+    return `/api/v1/recetas/${recetaId}/pdf`;
+  },
+
+  async enviarPorEmail(recetaId, asunto, mensaje) {
+    return apiClient(`/api/v1/recetas/${recetaId}/enviar`, {
+      method: 'POST',
+      body: JSON.stringify({ asunto, mensaje }),
+    });
   },
 };

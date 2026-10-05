@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, FileText, Loader2, Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { historiaClinicaService } from '../services/historiaClinicaService';
 import { consultasService } from '../services/consultasService';
+import { formatNombre } from '../utils/fullName';
 import { pacienteService } from '../services/pacienteService';
 
 export default function HistoriaClinicaPage() {
@@ -122,7 +123,7 @@ export default function HistoriaClinicaPage() {
         <div>
           <h2 className="historia-clinica-page__title">{t('historia_clinica_title')}</h2>
           <p className="historia-clinica-page__subtitle">
-            {paciente ? `${paciente.apellidoPaterno} ${paciente.apellidoMaterno || ''}, ${paciente.nombres}` : ''}
+            {paciente ? formatNombre(paciente) : ''}
           </p>
         </div>
       </div>

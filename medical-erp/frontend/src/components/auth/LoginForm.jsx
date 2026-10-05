@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../services/authService';
-import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle, ExternalLink } from 'lucide-react';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -43,8 +43,10 @@ export default function LoginForm() {
   return (
     <div className="auth-form__wrapper">
       <div className="auth-form__brand">
-        <img src="/logo.ico" alt="Logo" className="auth-form__logo" />
-        <h2 className="auth-form__title">{t('login_title')}</h2>
+        <div className="auth-form__logo-circle">
+          <img src="/logo.ico" alt="Logo" className="auth-form__logo" />
+        </div>
+        <h1 className="auth-form__title">{t('login_title')}</h1>
         <p className="auth-form__subtitle">{t('login_subtitle')}</p>
       </div>
 
@@ -105,6 +107,18 @@ export default function LoginForm() {
           )}
         </button>
       </form>
+
+      <div className="auth-form__footer">
+        <a
+          href="https://erp.myoptimalhealthnow.com/contrato"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="auth-form__contract-link"
+        >
+          <ExternalLink size={14} />
+          {t('view_contract')}
+        </a>
+      </div>
     </div>
   );
 }

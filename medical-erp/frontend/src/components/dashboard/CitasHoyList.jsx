@@ -46,7 +46,7 @@ export default function CitasHoyList({ citas, loading }) {
               >
                 <div className="citas-hoy__time">
                   <Clock size={14} />
-                  {formatHora(cita.hora)}
+                  {formatHora(cita.hora, cita.fecha)}
                 </div>
                 <div className="citas-hoy__info">
                   <span className="citas-hoy__name">{formatNombre(cita.pacienteNombre)}</span>
@@ -64,7 +64,7 @@ export default function CitasHoyList({ citas, loading }) {
                 )}
                 <button
                   className="citas-hoy__open"
-                  title={isTooEarly ? t('time_at', { time: formatHora(cita.hora) }) : t('open_client')}
+                  title={isTooEarly ? t('time_at', { time: formatHora(cita.hora, cita.fecha) }) : t('open_client')}
                   onClick={() => navigate(isTooEarly ? '/agenda' : `/pacientes/${cita.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={18} />

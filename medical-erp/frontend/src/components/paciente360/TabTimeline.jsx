@@ -6,21 +6,25 @@ import {
 import { consultasService } from '../../services/consultasService';
 import { tratamientoService } from '../../services/tratamientoService';
 import { pacienteConsentimientoService } from '../../services/pacienteSubServices';
+import { formatCurrency } from '../../utils/currency';
 import agendaService from '../../services/agendaService';
-import { recetaService } from '../../services/recetaService';
+import { parseLADateTime, formatLADate, getLADateString } from '../../utils/laTimezone';
+
+function toLAInstant(fecha) {
+  const str = String(fecha || '');
+  if (!str) return null;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})[T ]/.test(str) ? str : `${str}T12:00:00`;
+  return parseLADateTime(iso);
+}
 
 function formatFecha(fecha) {
   if (!fecha) return '';
-  return new Date(fecha).toLocaleDateString('es-ES', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
+  return formatLADate(fecha, 'es-ES');
 }
 
 function formatFechaCorta(fecha) {
-  if (! fecha) return '';
-  return new Date(fecha).toLocaleDateString('es-ES', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
+  if (!fecha) return '';
+  return formatLADate(fecha, 'es-ES');
 }
 
 export default function TabTimeline({ pacienteId }) {
@@ -42,7 +46,8 @@ export default function TabTimeline({ pacienteId }) {
   function getRelativeTime(fecha) {
     if (!fecha) return '';
     const now = new Date();
-    const date = new Date(fecha);
+    const date = toLAInstant(fecha);
+    if (!date) return formatFechaCorta(fecha);
     const diffMs = now - date;
     const diffMin = Math.floor(diffMs / 60000);
     const diffHrs = Math.floor(diffMs / 3600000);
@@ -62,9 +67,10 @@ export default function TabTimeline({ pacienteId }) {
 
   function getDateGroup(fecha) {
     if (!fecha) return t('sin_fecha');
-    const now = new Date();
-    const date = new Date(fecha);
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const date = toLAInstant(fecha);
+    if (!date) return t('sin_fecha');
+    const laNow = new Date(parseLADateTime(getLADateString() + 'T12:00:00'));
+    const today = new Date(laNow.getFullYear(), laNow.getMonth(), laNow.getDate());
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     const weekAgo = new Date(today);
@@ -96,7 +102,7 @@ export default function TabTimeline({ pacienteId }) {
   function getTratamientoDetail(tr) {
     const parts = [];
     if (tr.procedimientoRealizado) parts.push(tr.procedimientoRealizado);
-    if (tr.costoTotal > 0) parts.push(`$${tr.costoTotal.toFixed(2)}`);
+    if (tr.costoTotal > 0) parts.push(formatCurrency(tr.costoTotal));
     if (tr.estado) parts.push(tr.estado.replace('_', ' ').toLowerCase());
     return parts.join(' · ') || t('tratamiento_creado');
   }
@@ -129,13 +135,12 @@ export default function TabTimeline({ pacienteId }) {
   const loadTimeline = async () => {
     try {
       setLoading(true);
-      const [consultasRes, tratamientosRes, consentRes, citasRes, recetasRes] =
+      const [consultasRes, tratamientosRes, consentRes, citasRes] =
         await Promise.allSettled([
           pacienteId ? consultasService.getByPaciente(pacienteId) : Promise.resolve({ success: false }),
           pacienteId ? tratamientoService.listByPaciente(pacienteId) : Promise.resolve({ success: false }),
           pacienteId ? pacienteConsentimientoService.list(pacienteId) : Promise.resolve({ success: false }),
           pacienteId ? agendaService.getCitasPorPaciente(pacienteId) : Promise.resolve({ success: false }),
-          pacienteId ? recetaService.listByPaciente(pacienteId) : Promise.resolve({ success: false }),
         ]);
 
       const all = [];
@@ -209,22 +214,6 @@ export default function TabTimeline({ pacienteId }) {
             label: t('buscar_cita'),
             detail: parts.join(' · ') || t('consulta_registrada'),
             badge,
-          });
-        });
-      }
-
-      if (recetasRes.status === 'fulfilled' && recetasRes.value?.data) {
-        const list = Array.isArray(recetasRes.value.data)
-          ? recetasRes.value.data
-          : [];
-        list.forEach((r) => {
-          all.push({
-            id: `receta-${r.id}`,
-            type: 'receta',
-            fecha: r.createdAt,
-            label: t('recetas_medicas'),
-            detail: r.medicamentos || r.indicaciones || t('indicaciones'),
-            badge: null,
           });
         });
       }

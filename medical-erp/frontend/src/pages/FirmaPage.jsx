@@ -2,6 +2,8 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FileText, Send, CheckCircle, AlertTriangle, RotateCcw } from 'lucide-react';
+import SignaturePad from 'signature_pad';
+import { zonaIANA } from '../utils/zonaHoraria';
 
 export default function FirmaPage() {
   const { t } = useTranslation('contracts');
@@ -10,7 +12,7 @@ export default function FirmaPage() {
   const token = searchParams.get('token');
 
   const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const signaturePadRef = useRef(null);
   const [hasSignature, setHasSignature] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -19,52 +21,26 @@ export default function FirmaPage() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * 2;
     canvas.height = rect.height * 2;
+    const ctx = canvas.getContext('2d');
     ctx.scale(2, 2);
-    ctx.strokeStyle = '#1A2332';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+
+    const pad = new SignaturePad(canvas, {
+      backgroundColor: 'rgba(255, 255, 255, 0)',
+      penColor: '#1A2332',
+      minWidth: 0.5,
+      maxWidth: 2.5,
+      velocityFilterWeight: 0.7,
+    });
+    signaturePadRef.current = pad;
+
+    pad.addEventListener('beginStroke', () => setHasSignature(true));
   }, []);
-
-  const getPos = (e) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - rect.left, y: clientY - rect.top };
-  };
-
-  const startDraw = useCallback((e) => {
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const pos = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    setIsDrawing(true);
-  }, []);
-
-  const draw = useCallback((e) => {
-    if (!isDrawing) return;
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const pos = getPos(e);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    setHasSignature(true);
-  }, [isDrawing]);
-
-  const stopDraw = useCallback(() => { setIsDrawing(false); }, []);
 
   const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    signaturePadRef.current?.clear();
     setHasSignature(false);
   };
 
@@ -119,7 +95,7 @@ export default function FirmaPage() {
           <CheckCircle size={64} />
           <h2>{t('firmaRegistrada')}</h2>
           <p>{t('firma_exito_text')}</p>
-          <span className="firma-page__timestamp">{new Date().toLocaleString('es-PE')}</span>
+          <span className="firma-page__timestamp">{new Date().toLocaleString('es-PE', { timeZone: zonaIANA() })}</span>
         </div>
       </div>
     );
@@ -142,13 +118,6 @@ export default function FirmaPage() {
           <canvas
             ref={canvasRef}
             className="firma-page__canvas"
-            onMouseDown={startDraw}
-            onMouseMove={draw}
-            onMouseUp={stopDraw}
-            onMouseLeave={stopDraw}
-            onTouchStart={startDraw}
-            onTouchMove={draw}
-            onTouchEnd={stopDraw}
           />
           <span className="firma-page__canvas-label">{t('firme_aqui')}</span>
         </div>

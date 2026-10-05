@@ -1,17 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Scale, Ruler } from 'lucide-react';
 import { pacienteService } from '../services/pacienteService';
 import { historiaClinicaService } from '../services/historiaClinicaService';
 import AntecedentesEditor from '../components/ui/AntecedentesEditor';
+import { useUnitSystem } from '../context/UnitContext';
+import { pesoAUS, tallaAUS, LBS_TO_KG, IN_TO_CM } from '../utils/units';
 
 const emptyPaciente = {
-  apellidoPaterno: '', apellidoMaterno: '', nombres: '', licenciaConducir: '',
+  apellidoPaterno: '', nombres: '', licenciaConducir: '',
   telefono: '', email: '', fechaNacimiento: '', sexo: '', estadoCivil: '',
-  direccion: '', lugarNacimiento: '', lugarProcedencia: '', gradoInstruccion: '',
+  direccionLinea1: '', ciudad: '', estadoProvincia: '', codigoPostal: '', direccionPais: 'US',
+  lugarNacimiento: '', lugarProcedencia: '', gradoInstruccion: '',
   ocupacion: '', nombreAcompanante: '', contactoEmergencia: '', telefonoEmergencia: '',
-  parentescoEmergencia: '', estatura: '', ciudadEstado: '',
+  parentescoEmergencia: '', estatura: '', peso: '',
 };
 
 export default function PacienteFormPage() {
@@ -27,6 +30,24 @@ export default function PacienteFormPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Peso y estatura se guardan en métrico (kg / cm).
+  const { system: unitSystem, toggle: toggleUnitSystem } = useUnitSystem();
+  const isUS = unitSystem === 'us';
+
+  const changePeso = (v) => {
+    if (v === '') { setPaciente(p => ({ ...p, peso: '' })); return; }
+    const n = parseFloat(v);
+    if (Number.isNaN(n)) return;
+    setPaciente(p => ({ ...p, peso: isUS ? parseFloat((n * LBS_TO_KG).toFixed(1)) : n }));
+  };
+
+  const changeEstatura = (v) => {
+    if (v === '') { setPaciente(p => ({ ...p, estatura: '' })); return; }
+    const n = parseFloat(v);
+    if (Number.isNaN(n)) return;
+    setPaciente(p => ({ ...p, estatura: isUS ? Math.round(n * IN_TO_CM) : n }));
+  };
+
   const loadPaciente = useCallback(async () => {
     if (!id) return;
     try {
@@ -35,15 +56,19 @@ export default function PacienteFormPage() {
       if (res.success) {
         const p = res.data;
         setPaciente({
-          apellidoPaterno: p.apellidoPaterno || '', apellidoMaterno: p.apellidoMaterno || '',
+          apellidoPaterno: p.apellidoPaterno || '',
           nombres: p.nombres || '', licenciaConducir: p.licenciaConducir || '',
           telefono: p.telefono || '', email: p.email || '', fechaNacimiento: p.fechaNacimiento || '',
-          sexo: p.sexo || '', estadoCivil: p.estadoCivil || '', direccion: p.direccion || '',
+          sexo: p.sexo || '', estadoCivil: p.estadoCivil || '',
+          direccionLinea1: p.direccionLinea1 || '', ciudad: p.ciudad || '',
+          estadoProvincia: p.estadoProvincia || '', codigoPostal: p.codigoPostal || '',
+          direccionPais: p.direccionPais || 'US',
           lugarNacimiento: p.lugarNacimiento || '', lugarProcedencia: p.lugarProcedencia || '',
           gradoInstruccion: p.gradoInstruccion || '', ocupacion: p.ocupacion || '',
           nombreAcompanante: p.nombreAcompanante || '', contactoEmergencia: p.contactoEmergencia || '',
-          telefonoEmergencia: p.telefonoEmergencia || '', parentescoEmergencia: p.parentescoEmergencia || '',
-          estatura: p.estatura || '', ciudadEstado: p.ciudadEstado || '',
+          telefonoEmergencia: p.telefonoEmergencia || '',           parentescoEmergencia: p.parentescoEmergencia || '',
+          estatura: p.estatura ?? '',
+          peso: p.peso ?? '',
         });
         try {
           const hRes = await historiaClinicaService.getByPaciente(id);
@@ -81,7 +106,7 @@ export default function PacienteFormPage() {
     e.preventDefault();
     setSaving(true); setError('');
     if (!paciente.apellidoPaterno?.trim() || !paciente.nombres?.trim()) {
-      setError(t('last_name_p') + ' y ' + t('first_names') + ' son obligatorios');
+      setError(t('last_name') + ' y ' + t('first_names') + ' son obligatorios');
       setSaving(false); return;
     }
     if (!paciente.licenciaConducir?.trim()) {
@@ -93,7 +118,13 @@ export default function PacienteFormPage() {
       setSaving(false); return;
     }
     try {
-      const res = isEdit ? await pacienteService.update(id, paciente) : await pacienteService.create(paciente);
+      // El backend espera Double: vacío va como null, nunca como string.
+      const payload = {
+        ...paciente,
+        peso: paciente.peso === '' || paciente.peso === null ? null : parseFloat(paciente.peso),
+        estatura: paciente.estatura === '' || paciente.estatura === null ? null : parseFloat(paciente.estatura),
+      };
+      const res = isEdit ? await pacienteService.update(id, payload) : await pacienteService.create(payload);
       if (res.success) {
         const pacienteCreado = res.data;
         const tieneAntecedentes = Object.values(antecedentesData).some(v => v && v !== 'No' && v !== '');
@@ -144,7 +175,7 @@ export default function PacienteFormPage() {
                 maxLength={8} placeholder={t('id_number_placeholder')} required />
             </div>
             <div className="form-field">
-              <label className="form-label">{t('last_name_p')} *</label>
+              <label className="form-label">{t('last_name')} *</label>
               <input className="form-input" value={paciente.apellidoPaterno} onChange={(e) => handleChange('apellidoPaterno', e.target.value)} required />
             </div>
             <div className="form-field">
@@ -174,9 +205,38 @@ export default function PacienteFormPage() {
                 <option value="Conviviente">{t('civil_conviviente')}</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        <div className="form-card">
+          <div className="form-section__header">
+            <h3 className="form-section__title">
+              {t('medidas')}
+              <span className="section-hint"> ({t('optional', { ns: 'common' })})</span>
+            </h3>
+            <div className="unit-toggle">
+              <button type="button" className={`unit-toggle__btn ${!isUS ? 'unit-toggle__btn--active' : ''}`}
+                onClick={() => isUS && toggleUnitSystem()}>Metric</button>
+              <button type="button" className={`unit-toggle__btn ${isUS ? 'unit-toggle__btn--active' : ''}`}
+                onClick={() => !isUS && toggleUnitSystem()}>US</button>
+            </div>
+          </div>
+          <div className="form-grid form-grid--2">
             <div className="form-field">
-              <label className="form-label">Estatura (cm)</label>
-              <input type="number" step="0.01" className="form-input" value={paciente.estatura || ''} onChange={(e) => handleChange('estatura', e.target.value ? parseFloat(e.target.value) : null)} />
+              <label className="form-label">
+                <Scale size={12} /> {t('peso')} ({isUS ? 'lbs' : 'kg'})
+              </label>
+              <input type="number" inputMode="decimal" step="0.1" min="0" className="form-input"
+                value={isUS ? pesoAUS(paciente.peso) : (paciente.peso ?? '')}
+                onChange={(e) => changePeso(e.target.value)} placeholder="—" />
+            </div>
+            <div className="form-field">
+              <label className="form-label">
+                <Ruler size={12} /> {t('estatura')} ({isUS ? 'in' : 'cm'})
+              </label>
+              <input type="number" inputMode="numeric" step="1" min="0" className="form-input"
+                value={isUS ? tallaAUS(paciente.estatura) : (paciente.estatura ?? '')}
+                onChange={(e) => changeEstatura(e.target.value)} placeholder="—" />
             </div>
           </div>
         </div>
@@ -192,13 +252,25 @@ export default function PacienteFormPage() {
               <label className="form-label">{t('email', { ns: 'common' })}</label>
               <input type="email" className="form-input" value={paciente.email} onChange={(e) => handleChange('email', e.target.value)} />
             </div>
-            <div className="form-field">
-              <label className="form-label">Ciudad / Estado</label>
-              <input className="form-input" value={paciente.ciudadEstado || ''} onChange={(e) => handleChange('ciudadEstado', e.target.value)} />
+            <div className="form-field form-field--full">
+              <label className="form-label">{t('street')}</label>
+              <input className="form-input" value={paciente.direccionLinea1 || ''} onChange={(e) => handleChange('direccionLinea1', e.target.value)} />
             </div>
             <div className="form-field">
-              <label className="form-label">{t('address', { ns: 'common' })}</label>
-              <input className="form-input" value={paciente.direccion} onChange={(e) => handleChange('direccion', e.target.value)} />
+              <label className="form-label">{t('city')}</label>
+              <input className="form-input" value={paciente.ciudad || ''} onChange={(e) => handleChange('ciudad', e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">{t('state')}</label>
+              <input className="form-input" value={paciente.estadoProvincia || ''} onChange={(e) => handleChange('estadoProvincia', e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">{t('zip_code')}</label>
+              <input className="form-input" value={paciente.codigoPostal || ''} onChange={(e) => handleChange('codigoPostal', e.target.value)} />
+            </div>
+            <div className="form-field">
+              <label className="form-label">{t('country')}</label>
+              <input className="form-input" value={paciente.direccionPais || 'US'} onChange={(e) => handleChange('direccionPais', e.target.value)} />
             </div>
             <div className="form-field">
               <label className="form-label">Lugar de Nacimiento</label>

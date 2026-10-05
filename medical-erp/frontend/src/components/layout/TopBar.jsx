@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, X, FileText, Phone, Bell, Calendar } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { pacienteService } from '../../services/pacienteService';
+import { formatNombre } from '../../utils/fullName';
 
 function extractList(data) {
   if (!data) return [];
@@ -110,7 +111,7 @@ export default function TopBar() {
           {results.length > 0 ? (
             <div className="topbar__results">
               {results.map((p) => {
-                const fullName = `${p.apellidoPaterno || ''} ${p.apellidoMaterno || ''}, ${p.nombres || ''}`.trim();
+                const fullName = formatNombre(p);
                 const initials = `${(p.apellidoPaterno || '?')[0]}${(p.nombres || '?')[0]}`;
                 return (
                   <button

@@ -4,6 +4,7 @@ import { Folder, FolderOpen, Image, Download, Mail, Eye, ChevronDown, ChevronRig
 import { evidenciaService } from '../../services/evidenciaService';
 import { pacienteService } from '../../services/pacienteService';
 import EnviarEvidenciaModal from './EnviarEvidenciaModal';
+import ImageViewer from '../ui/ImageViewer';
 
 export default function TabArchivos({ pacienteId }) {
   const { t } = useTranslation('patients');
@@ -104,7 +105,7 @@ export default function TabArchivos({ pacienteId }) {
                               {isSesionExpanded ? <FolderOpen size={16} /> : <Folder size={16} />}
                             </div>
                             <span className="folder-sesion__name">
-                              {t('sesion_numero', { number: sesion.numeroSesion })} — {sesion.fecha}
+                              {sesion.esTratamiento ? t('tratamiento_photos') : `${t('sesion_numero', { number: sesion.numeroSesion })} — ${sesion.fecha}`}
                             </span>
                             <span className="folder-sesion__count">
                               {sesion.evidencias?.length || 0} {t('fotos')}
@@ -164,29 +165,10 @@ export default function TabArchivos({ pacienteId }) {
 
       {/* Image Viewer */}
       {viewerImage && (
-        <div className="modal-overlay" onClick={() => setViewerImage(null)}>
-          <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{viewerImage.descripcion || t('evidencia')}</h3>
-              <button className="btn-close" onClick={() => setViewerImage(null)}>&times;</button>
-            </div>
-            <div className="modal-body">
-              <img
-                src={evidenciaService.getFileUrl(viewerImage.archivoRuta)}
-                alt={viewerImage.descripcion || ''}
-                style={{ width: '100%', borderRadius: '8px' }}
-              />
-              <div className="image-info">
-                <span><strong>{t('tipo')}:</strong> {viewerImage.tipo}</span>
-                <span><strong>{t('fecha')}:</strong> {viewerImage.createdAt}</span>
-                <span><strong>{t('archivo')}:</strong> {viewerImage.archivoNombre}</span>
-                {viewerImage.archivoTamano && (
-                  <span><strong>{t('tamano')}:</strong> {(viewerImage.archivoTamano / 1024).toFixed(1)} KB</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <ImageViewer
+          images={[{ url: evidenciaService.getFileUrl(viewerImage.archivoRuta), descripcion: viewerImage.descripcion }]}
+          onClose={() => setViewerImage(null)}
+        />
       )}
 
       {/* Send to Patient Modal */}

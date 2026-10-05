@@ -65,6 +65,33 @@ export default function InicioPage() {
     loadData();
   }, [loadData]);
 
+  // Refresh inmediato al volver a la pestaña / ventana (cambio de pestaña, minimize, back).
+  useEffect(() => {
+    const handleFocus = () => {
+      if (resumen) dashboardService.getPoll().then(poll => {
+        if (poll) {
+          setResumen(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              citasHoy: poll.citasHoyStats || prev.citasHoy,
+              citasHoyList: poll.citasHoy || prev.citasHoyList,
+              cola: poll.cola || prev.cola,
+              proximoPaciente: poll.proximoPaciente !== undefined ? poll.proximoPaciente : prev.proximoPaciente,
+            };
+          });
+        }
+      }).catch(() => {});
+    };
+    const handleVisibility = () => { if (document.visibilityState === 'visible') handleFocus(); };
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [resumen]);
+
   useEffect(() => {
     const interval = setInterval(async () => {
       try {

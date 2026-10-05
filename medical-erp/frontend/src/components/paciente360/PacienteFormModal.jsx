@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Loader2, ChevronRight, ChevronLeft, Check, Calendar } from 'lucide-react';
+import { X, Loader2, ChevronRight, ChevronLeft, Check, Calendar, Scale, Ruler } from 'lucide-react';
 import { pacienteService } from '../../services/pacienteService';
 import { historiaClinicaService } from '../../services/historiaClinicaService';
 import AntecedentesEditor from '../ui/AntecedentesEditor';
 import CitaSchedulerModal from '../agenda/CitaSchedulerModal';
+import { useUnitSystem } from '../../context/UnitContext';
+import { calcularIMC, pesoAUS, tallaAUS, LBS_TO_KG, IN_TO_CM } from '../../utils/units';
 
 const STEPS_NEW = [
   { labelKey: 'step_identificacion', icon: 'user' },
@@ -23,7 +25,6 @@ const STEPS_EDIT = [
 
 const emptyPaciente = {
   apellidoPaterno: '',
-  apellidoMaterno: '',
   nombres: '',
   licenciaConducir: '',
   telefono: '',
@@ -31,7 +32,11 @@ const emptyPaciente = {
   fechaNacimiento: '',
   sexo: '',
   estadoCivil: '',
-  direccion: '',
+  direccionLinea1: '',
+  ciudad: '',
+  estadoProvincia: '',
+  codigoPostal: '',
+  direccionPais: 'US',
   lugarNacimiento: '',
   lugarProcedencia: '',
   gradoInstruccion: '',
@@ -40,7 +45,8 @@ const emptyPaciente = {
   contactoEmergencia: '',
   telefonoEmergencia: '',
   parentescoEmergencia: '',
-  ciudadEstado: '',
+  peso: '',
+  estatura: '',
 };
 
 export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId = null }) {
@@ -57,6 +63,12 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
+
+  const { system: unitSystem, toggle: toggleUnitSystem } = useUnitSystem();
+  const isUS = unitSystem === 'us';
+  const imc = formData.peso !== '' && formData.estatura !== ''
+    ? calcularIMC(formData.peso, formData.estatura, 'metric')
+    : null;
 
   const [createdPacienteId, setCreatedPacienteId] = useState(null);
   const [showScheduler, setShowScheduler] = useState(false);
@@ -84,7 +96,6 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
         const p = res.data;
         setFormData({
           apellidoPaterno: p.apellidoPaterno || '',
-          apellidoMaterno: p.apellidoMaterno || '',
           nombres: p.nombres || '',
           licenciaConducir: p.licenciaConducir || '',
           telefono: p.telefono || '',
@@ -92,7 +103,11 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
           fechaNacimiento: p.fechaNacimiento || '',
           sexo: p.sexo || '',
           estadoCivil: p.estadoCivil || '',
-          direccion: p.direccion || '',
+          direccionLinea1: p.direccionLinea1 || '',
+          ciudad: p.ciudad || '',
+          estadoProvincia: p.estadoProvincia || '',
+          codigoPostal: p.codigoPostal || '',
+          direccionPais: p.direccionPais || 'US',
           lugarNacimiento: p.lugarNacimiento || '',
           lugarProcedencia: p.lugarProcedencia || '',
           gradoInstruccion: p.gradoInstruccion || '',
@@ -101,7 +116,8 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
           contactoEmergencia: p.contactoEmergencia || '',
           telefonoEmergencia: p.telefonoEmergencia || '',
           parentescoEmergencia: p.parentescoEmergencia || '',
-          ciudadEstado: p.ciudadEstado || '',
+          peso: p.peso ?? '',
+          estatura: p.estatura ?? '',
         });
 
         try {
@@ -138,6 +154,22 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Peso y estatura siempre se guardan en métrico (kg / cm). Si la doctora está
+  // en modo US se muestra en lbs / in y se convierte al escribir.
+  const handlePesoChange = (v) => {
+    if (v === '' || v === null || v === undefined) { setFormData(p => ({ ...p, peso: '' })); return; }
+    const n = parseFloat(v);
+    if (Number.isNaN(n)) return;
+    setFormData(p => ({ ...p, peso: isUS ? parseFloat((n * LBS_TO_KG).toFixed(1)) : n }));
+  };
+
+  const handleEstaturaChange = (v) => {
+    if (v === '' || v === null || v === undefined) { setFormData(p => ({ ...p, estatura: '' })); return; }
+    const n = parseFloat(v);
+    if (Number.isNaN(n)) return;
+    setFormData(p => ({ ...p, estatura: isUS ? Math.round(n * IN_TO_CM) : n }));
+  };
+
   const handleAntecedentesChange = (key, value) => {
     setAntecedentesData(prev => ({ ...prev, [key]: value }));
   };
@@ -149,11 +181,18 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
       if (!formData.apellidoPaterno?.trim()) { setError(t('last_name_required', { ns: 'patients' })); return false; }
       if (!formData.nombres?.trim()) { setError(t('names_required', { ns: 'patients' })); return false; }
     }
+    if (step === 1) {
+      if (formData.peso !== '' && !(parseFloat(formData.peso) > 0)) { setError(t('peso_invalido')); return false; }
+      if (formData.estatura !== '' && !(parseFloat(formData.estatura) > 0)) { setError(t('estatura_invalida')); return false; }
+    }
     return true;
   };
 
   const savePacienteData = async () => {
     const payload = { ...formData };
+    // El backend espera Double: vacío va como null, nunca como string.
+    payload.peso = formData.peso === '' || formData.peso === null ? null : parseFloat(formData.peso);
+    payload.estatura = formData.estatura === '' || formData.estatura === null ? null : parseFloat(formData.estatura);
     let result;
     if (isEdit) {
       result = await pacienteService.update(pacienteId, payload);
@@ -249,17 +288,24 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
         </div>
 
         <div className="wizard-stepper">
-          {steps.map((step, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
-              <div className={`wizard-step ${i === currentStep ? 'active' : ''} ${i < currentStep ? 'completed' : ''}`}>
-                <div className="wizard-step__circle">
-                  {i < currentStep ? <Check size={14} /> : i + 1}
+          {steps.map((step, i) => {
+            const canNavigate = i <= currentStep || i === currentStep + 1;
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
+                <div
+                  className={`wizard-step ${i === currentStep ? 'active' : ''} ${i < currentStep ? 'completed' : ''}`}
+                  onClick={() => canNavigate && setCurrentStep(i)}
+                  style={{ cursor: canNavigate ? 'pointer' : 'default', opacity: i > currentStep + 1 ? 0.45 : 1 }}
+                >
+                  <div className="wizard-step__circle">
+                    {i < currentStep ? <Check size={14} /> : i + 1}
+                  </div>
+                  <span className="wizard-step__label">{t(step.labelKey)}</span>
                 </div>
-                <span className="wizard-step__label">{t(step.labelKey)}</span>
+                {i < steps.length - 1 && <div className="wizard-step__connector" />}
               </div>
-              {i < steps.length - 1 && <div className="wizard-step__connector" />}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {error && <div className="wizard-error">{error}</div>}
@@ -280,8 +326,8 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
                     <input type="text" name="licenciaConducir" value={formData.licenciaConducir} onChange={handleInputChange} required maxLength={8} placeholder={t('id_number_placeholder')} />
                   </div>
                   <div className="wizard-field">
-                    <label>{t('last_name_p')} *</label>
-                    <input type="text" name="apellidoPaterno" value={formData.apellidoPaterno} onChange={handleInputChange} required placeholder={t('last_name_p')} />
+                    <label>{t('last_name')} *</label>
+                    <input type="text" name="apellidoPaterno" value={formData.apellidoPaterno} onChange={handleInputChange} required placeholder={t('last_name')} />
                   </div>
                   <div className="wizard-field wizard-field--full">
                     <label>{t('first_names')} *</label>
@@ -319,6 +365,57 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
                     </select>
                   </div>
                 </div>
+
+                {/* Peso y altura (opcionales). Se guardan en kg / cm. */}
+                <div className="wizard-form-section wizard-form-section--medidas">
+                  <h4>
+                    <span>{t('medidas')}</span>
+                    <span className="section-hint">({t('optional', { ns: 'common' })})</span>
+                    <span className="wizard-unit-toggle-spacer" />
+                    <span className="unit-toggle">
+                      <button
+                        type="button"
+                        className={`unit-toggle__btn ${!isUS ? 'unit-toggle__btn--active' : ''}`}
+                        onClick={() => isUS && toggleUnitSystem()}
+                      >Metric</button>
+                      <button
+                        type="button"
+                        className={`unit-toggle__btn ${isUS ? 'unit-toggle__btn--active' : ''}`}
+                        onClick={() => !isUS && toggleUnitSystem()}
+                      >US</button>
+                    </span>
+                  </h4>
+                  <div className="wizard-form-grid">
+                    <div className="wizard-field">
+                      <label><Scale size={12} /> {t('peso')} ({isUS ? 'lbs' : 'kg'})</label>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.1"
+                        min="0"
+                        value={isUS ? pesoAUS(formData.peso) : formData.peso}
+                        onChange={(e) => handlePesoChange(e.target.value)}
+                        placeholder="—"
+                      />
+                    </div>
+                    <div className="wizard-field">
+                      <label><Ruler size={12} /> {t('estatura')} ({isUS ? 'in' : 'cm'})</label>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        step="1"
+                        min="0"
+                        value={isUS ? tallaAUS(formData.estatura) : formData.estatura}
+                        onChange={(e) => handleEstaturaChange(e.target.value)}
+                        placeholder="—"
+                      />
+                    </div>
+                    <div className="wizard-field">
+                      <label>{t('imc')}</label>
+                      <div className="wizard-field--readonly">{imc || '—'}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -334,13 +431,25 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
                     <label>{t('email_placeholder')}</label>
                     <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder={t('email_placeholder')} />
                   </div>
-                  <div className="wizard-field">
-                    <label>{t('ciudad_estado')}</label>
-                    <input type="text" name="ciudadEstado" value={formData.ciudadEstado} onChange={handleInputChange} placeholder={t('ciudad_estado')} />
+                  <div className="wizard-field wizard-field--full">
+                    <label>{t('street')}</label>
+                    <input type="text" name="direccionLinea1" value={formData.direccionLinea1} onChange={handleInputChange} placeholder={t('street_placeholder')} />
                   </div>
                   <div className="wizard-field">
-                    <label>{t('address_placeholder')}</label>
-                    <input type="text" name="direccion" value={formData.direccion} onChange={handleInputChange} placeholder={t('address_placeholder')} />
+                    <label>{t('city')}</label>
+                    <input type="text" name="ciudad" value={formData.ciudad} onChange={handleInputChange} placeholder={t('city_placeholder')} />
+                  </div>
+                  <div className="wizard-field">
+                    <label>{t('state')}</label>
+                    <input type="text" name="estadoProvincia" value={formData.estadoProvincia} onChange={handleInputChange} placeholder={t('state_placeholder')} />
+                  </div>
+                  <div className="wizard-field">
+                    <label>{t('zip_code')}</label>
+                    <input type="text" name="codigoPostal" value={formData.codigoPostal} onChange={handleInputChange} placeholder={t('zip_placeholder')} />
+                  </div>
+                  <div className="wizard-field">
+                    <label>{t('country')}</label>
+                    <input type="text" name="direccionPais" value={formData.direccionPais} onChange={handleInputChange} placeholder="US" />
                   </div>
                   <div className="wizard-field">
                     <label>{t('lugar_nacimiento')}</label>
@@ -414,7 +523,7 @@ export default function PacienteFormModal({ isOpen, onClose, onSave, pacienteId 
                     onClick={() => setShowScheduler(true)}
                     style={{ gap: 8 }}
                   >
-                    <Calendar size={16} /> {t('seleccionar_cliente')}
+                    <Calendar size={16} /> {t('agendar_cita')}
                   </button>
                   <button
                     className="wizard-btn wizard-btn--save"

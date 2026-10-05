@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, Calendar } from 'lucide-react';
+import { zonaIANA } from '../../utils/zonaHoraria';
 
 const DAY_KEYS = ['day_sunday', 'day_monday', 'day_tuesday', 'day_wednesday', 'day_thursday', 'day_friday', 'day_saturday'];
 const MONTH_KEYS = ['month_enero', 'month_febrero', 'month_marzo', 'month_abril', 'month_mayo', 'month_junio', 'month_julio', 'month_agosto', 'month_septiembre', 'month_octubre', 'month_noviembre', 'month_diciembre'];
@@ -14,7 +15,7 @@ export default function RelojWidget() {
     return () => clearInterval(timer);
   }, []);
 
-  const laTime = new Date(hora.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const laTime = new Date(hora.toLocaleString('en-US', { timeZone: zonaIANA() }));
   const timeStr = laTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const parts = timeStr.split(':');
 

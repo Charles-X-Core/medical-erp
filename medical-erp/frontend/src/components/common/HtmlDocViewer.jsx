@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { FileText, Maximize2, Minimize2, CheckCircle } from 'lucide-react';
+import SignaturePad from 'signature_pad';
 
 function extractBodyHtml(fullHtml) {
   if (!fullHtml) return '';
@@ -26,6 +27,7 @@ const HtmlDocViewer = forwardRef(function HtmlDocViewer({
 }, ref) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  const signaturePadRef = useRef(null);
   const hasSignatureRef = useRef(false);
   const htmlRenderedRef = useRef(false);
   const onSignatureChangeRef = useRef(onSignatureChange);
@@ -45,9 +47,7 @@ const HtmlDocViewer = forwardRef(function HtmlDocViewer({
     hasSignature: () => hasSignatureRef.current,
     getSignatureDataUrl: () => canvasRef.current?.toDataURL('image/png'),
     clearSignature: () => {
-      if (!canvasRef.current) return;
-      const ctx = canvasRef.current.getContext('2d');
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      if (signaturePadRef.current) signaturePadRef.current.clear();
       hasSignatureRef.current = false;
       if (onSignatureChangeRef.current) onSignatureChangeRef.current(false);
     },
@@ -94,53 +94,28 @@ const HtmlDocViewer = forwardRef(function HtmlDocViewer({
     canvas.width = rect.width * 2;
     canvas.height = rect.height * 2;
     ctx.scale(2, 2);
-    ctx.strokeStyle = '#1A2332';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
 
-    // Drawing handlers
-    const getPos = (e) => {
-      const r = canvas.getBoundingClientRect();
-      const cx = e.touches ? e.touches[0].clientX : e.clientX;
-      const cy = e.touches ? e.touches[0].clientY : e.clientY;
-      return { x: cx - r.left, y: cy - r.top };
-    };
+    const signaturePad = new SignaturePad(canvas, {
+      backgroundColor: 'rgba(255, 255, 255, 0)',
+      penColor: '#1A2332',
+      minWidth: 0.5,
+      maxWidth: 2.5,
+      velocityFilterWeight: 0.7,
+    });
+    signaturePadRef.current = signaturePad;
 
-    let drawing = false;
-    const onDown = (e) => { e.preventDefault(); const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); drawing = true; };
-    const onMove = (e) => {
-      if (!drawing) return;
-      e.preventDefault();
-      const p = getPos(e);
-      ctx.lineTo(p.x, p.y);
-      ctx.stroke();
+    signaturePad.addEventListener('beginStroke', () => {
       if (!hasSignatureRef.current) {
         hasSignatureRef.current = true;
         if (onSignatureChangeRef.current) onSignatureChangeRef.current(true);
       }
-    };
-    const onUp = () => { drawing = false; };
-
-    canvas.addEventListener('mousedown', onDown);
-    canvas.addEventListener('mousemove', onMove);
-    canvas.addEventListener('mouseup', onUp);
-    canvas.addEventListener('mouseleave', onUp);
-    canvas.addEventListener('touchstart', onDown, { passive: false });
-    canvas.addEventListener('touchmove', onMove, { passive: false });
-    canvas.addEventListener('touchend', onUp);
+    });
 
     // Notify parent canvas is ready
     if (onSignatureReady) onSignatureReady(canvasRef);
 
     return () => {
-      canvas.removeEventListener('mousedown', onDown);
-      canvas.removeEventListener('mousemove', onMove);
-      canvas.removeEventListener('mouseup', onUp);
-      canvas.removeEventListener('mouseleave', onUp);
-      canvas.removeEventListener('touchstart', onDown);
-      canvas.removeEventListener('touchmove', onMove);
-      canvas.removeEventListener('touchend', onUp);
+      signaturePadRef.current = null;
     };
   }, [bodyHtml, enableSignature, onSignatureReady]);
 

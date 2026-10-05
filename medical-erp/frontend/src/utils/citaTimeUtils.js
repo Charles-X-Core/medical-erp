@@ -1,11 +1,12 @@
 import i18n from '../i18n';
+import { parseLADateTime } from './laTimezone';
 
 export function getAppointmentStatus(cita) {
   if (!cita?.hora || !cita?.fecha) return 'unknown';
   if (cita.estado === 'en_atencion') return 'active';
   if (cita.estado === 'completada') return 'completed';
   const now = new Date();
-  const appointmentStart = new Date(cita.fecha + 'T' + cita.hora);
+  const appointmentStart = parseLADateTime(cita.fecha + 'T' + cita.hora) || new Date(cita.fecha + 'T' + cita.hora);
   const appointmentEnd = new Date(appointmentStart);
   appointmentEnd.setMinutes(appointmentEnd.getMinutes() + (cita.duracionMinutos || 30));
   const diffMinutes = (appointmentStart - now) / 60000;

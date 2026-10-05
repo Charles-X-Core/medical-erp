@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Stethoscope } from 'lucide-react';
 import TopBar from './TopBar';
+import { formatNombre } from '../../utils/fullName';
 
 export default function ClinicalLayout({ children, paciente, titulo }) {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function ClinicalLayout({ children, paciente, titulo }) {
           <div className="clinical-layout__title-text">
             {paciente && (
               <span className="clinical-layout__patient-name">
-                {paciente.apellidoPaterno} {paciente.apellidoMaterno || ''}, {paciente.nombres}
+                {formatNombre(paciente)}
               </span>
             )}
             {titulo && (

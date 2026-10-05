@@ -1,18 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Pencil, Printer, Loader2, Stethoscope, Activity, FileText, ClipboardCheck, Heart, Thermometer, Wind, Eye } from 'lucide-react';
+import { formatLADate, parseLADateTime } from '../utils/laTimezone';
+import { zonaIANA, horaMostrar } from '../utils/zonaHoraria';
 import { useTranslation } from 'react-i18next';
 import { consultasService } from '../services/consultasService';
 import { getTreatmentLabel } from '../config/attentionTypes';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  const d = parseLADateTime(dateStr);
+  if (d) return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: zonaIANA() });
+  return formatLADate(dateStr);
 }
 
 function formatTime(dateStr) {
   if (!dateStr) return '';
-  return new Date(dateStr).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const d = parseLADateTime(dateStr);
+  if (d) return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: zonaIANA() });
+  return horaMostrar(String(dateStr).substring(11, 19), String(dateStr)).substring(0, 5);
 }
 
 function VitalSign({ label, value, unit, icon: Icon, normal, warning }) {

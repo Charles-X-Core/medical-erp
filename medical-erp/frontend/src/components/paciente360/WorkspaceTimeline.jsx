@@ -1,28 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { consultasService } from '../../services/consultasService';
 import { tratamientoService } from '../../services/tratamientoService';
 import { pacienteConsentimientoService } from '../../services/pacienteSubServices';
 import agendaService from '../../services/agendaService';
-import { recetaService } from '../../services/recetaService';
+import { parseLADateTime, formatLADate } from '../../utils/laTimezone';
+
+function toLAInstant(fecha) {
+  const str = String(fecha || '');
+  if (!str) return null;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})[T ]/.test(str) ? str : `${str}T12:00:00`;
+  return parseLADateTime(iso);
+}
 
 function formatFecha(fecha) {
   if (!fecha) return '';
-  return new Date(fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  return formatLADate(fecha, 'es-ES');
 }
 
 export default function WorkspaceTimeline({ pacienteId }) {
   const { t } = useTranslation('patients');
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedEvent, setExpandedEvent] = useState(null);
   const navigate = useNavigate();
 
   function getRelativeTime(fecha) {
     if (!fecha) return '';
     const now = new Date();
-    const date = new Date(fecha);
+    const date = toLAInstant(fecha);
+    if (!date) return formatFecha(fecha);
     const diffMs = now - date;
     const diffMin = Math.floor(diffMs / 60000);
     const diffHrs = Math.floor(diffMs / 3600000);
@@ -43,13 +52,12 @@ export default function WorkspaceTimeline({ pacienteId }) {
   const loadTimeline = async () => {
     try {
       setLoading(true);
-      const [consultasRes, tratamientosRes, consentRes, citasRes, recetasRes] =
+      const [consultasRes, tratamientosRes, consentRes, citasRes] =
         await Promise.allSettled([
           pacienteId ? consultasService.getByPaciente(pacienteId) : Promise.resolve({ success: false }),
           pacienteId ? tratamientoService.listByPaciente(pacienteId) : Promise.resolve({ success: false }),
           pacienteId ? pacienteConsentimientoService.list(pacienteId) : Promise.resolve({ success: false }),
           pacienteId ? agendaService.getCitasPorPaciente(pacienteId) : Promise.resolve({ success: false }),
-          pacienteId ? recetaService.listByPaciente(pacienteId) : Promise.resolve({ success: false }),
         ]);
 
       const allEvents = [];
@@ -118,21 +126,6 @@ export default function WorkspaceTimeline({ pacienteId }) {
         });
       }
 
-      if (recetasRes.status === 'fulfilled' && recetasRes.value?.data) {
-        const recetas = Array.isArray(recetasRes.value.data)
-          ? recetasRes.value.data
-          : [];
-        recetas.forEach((r) => {
-          allEvents.push({
-            id: `receta-${r.id}`,
-            type: 'receta',
-            fecha: r.createdAt,
-            label: t('recetas_medicas'),
-            detail: r.medicamentos || r.indicaciones || t('indicaciones'),
-          });
-        });
-      }
-
       allEvents.sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
       setEvents(allEvents.slice(0, 10));
     } catch (err) {
@@ -158,16 +151,19 @@ export default function WorkspaceTimeline({ pacienteId }) {
           <>
             <div className="workspace-timeline__list">
               {events.map((event, idx) => (
-                <div key={event.id} className="workspace-timeline__item">
+                <div key={event.id} className={`workspace-timeline__item ${expandedEvent === event.id ? 'workspace-timeline__item--expanded' : ''}`}>
                   <div
                     className={`workspace-timeline__dot workspace-timeline__dot--${event.type} ${idx === 0 ? 'workspace-timeline__dot--first' : ''}`}
                   />
-                  <div className="workspace-timeline__info">
+                  <div className="workspace-timeline__info" onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}>
                     <div className="workspace-timeline__row">
                       <span className="workspace-timeline__label">{event.label}</span>
                       <span className="workspace-timeline__time">{getRelativeTime(event.fecha)}</span>
+                      {event.detail && (
+                        expandedEvent === event.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                      )}
                     </div>
-                    {event.detail && (
+                    {expandedEvent === event.id && event.detail && (
                       <span className="workspace-timeline__detail">{event.detail}</span>
                     )}
                   </div>

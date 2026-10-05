@@ -22,7 +22,9 @@ import PasoMediciones from '../components/admision-steps/PasoMediciones';
 import PasoContrato from '../components/admision-steps/PasoContrato';
 import PasoResumen from '../components/admision-steps/PasoResumen';
 import PanelAccionesPostAdmision from '../components/admision-steps/PanelAccionesPostAdmision';
+import { formatNombre } from '../utils/fullName';
 import AgendarCitaModal from '../components/admision-steps/AgendarCitaModal';
+import CitaSchedulerModal from '../components/agenda/CitaSchedulerModal';
 import ConfirmModal from '../components/ConfirmModal';
 
 function extractList(data) {
@@ -69,6 +71,8 @@ export default function AdmisionPage() {
 
   const [view, setView] = useState('list');
   const [showAgendarCita, setShowAgendarCita] = useState(false);
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [pacienteAgendar, setPacienteAgendar] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmData, setConfirmData] = useState({ id: null, nombre: '', estadoActual: '' });
 
@@ -309,7 +313,7 @@ export default function AdmisionPage() {
 
   // Vista: Wizard de admision
   if (view === 'wizard' && selectedPatient) {
-    const fullName = `${selectedPatient.apellidoPaterno || ''} ${selectedPatient.apellidoMaterno || ''}, ${selectedPatient.nombres || ''}`.trim();
+    const fullName = formatNombre(selectedPatient);
     const isLastStep = currentStep === WIZARD_STEPS.length;
 
     return (
@@ -514,6 +518,13 @@ export default function AdmisionPage() {
                         <>
                           <button
                             className="admision-page__action"
+                            title={t('agendar_cita')}
+                            onClick={() => { setPacienteAgendar(p); setShowScheduler(true); }}
+                          >
+                            <CalendarClock size={18} />
+                          </button>
+                          <button
+                            className="admision-page__action"
                             title={t('centro_cliente')}
                             onClick={() => navigate(`/pacientes/${p.id}/workspace`)}
                           >
@@ -575,6 +586,12 @@ export default function AdmisionPage() {
         variant={confirmData.estadoActual === 'activo' ? 'danger' : 'activate'}
         onConfirm={handleConfirmToggle}
         onCancel={() => setConfirmOpen(false)}
+      />
+      <CitaSchedulerModal
+        isOpen={showScheduler}
+        onClose={() => setShowScheduler(false)}
+        paciente={pacienteAgendar}
+        onCitaCreada={() => setShowScheduler(false)}
       />
     </div>
   );

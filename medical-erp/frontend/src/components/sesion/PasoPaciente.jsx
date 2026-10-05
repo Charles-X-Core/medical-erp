@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, Phone, Mail, MapPin, AlertTriangle, History, Loader2, Edit2, Save, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { historiaClinicaService } from '../../services/historiaClinicaService';
+import { formatNombre } from '../../utils/fullName';
 import AntecedentesEditor, { ANTECEDENTES_FIELDS_DISPLAY, getActiveAntecedentes } from '../ui/AntecedentesEditor';
 
 export default function PasoPaciente({ formData, updateFormData, paciente }) {
@@ -42,7 +43,7 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
     );
   }
 
-  const fullName = `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`.trim();
+  const fullName = formatNombre(paciente);
   const edad = paciente.fechaNacimiento
     ? Math.floor((Date.now() - new Date(paciente.fechaNacimiento).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : '-';
@@ -127,8 +128,8 @@ export default function PasoPaciente({ formData, updateFormData, paciente }) {
             <span>{paciente.email || '-'}</span>
           </div>
           <div className="wizard-field">
-            <label><MapPin size={14} /> {t('ciudad_estado')}</label>
-            <span>{paciente.ciudadEstado || '-'}</span>
+            <label><MapPin size={14} /> {t('street')}</label>
+            <span>{[paciente.direccionLinea1, paciente.ciudad, paciente.estadoProvincia, paciente.codigoPostal, paciente.direccionPais].filter(Boolean).join(', ') || '-'}</span>
           </div>
         </div>
 

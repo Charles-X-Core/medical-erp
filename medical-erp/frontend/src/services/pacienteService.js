@@ -2,24 +2,29 @@ import apiClient from './apiClient';
 
 function toBackend(data) {
   const out = { ...data };
-  if (out.direccion !== undefined) {
+  // Compatibilidad: si llega el campo legacy 'direccion', mapearlo a direccionLinea1.
+  if (out.direccion !== undefined && out.direccionLinea1 === undefined) {
     out.direccionLinea1 = out.direccion || null;
     delete out.direccion;
   }
-  if (out.ciudadEstado !== undefined) {
+  // Compatibilidad: si llega el campo legacy 'ciudadEstado' ("Ciudad, Estado"), descomponer.
+  if (out.ciudadEstado !== undefined && (out.ciudad === undefined || out.ciudad === '')) {
     const parts = (out.ciudadEstado || '').split(',').map(s => s.trim());
-    out.ciudad = parts[0] || null;
-    out.estadoProvincia = parts[1] || out.estadoProvincia || null;
+    out.ciudad = out.ciudad || parts[0] || null;
+    out.estadoProvincia = out.estadoProvincia || parts[1] || null;
     delete out.ciudadEstado;
   }
   if (out.estatura === '' || out.estatura === undefined) out.estatura = null;
   if (out.peso === '' || out.peso === undefined) out.peso = null;
   if (out.fechaNacimiento === '' || out.fechaNacimiento === undefined) out.fechaNacimiento = null;
+  if (out.codigoPostal === '' || out.codigoPostal === undefined) out.codigoPostal = null;
   // Convertir strings vacíos a null para campos opcionales con @Email/@Size
-  const optionalFields = ['email', 'telefono', 'estadoCivil', 'sexo', 'lugarNacimiento', 'lugarProcedencia', 'gradoInstruccion', 'ocupacion', 'nombreAcompanante', 'contactoEmergencia', 'telefonoEmergencia', 'parentescoEmergencia'];
+  const optionalFields = ['email', 'telefono', 'estadoCivil', 'sexo', 'lugarNacimiento', 'lugarProcedencia', 'gradoInstruccion', 'ocupacion', 'nombreAcompanante', 'contactoEmergencia', 'telefonoEmergencia', 'parentescoEmergencia', 'ciudad', 'estadoProvincia', 'direccionPais'];
   for (const field of optionalFields) {
     if (out[field] === '') out[field] = null;
   }
+  // País por defecto USA si no llega.
+  if (!out.pais) out.pais = 'US';
   return out;
 }
 
@@ -122,6 +127,22 @@ export const pacienteService = {
       method: 'POST',
       body: formData,
       isFormData: true,
+    });
+  },
+
+  async getUltimosSignosVitales(pacienteId) {
+    const res = await apiClient(`/api/v1/pacientes/${pacienteId}/ultimos-signos-vitales`);
+    return res;
+  },
+
+  // Actualiza solo peso/estatura (ficha del paciente) sin tocar el resto de campos.
+  async updateSignosVitales(pacienteId, { peso, estatura }) {
+    return apiClient(`/api/v1/pacientes/${pacienteId}/signos-vitales`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        peso: peso === '' || peso === undefined ? null : parseFloat(peso),
+        estatura: estatura === '' || estatura === undefined ? null : parseFloat(estatura),
+      }),
     });
   },
 };

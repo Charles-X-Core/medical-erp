@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, CalendarClock, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import agendaService from '../../services/agendaService';
+import AvisoZonaCalifornia from '../common/AvisoZonaCalifornia';
 
 const DIAS = [0, 1, 2, 3, 4, 5, 6];
 const DIAS_KEY = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
@@ -106,6 +107,8 @@ export default function AgendaOnboardingModal({ open, usuarioId, onSaved, onSkip
         <p className="onboarding-modal__subtitle">{t('onboarding_subtitle')}</p>
 
         {error && <div className="onboarding-modal__error">{error}</div>}
+
+        <AvisoZonaCalifornia />
 
         <div className="onboarding-modal__grid">
           {DIAS.map((dia) => {

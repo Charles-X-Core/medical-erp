@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Loader2, Calendar, Activity, CheckCircle, Clock, TrendingUp, AlertTriangle, Play, Pause, XCircle, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { tratamientoService } from '../../services/tratamientoService';
+import { parseLADateTime } from '../../utils/laTimezone';
+import { zonaIANA } from '../../utils/zonaHoraria';
 
 const EVENT_CONFIG = {
   CREACION: { icon: Play, color: '#3B82F6' },
@@ -77,8 +79,9 @@ export default function TratamientoTimeline({ tratamientoId }) {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const d = parseLADateTime(dateStr);
+    if (!d) return dateStr;
+    return d.toLocaleString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: zonaIANA() });
   };
 
   const getEventConfig = (evento) => {

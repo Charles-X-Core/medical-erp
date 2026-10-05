@@ -42,7 +42,7 @@ export default function ProximasCitas({ citas, loading }) {
               >
                 <div className="proximas-list__time">
                   <Clock size={14} />
-                  {formatHora(cita.hora)}
+                  {formatHora(cita.hora, cita.fecha)}
                 </div>
                 <div className="proximas-list__info">
                   <span className="proximas-list__name">{formatNombre(cita.pacienteNombre)}</span>
@@ -60,7 +60,7 @@ export default function ProximasCitas({ citas, loading }) {
                 )}
                 <button
                   className="proximas-list__open"
-                  title={isTooEarly ? t('time_at', { time: formatHora(cita.hora) }) : t('open_client')}
+                  title={isTooEarly ? t('time_at', { time: formatHora(cita.hora, cita.fecha) }) : t('open_client')}
                   onClick={() => navigate(isTooEarly ? '/agenda' : `/pacientes/${cita.pacienteId}/workspace`)}
                 >
                   <ChevronRight size={16} />

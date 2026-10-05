@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileText, AlertCircle, Activity, Ruler, Weight, Edit3, Save, X, Loader2 } from 'lucide-react';
-import { getActiveAntecedentes } from '../ui/AntecedentesEditor';
+import { FileText, AlertCircle, Activity, Ruler, Weight, Edit3, Save, X, Loader2, CheckCircle } from 'lucide-react';
+import { getActiveAntecedentes, ANTECEDENTES_CONFIG } from '../ui/AntecedentesEditor';
+import AntecedentesEditor from '../ui/AntecedentesEditor';
 import { pacienteService } from '../../services/pacienteService';
+import { historiaClinicaService } from '../../services/historiaClinicaService';
+import { useUnitSystem } from '../../context/UnitContext';
+import { calcularIMC, clasificarIMC, pesoAUS, tallaAUS, LBS_TO_KG, IN_TO_CM } from '../../utils/units';
 
 // ============================================
 // AtencionSidebar — Read-only Peso/Estatura + Edit mode
@@ -10,14 +14,44 @@ import { pacienteService } from '../../services/pacienteService';
 // Saves to Paciente entity via PUT /api/v1/pacientes/{id}
 // ============================================
 
-export default function AtencionSidebar({ paciente, historia, signosVitales, onSignosVitalesChange, onPacienteUpdated, pacienteId }) {
+export default function AtencionSidebar({ paciente, historia, signosVitales, onSignosVitalesChange, onPacienteUpdated, pacienteId, onSaveAntecedentes, onHistoriaRefreshed }) {
   const { t } = useTranslation('patients');
+  const { system, toggle } = useUnitSystem();
   const activeAntecedentes = historia ? getActiveAntecedentes(historia) : [];
 
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [peso, setPeso] = useState('');
   const [estatura, setEstatura] = useState('');
+  const [editingAntecedentes, setEditingAntecedentes] = useState(false);
+  const [savingAntecedentes, setSavingAntecedentes] = useState(false);
+  const [antecedentesValues, setAntecedentesValues] = useState({});
+
+  const desdeHistoria = () => {
+    const vals = {};
+    ANTECEDENTES_CONFIG.forEach(({ key }) => { vals[key] = historia?.[key] || ''; });
+    return vals;
+  };
+
+  const handleSaveAntecedentes = async () => {
+    if (!pacienteId) return;
+    setSavingAntecedentes(true);
+    try {
+      await onSaveAntecedentes?.(antecedentesValues);
+      setEditingAntecedentes(false);
+      // Refrescar historia para mostrar los nuevos activos
+      if (onHistoriaRefreshed && historia?.id) {
+        try {
+          const refreshed = await historiaClinicaService.getByPaciente(pacienteId);
+          if (refreshed.success) onHistoriaRefreshed(refreshed.data);
+        } catch { /* silencio */ }
+      }
+    } catch (err) {
+      console.error('Error guardando antecedentes:', err);
+    } finally {
+      setSavingAntecedentes(false);
+    }
+  };
 
   // Initialize from paciente (persistent data)
   useEffect(() => {
@@ -73,22 +107,19 @@ export default function AtencionSidebar({ paciente, historia, signosVitales, onS
     }
   };
 
-  // IMC calculation (only when both values exist)
-  const calcularIMC = () => {
-    const p = parseFloat(peso);
-    const t = parseInt(estatura);
-    if (!p || !t || t <= 0) return null;
-    const tM = t / 100;
-    return (p / (tM * tM)).toFixed(1);
+  const handlePesoChange = (v) => {
+    if (v === '' || v === null || v === undefined) { setPeso(''); return; }
+    setPeso(system === 'us' ? parseFloat((parseFloat(v) * LBS_TO_KG).toFixed(1)) : v);
   };
 
-  const imc = calcularIMC();
-  const imcClass = imc ? (
-    parseFloat(imc) < 18.5 ? 'bajo' :
-    parseFloat(imc) < 25 ? 'normal' :
-    parseFloat(imc) < 30 ? 'sobrepeso' : 'obesidad'
-  ) : null;
+  const handleTallaChange = (v) => {
+    if (v === '' || v === null || v === undefined) { setEstatura(''); return; }
+    setEstatura(system === 'us' ? Math.round(parseFloat(v) * IN_TO_CM) : v);
+  };
 
+  const imc = calcularIMC(peso, estatura, system);
+  const imcMeta = clasificarIMC(imc);
+  const imcClass = imcMeta?.key || '';
   const imcLabel = imcClass === 'bajo' ? t('bajo_peso') :
     imcClass === 'normal' ? t('normal') :
     imcClass === 'sobrepeso' ? t('sobrepeso') : t('obesidad');
@@ -101,6 +132,12 @@ export default function AtencionSidebar({ paciente, historia, signosVitales, onS
           <h3 className="atencion-sidebar__title">
             <Activity size={14} /> {t('signos_vitales')}
           </h3>
+          <div className="unit-toggle">
+            <button className={`unit-toggle__btn ${system === 'metric' ? 'unit-toggle__btn--active' : ''}`}
+              onClick={() => system !== 'metric' && toggle()}>Metric</button>
+            <button className={`unit-toggle__btn ${system === 'us' ? 'unit-toggle__btn--active' : ''}`}
+              onClick={() => system !== 'us' && toggle()}>US</button>
+          </div>
           {!editing ? (
             <button className="atencion-sidebar__edit-btn" onClick={handleStartEdit} title={t('editar')}>
               <Edit3 size={13} />
@@ -135,15 +172,15 @@ export default function AtencionSidebar({ paciente, historia, signosVitales, onS
                     placeholder="—"
                     step="0.1"
                     min="0"
-                    value={peso}
-                    onChange={(e) => setPeso(e.target.value)}
+                    value={system === 'us' ? pesoAUS(peso) : peso}
+                    onChange={(e) => handlePesoChange(e.target.value)}
                   />
-                  <span className="atencion-sidebar__vital-unit">kg</span>
+                  <span className="atencion-sidebar__vital-unit">{system === 'us' ? 'lbs' : 'kg'}</span>
                 </div>
               ) : (
                 <div className="atencion-sidebar__vital-value-row">
-                  <span className="atencion-sidebar__vital-value">{peso || '—'}</span>
-                  {peso && <span className="atencion-sidebar__vital-unit">kg</span>}
+                  <span className="atencion-sidebar__vital-value">{system === 'us' ? pesoAUS(peso) : peso || '—'}</span>
+                  {peso && <span className="atencion-sidebar__vital-unit">{system === 'us' ? 'lbs' : 'kg'}</span>}
                 </div>
               )}
             </div>
@@ -162,15 +199,15 @@ export default function AtencionSidebar({ paciente, historia, signosVitales, onS
                     placeholder="—"
                     step="1"
                     min="0"
-                    value={estatura}
-                    onChange={(e) => setEstatura(e.target.value)}
+                    value={system === 'us' ? tallaAUS(estatura) : estatura}
+                    onChange={(e) => handleTallaChange(e.target.value)}
                   />
-                  <span className="atencion-sidebar__vital-unit">cm</span>
+                  <span className="atencion-sidebar__vital-unit">{system === 'us' ? 'in' : 'cm'}</span>
                 </div>
               ) : (
                 <div className="atencion-sidebar__vital-value-row">
-                  <span className="atencion-sidebar__vital-value">{estatura || '—'}</span>
-                  {estatura && <span className="atencion-sidebar__vital-unit">cm</span>}
+                  <span className="atencion-sidebar__vital-value">{system === 'us' ? tallaAUS(estatura) : estatura || '—'}</span>
+                  {estatura && <span className="atencion-sidebar__vital-unit">{system === 'us' ? 'in' : 'cm'}</span>}
                 </div>
               )}
             </div>
@@ -194,12 +231,40 @@ export default function AtencionSidebar({ paciente, historia, signosVitales, onS
         </div>
       </div>
 
-      {/* Antecedentes Médicos */}
+      {/* Antecedentes Médicos — editable */}
       <div className="atencion-sidebar__section">
-        <h3 className="atencion-sidebar__title">
-          <FileText size={14} /> {t('antecedentes')}
-        </h3>
-        {activeAntecedentes.length > 0 ? (
+        <div className="atencion-sidebar__title-row">
+          <h3 className="atencion-sidebar__title">
+            <FileText size={14} /> {t('antecedentes')}
+          </h3>
+          {!editingAntecedentes ? (
+            <button className="atencion-sidebar__edit-btn" onClick={() => { setAntecedentesValues(desdeHistoria()); setEditingAntecedentes(true); }} title={t('editar')}>
+              <Edit3 size={13} />
+            </button>
+          ) : (
+            <div className="atencion-sidebar__edit-actions">
+              <button className="atencion-sidebar__edit-btn atencion-sidebar__edit-btn--cancel" onClick={() => setEditingAntecedentes(false)} title={t('cancelar')}>
+                <X size={13} />
+              </button>
+              <button
+                className="atencion-sidebar__edit-btn atencion-sidebar__edit-btn--save"
+                onClick={handleSaveAntecedentes}
+                disabled={savingAntecedentes}
+                title={t('guardar')}
+              >
+                {savingAntecedentes ? <Loader2 size={13} className="spinner" /> : <Save size={13} />}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {editingAntecedentes ? (
+          <AntecedentesEditor
+            values={antecedentesValues}
+            onChange={(key, val) => setAntecedentesValues((prev) => ({ ...prev, [key]: val }))}
+            compact
+          />
+        ) : activeAntecedentes.length > 0 ? (
           <div className="atencion-sidebar__antecedentes">
             {activeAntecedentes.map((item) => (
               <div key={item.key} className="atencion-sidebar__antecedente">

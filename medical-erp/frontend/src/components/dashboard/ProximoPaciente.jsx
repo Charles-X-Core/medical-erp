@@ -3,10 +3,29 @@ import { useNavigate } from 'react-router-dom';
 import { UserRound, Clock, ArrowRight, ListChecks, Stethoscope, AlertTriangle } from 'lucide-react';
 import { formatNombre, formatHora, getCitaEstado } from '../../utils/citaEstados';
 import { getAppointmentStatus, getTimeBadgeLabel } from '../../utils/citaTimeUtils';
+import agendaService from '../../services/agendaService';
+
 
 export default function ProximoPaciente({ cita, hero, loading }) {
   const navigate = useNavigate();
   const { t } = useTranslation('dashboard');
+
+  const handleStart = async () => {
+    if (!cita?.id) return;
+    // Si el botón es visible (no isTooEarly), SIEMPRE iniciar.
+    // El sistema no-show maneja automáticamente las citas que pasaron sin atención.
+    // La llave: confirmar (si hace falta) + iniciar atención, luego entrar al workspace.
+    try {
+      if (cita.estado === 'pendiente' || cita.estado === 'solicitada') {
+        await agendaService.confirmarCita(cita.id);
+      }
+      await agendaService.iniciarAtencion(cita.id);
+    } catch (err) {
+      console.error('Error iniciando atención:', err);
+    } finally {
+      navigate(`/pacientes/${cita.pacienteId}/workspace`);
+    }
+  };
 
   if (loading) {
     return <div className="proximo-paciente proximo-paciente--skeleton" />;
@@ -52,7 +71,7 @@ export default function ProximoPaciente({ cita, hero, loading }) {
         <div className="proximo-paciente__meta">
           <span>
             <Clock size={14} />
-            {formatHora(cita.hora)}
+            {formatHora(cita.hora, cita.fecha)}
             {cita.duracionMinutos && <span> · {cita.duracionMinutos}min</span>}
           </span>
           {cita.usuarioNombre && (
@@ -85,7 +104,7 @@ export default function ProximoPaciente({ cita, hero, loading }) {
       {!isCompletada && (isEnAtencion || !isTooEarly) && (
         <button
           className="btn btn--primary"
-          onClick={() => navigate(`/pacientes/${cita.pacienteId}/workspace`)}
+          onClick={isEnAtencion ? () => navigate(`/pacientes/${cita.pacienteId}/workspace`) : handleStart}
         >
           {isEnAtencion ? t('proximo_ver_atencion') : t('proximo_iniciar_atencion')}
           <ArrowRight size={16} />

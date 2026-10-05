@@ -14,6 +14,10 @@ export const tratamientoService = {
     return apiClient(`/api/v1/tratamientos/${id}`);
   },
 
+  async getSesiones(tratamientoId) {
+    return apiClient(`/api/v1/sesiones-tratamiento/tratamiento/${tratamientoId}`);
+  },
+
   async create(data) {
     return apiClient('/api/v1/tratamientos', {
       method: 'POST',

@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
+import { formatNombre } from '../../utils/fullName';
 
 export default function WorkspaceHeader({ paciente, onEdit, onMoreActions, extraActions }) {
   const { t } = useTranslation(['patients', 'common']);
   if (!paciente) return null;
 
-  const fullName = `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`.trim();
+  const fullName = formatNombre(paciente);
 
   const calcularEdad = (fechaNacimiento) => {
     if (!fechaNacimiento) return null;

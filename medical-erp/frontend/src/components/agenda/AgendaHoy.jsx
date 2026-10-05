@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { CalendarDays, Clock, Users, ChevronRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import apiClient from '../../services/apiClient';
+import { formatNombre } from '../../utils/fullName';
+import { zonaIANA, horaMostrar } from '../../utils/zonaHoraria';
 
 export default function AgendaHoy() {
   const { user } = useAuth();
@@ -74,6 +76,7 @@ export default function AgendaHoy() {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
+                timeZone: zonaIANA(),
               })}
             </p>
           </div>
@@ -97,7 +100,7 @@ export default function AgendaHoy() {
           citas.map((cita) => {
             const paciente = cita.paciente;
             const fullName = paciente
-              ? `${paciente.apellidoPaterno || ''} ${paciente.apellidoMaterno || ''}, ${paciente.nombres || ''}`
+              ? formatNombre(paciente)
               : t('client', { ns: 'common' });
 
             return (
@@ -108,7 +111,7 @@ export default function AgendaHoy() {
               >
                 <div className="agenda-card__time">
                   <span className="agenda-card__hora">
-                    {cita.hora?.substring(0, 5) || '--:--'}
+                    {(horaMostrar(cita.hora, cita.fecha) || '').substring(0, 5) || '--:--'}
                   </span>
                   <span className={`agenda-card__estado agenda-card__estado--${cita.estado}`}>
                     {cita.estado?.replace('_', ' ')}

@@ -7,6 +7,8 @@ import { historiaClinicaService } from '../services/historiaClinicaService';
 import SignosVitalesForm from '../components/consulta/SignosVitalesForm';
 import DiagnosticoForm from '../components/consulta/DiagnosticoForm';
 import PlanTratamientoForm from '../components/consulta/PlanTratamientoForm';
+import { toLocalDateTime } from '../utils/laTimezone';
+import AvisoZonaCalifornia from '../components/common/AvisoZonaCalifornia';
 
 export default function ConsultaFormPage() {
   const { t } = useTranslation('clinical');
@@ -18,7 +20,7 @@ export default function ConsultaFormPage() {
 
   const [form, setForm] = useState({
     historiaId: parentHistoriaId ? parseInt(parentHistoriaId, 10) : 0,
-    fecha: new Date().toISOString().slice(0, 16),
+    fecha: toLocalDateTime().slice(0, 16),
     motivo: '',
     tiempoEnfermedad: '',
     signosSintomas: '',
@@ -139,6 +141,7 @@ export default function ConsultaFormPage() {
       <form onSubmit={handleSubmit}>
         <div className="form-card">
           <h3 className="form-section__title">{t('datos_generales', { ns: 'clinical' })}</h3>
+          <AvisoZonaCalifornia />
           <div className="form-grid form-grid--2">
             <div className="form-field">
               <label className="form-label">{t('fecha_requerida')}</label>

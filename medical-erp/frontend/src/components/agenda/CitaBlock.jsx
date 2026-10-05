@@ -1,5 +1,6 @@
 import { useContext, createContext } from 'react';
 import { useTranslation } from 'react-i18next';
+import { horaMostrar } from '../../utils/zonaHoraria';
 
 export const DragCitaCtx = createContext(null);
 
@@ -17,9 +18,10 @@ const ESTADO_BGS = {
   reprogramada: 'rgba(167,139,250,0.12)', no_show: 'rgba(239,68,68,0.08)',
 };
 
-function formatTime(timeStr) {
+function formatTime(timeStr, fecha) {
   if (!timeStr) return '';
-  return timeStr.substring(0, 5);
+  const h = horaMostrar(timeStr, fecha);
+  return typeof h === 'string' ? h.substring(0, 5) : '';
 }
 
 export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30, col = 0, numCols = 1, onClick, onResize }) {
@@ -29,6 +31,7 @@ export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30,
   const startMin = h * 60 + m;
   const offsetMin = startMin - hour * 60;
   const duracion = cita.duracionMinutos || slotDuracion;
+  const isFinal = ['no_show', 'cancelada', 'completada', 'reprogramada'].includes(cita.estado);
 
   const topPx = (offsetMin / slotDuracion) * (slotDuracion * pxPerMin);
   const heightPx = Math.min((duracion / slotDuracion) * (slotDuracion * pxPerMin) - 2, 240);
@@ -91,12 +94,12 @@ export default function CitaBlock({ cita, hour, pxPerMin = 2, slotDuracion = 30,
       }}
       onClick={() => onClick?.(cita)}
     >
-      {showDetails && <span className="agenda-week__cita-time">{formatTime(cita.hora)}</span>}
+      {showDetails && <span className="agenda-week__cita-time">{formatTime(cita.hora, cita.fecha)}</span>}
       <span className="agenda-week__cita-name">{cita.pacienteNombre}</span>
       {showType && cita.tipoCitaNombre && (
         <span className="agenda-week__cita-type">{cita.tipoCitaNombre}</span>
       )}
-      {duracion >= 20 && (
+      {duracion >= 20 && !isFinal && (
         <div
           className="agenda-week__cita-resize"
           onMouseDown={handleResizeStart}

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Clock, AlertTriangle, CheckCircle, Timer, Square } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, Timer, Square, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { parseLADateTime, nowLA } from '../../utils/laTimezone';
+import { zonaIANA } from '../../utils/zonaHoraria';
 
 function formatTime(date) {
-  const h = String(date.getHours()).padStart(2, '0');
-  const m = String(date.getMinutes()).padStart(2, '0');
-  return `${h}:${m}`;
+  if (!date) return '--:--';
+  return date.toLocaleTimeString('en-US', { timeZone: zonaIANA(), hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 function formatDuration(ms) {
@@ -28,19 +29,17 @@ function parseTimeToDate(timeStr, baseDate) {
 
 export default function SmartTimerBar({ citaActiva, siguienteCita, onComplete }) {
   const { t: tClinical } = useTranslation('clinical');
-  const { t: tPatients } = useTranslation('patients');
-
-  const [now, setNow] = useState(() => new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
+  const { t: tPatients } = useTranslation('patients');  const [now, setNow] = useState(() => nowLA());
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }))), 1000);
+    const interval = setInterval(() => setNow(nowLA()), 1000);
     return () => clearInterval(interval);
   }, []);
 
   if (!citaActiva) return null;
 
   const inicioAtencion = citaActiva.inicioAtencion
-    ? new Date(new Date(citaActiva.inicioAtencion).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }))
+    ? parseLADateTime(citaActiva.inicioAtencion)
     : null;
 
   const sessionDuration = inicioAtencion ? now - inicioAtencion : 0;
@@ -104,6 +103,15 @@ export default function SmartTimerBar({ citaActiva, siguienteCita, onComplete })
 
   return (
     <div className={`smart-timer smart-timer--${status}`}>
+      {citaActiva.pacienteNombre && (
+        <div className="smart-timer__section smart-timer__section--cliente">
+          <User size={16} />
+          <span className="smart-timer__cliente-nombre">{citaActiva.pacienteNombre}</span>
+          <span className="smart-timer__label">{tPatients('cliente')}</span>
+        </div>
+      )}
+      <div className="smart-timer__divider" />
+
       <div className="smart-timer__section smart-timer__section--clock">
         <Clock size={16} />
         <span className="smart-timer__time">{formatTime(now)}</span>

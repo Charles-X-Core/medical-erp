@@ -20,16 +20,24 @@ export default function PasoContacto({ formData, onChange }) {
           <input type="email" name="email" value={formData.email || ''} onChange={onChange} />
         </div>
         <div className="wizard-step__field wizard-step__field--full">
-          <label>{t('direccion')}</label>
-          <input name="direccionLinea1" value={formData.direccionLinea1 || ''} onChange={onChange} />
+          <label>{t('street')}</label>
+          <input name="direccionLinea1" value={formData.direccionLinea1 || ''} onChange={onChange} placeholder={t('street_placeholder')} />
         </div>
         <div className="wizard-step__field">
-          <label>{t('ciudad')}</label>
-          <input name="ciudad" value={formData.ciudad || ''} onChange={onChange} />
+          <label>{t('city')}</label>
+          <input name="ciudad" value={formData.ciudad || ''} onChange={onChange} placeholder={t('city_placeholder')} />
         </div>
         <div className="wizard-step__field">
-          <label>{t('provincia')}</label>
-          <input name="estadoProvincia" value={formData.estadoProvincia || ''} onChange={onChange} />
+          <label>{t('state')}</label>
+          <input name="estadoProvincia" value={formData.estadoProvincia || ''} onChange={onChange} placeholder={t('state_placeholder')} />
+        </div>
+        <div className="wizard-step__field">
+          <label>{t('zip_code')}</label>
+          <input name="codigoPostal" value={formData.codigoPostal || ''} onChange={onChange} placeholder={t('zip_placeholder')} />
+        </div>
+        <div className="wizard-step__field">
+          <label>{t('country')}</label>
+          <input name="direccionPais" value={formData.direccionPais || 'US'} onChange={onChange} placeholder="US" />
         </div>
         <div className="wizard-step__field wizard-step__field--separator"><hr /></div>
         <div className="wizard-step__field">

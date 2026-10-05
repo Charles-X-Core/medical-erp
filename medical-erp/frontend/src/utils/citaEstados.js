@@ -1,4 +1,5 @@
 import i18n from '../i18n';
+import { horaMostrar } from './zonaHoraria';
 
 export const getCitaEstado = (estado) => {
   const estados = {
@@ -21,4 +22,9 @@ export const getCitaEstado = (estado) => {
 
 export const formatNombre = (pacienteNombre) => pacienteNombre || i18n.t('patient', { ns: 'common' });
 
-export const formatHora = (hora) => (hora ? hora.substring(0, 5) : '—');
+/**
+ * Hora de la cita para mostrar. El dato llega en California y aquí se
+ * traduce a la zona activa (CA/PE). `fecha` define el desfase por DST.
+ */
+export const formatHora = (hora, fecha) =>
+  hora ? horaMostrar(hora, fecha).substring(0, 5) : '—';

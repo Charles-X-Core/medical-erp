@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Stethoscope, CheckCircle, AlertCircle, Loader2, Plus, ArrowLeft, Clock } from 'lucide-react';
+import { Stethoscope, CheckCircle, AlertCircle, Loader2, Plus, ArrowLeft, Clock, Pill } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import SessionForm from './SessionForm';
 import CitaSchedulerModal from '../agenda/CitaSchedulerModal';
+import RecetarioModal from './RecetarioModal';
+import agendaService from '../../services/agendaService';
+import { formatLADate } from '../../utils/laTimezone';
+import { horaMostrar } from '../../utils/zonaHoraria';
 import { TREATMENT_CATEGORIES, getTreatmentLabel } from '../../config/attentionTypes';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  return formatLADate(dateStr);
 }
 
 function getEstadoClass(estado) {
@@ -31,6 +35,8 @@ export default function SesionTratamientoView({
   paciente,
   tratamientos,
   tratamientosBloqueados = new Set(),
+  citasFuturas = [],
+  membresiaActiva,
   onNewSession,
   onFinalize,
   onSchedule,
@@ -45,10 +51,14 @@ export default function SesionTratamientoView({
   const { t: tClinical } = useTranslation('clinical');
   const { t: tCommon } = useTranslation('common');
   const { t: tDashboard } = useTranslation('dashboard');
+  const { t: tConf } = useTranslation('clinical');
 
   const [selectedTratamiento, setSelectedTratamiento] = useState(null);
   const [creatingNew, setCreatingNew] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
+  const [showPostSchedule, setShowPostSchedule] = useState(false);
+  const [citaCreada, setCitaCreada] = useState(null);
+  const [sesionParaAgendar, setSesionParaAgendar] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -57,6 +67,8 @@ export default function SesionTratamientoView({
   const [formSesiones, setFormSesiones] = useState(1);
   const [formCosto, setFormCosto] = useState('');
   const [formObjetivo, setFormObjetivo] = useState('');
+  const [formRequiereMedicacion, setFormRequiereMedicacion] = useState(false);
+  const [showRecetario, setShowRecetario] = useState(false);
 
   const activeTreatments = tratamientos.filter(
     (t) => t.estado === 'EN_CURSO' || t.estado === 'PROGRAMADO' || t.estado === 'PENDIENTE'
@@ -71,6 +83,11 @@ export default function SesionTratamientoView({
 
   // Check if the working treatment is blocked
   const isWorkingBlocked = workingTratamiento && tratamientosBloqueados.has(workingTratamiento.id);
+
+  // Cita futura vinculada al tratamiento en edición (para mostrar programación del bloque).
+  const citaTratamiento = workingTratamiento
+    ? citasFuturas.find((c) => c.tratamientoId === workingTratamiento.id)
+    : null;
 
   // Determine session mode
   const getSessionMode = () => {
@@ -119,9 +136,10 @@ export default function SesionTratamientoView({
     try {
       await onCreateTratamiento?.({
         tipoTratamiento: formTipo,
-        sesionesPlaneadas: formSesiones,
-        costoEstimado: formCosto || null,
+        sesionesPlaneadas: parseInt(formSesiones) || 1,
+        costoEstimado: null,
         objetivo: formObjetivo || t('tratamiento_indicado_por_consulta'),
+        requiereMedicacion: formRequiereMedicacion,
       });
       setCreatingNew(false);
     } catch (err) {
@@ -134,9 +152,11 @@ export default function SesionTratamientoView({
   const handleSaveSession = async (data) => {
     setSaving(true);
     try {
-      await onNewSession?.(workingTratamiento, sessionMode, data);
-      // If post-action is schedule, open the schedule modal after save
+      const nuevoSesionId = await onNewSession?.(workingTratamiento, sessionMode, data);
+      if (sessionMode === 'new') setCreatingNew(false);
+      // Si post-action es schedule, guardar la sesión creada para vincularla a la cita.
       if (data.postAction === 'schedule') {
+        setSesionParaAgendar(nuevoSesionId || null);
         setShowSchedule(true);
       }
     } catch (err) {
@@ -278,7 +298,7 @@ export default function SesionTratamientoView({
         {/* === CREATE MODE === */}
         {creatingNew ? (
           <div className="session-form">
-            <div className="session-form__section">
+            <div className="session-form__section session-form__section--create">
               <h4 className="session-form__section-title">
                 <button
                   className="btn btn--ghost btn--sm"
@@ -289,76 +309,19 @@ export default function SesionTratamientoView({
                 </button>
                 {t('nuevo_tratamiento')}
               </h4>
-              <div className="session-form__fields">
-                <div className="session-form__field">
-                  <label className="session-form__label">{t('tipo_tratamiento')} *</label>
-                  <select
-                    className="session-form__select"
-                    value={formTipo}
-                    onChange={(e) => setFormTipo(e.target.value)}
-                  >
-                    <option value="">{t('seleccionar_tratamiento')}</option>
-                    {TREATMENT_CATEGORIES.map((cat) => (
-                      <optgroup key={cat.id} label={cat.label}>
-                        {cat.treatments.map((t) => (
-                          <option key={t.id} value={t.id}>{t.label}</option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </div>
-                <div className="session-form__field">
-                  <label className="session-form__label">{t('sesiones')} *</label>
-                  <input
-                    type="number"
-                    className="session-form__input"
-                    placeholder={t('ejemplo_4')}
-                    min="1"
-                    value={formSesiones}
-                    onChange={(e) => setFormSesiones(parseInt(e.target.value) || 1)}
-                  />
-                </div>
-                <div className="session-form__field">
-                  <label className="session-form__label">{t('costo_por_sesion')}</label>
-                  <input
-                    type="number"
-                    className="session-form__input"
-                    placeholder="$ 0.00"
-                    step="0.01"
-                    value={formCosto}
-                    onChange={(e) => setFormCosto(e.target.value)}
-                  />
-                </div>
-                <div className="session-form__field">
-                  <label className="session-form__label">{t('objetivo')}</label>
-                  <input
-                    type="text"
-                    className="session-form__input"
-                    placeholder={t('objetivo_del_tratamiento')}
-                    value={formObjetivo}
-                    onChange={(e) => setFormObjetivo(e.target.value)}
-                  />
-                </div>
-              </div>
-              {error && (
-                <div className="session-form__error">
-                  {error}
-                </div>
-              )}
             </div>
-            <div className="session-form__actions">
-              <button className="btn btn--secondary" onClick={handleCancelCreate}>
-                {tCommon('cancel')}
-              </button>
-              <button
-                className="btn btn--primary"
-                onClick={handleSubmitCreate}
-                disabled={!formTipo || saving}
-              >
-                {saving ? <Loader2 size={16} className="spinner" /> : <Plus size={16} />}
-                {t('crear_e_iniciar')}
-              </button>
-            </div>
+            <SessionForm
+              mode="new"
+              tratamiento={null}
+              paciente={paciente}
+              onSave={handleSaveSession}
+              onFinalize={handleFinalize}
+              onPausar={onPausar}
+              onReanudar={onReanudar}
+              onCancelar={onCancelar}
+              onAmpliar={onAmpliar}
+              membresiaActiva={membresiaActiva}
+            />
           </div>
           ) : workingTratamiento ? (
             isWorkingBlocked ? (
@@ -366,6 +329,11 @@ export default function SesionTratamientoView({
                 <Clock size={32} />
                 <h3>{t('esperando_confirmacion_fecha')}</h3>
                 <p>{t('fecha_coordinada_cliente')}</p>
+                {citaTratamiento && (
+                  <span className="sesion-tratamiento__form-blocked-cita">
+                    {t('programada_para', { fecha: formatDate(citaTratamiento.fecha), hora: horaMostrar(citaTratamiento.hora, citaTratamiento.fecha)?.substring(0, 5) || '--:--' })}
+                  </span>
+                )}
                 <span className="sesion-tratamiento__form-blocked-hint">
                   {t('confirmada_fecha_continuar')}
                 </span>
@@ -387,13 +355,20 @@ export default function SesionTratamientoView({
                 <SessionForm
                   mode={sessionMode}
                   tratamiento={workingTratamiento}
+                  paciente={paciente}
                   onSave={handleSaveSession}
                   onFinalize={handleFinalize}
                   onPausar={onPausar}
                   onReanudar={onReanudar}
                   onCancelar={onCancelar}
                   onAmpliar={onAmpliar}
+                  membresiaActiva={membresiaActiva}
                 />
+                {workingTratamiento?.requiereMedicacion && sessionMode !== 'new' && (
+                  <button className="btn btn--secondary sesion-tratamiento__receta-btn" onClick={() => setShowRecetario(true)}>
+                    <Pill size={16} /> {t('abrir_recetario')}
+                  </button>
+                )}
               </>
             )
           ) : (
@@ -410,8 +385,70 @@ export default function SesionTratamientoView({
         onClose={() => setShowSchedule(false)}
         paciente={paciente}
         tratamientoId={workingTratamiento?.id}
-        onCitaCreada={() => { setShowSchedule(false); onSchedule?.(workingTratamiento, {}); }}
+        sesionId={sesionParaAgendar}
+        initialMotivo={workingTratamiento ? getTreatmentLabel(workingTratamiento.tipoTratamiento) : ''}
+        onCitaCreada={(cita) => {
+          setShowSchedule(false);
+          setCitaCreada(cita || null);
+          setShowPostSchedule(false);
+          if (workingTratamiento?.sesionesRealizadas >= (workingTratamiento?.sesionesPlaneadas || 0)) {
+            // Última sesión → no preguntar más tiempo, solo avisar
+            onSchedule?.(workingTratamiento, {});
+          } else {
+            setShowPostSchedule(true);
+          }
+        }}
       />
+
+      {/* Modal post-agendamiento: ¿+5 min o finalizar? */}
+      {showPostSchedule && (
+        <div className="onboarding-modal" onClick={(e) => { if (e.target === e.currentTarget) setShowPostSchedule(false); }}>
+          <div className="onboarding-modal__box">
+            <h3 className="onboarding-modal__title">{tClinical('sesion_guardada_agendada')}</h3>
+            <p className="onboarding-modal__subtitle">{tConf('pregunta_extender_o_finalizar')}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
+              <button
+                className="onboarding-modal__btn onboarding-modal__btn--save"
+                onClick={async () => {
+                  setShowPostSchedule(false);
+                  if (citaCreada?.id) {
+                    try { await agendaService.extenderSesion(citaCreada.id, 5); } catch (e) { /* sin bloqueo */ }
+                  }
+                  onSchedule?.(workingTratamiento, { extender: 5 });
+                }}
+              >
+                + {tConf('extender_5_min')}
+              </button>
+              <button
+                className="onboarding-modal__btn onboarding-modal__btn--save"
+                onClick={async () => {
+                  setShowPostSchedule(false);
+                  await onFinalize?.(workingTratamiento, { resultadoFinal: null });
+                }}
+              >
+                {tConf('finalizar_sesion')}
+              </button>
+              <button
+                className="onboarding-modal__btn onboarding-modal__btn--skip"
+                onClick={() => { setShowPostSchedule(false); onSchedule?.(workingTratamiento, {}); }}
+              >
+                {tCommon('continue')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showRecetario && (
+        <RecetarioModal
+          open={showRecetario}
+          onClose={() => setShowRecetario(false)}
+          paciente={paciente}
+          tratamientoId={workingTratamiento?.id}
+          sesionId={null}
+          clinicaId={workingTratamiento?.clinicaId || 1}
+          onSaved={() => setShowRecetario(false)}
+        />
+      )}
     </div>
   );
 }
