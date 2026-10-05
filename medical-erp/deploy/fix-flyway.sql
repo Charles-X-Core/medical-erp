@@ -1,0 +1,1 @@
+INSERT INTO flyway_schema_history (installed_rank, version, description, type, script, checksum, installed_by, execution_time, success) VALUES (40, 43, 'add recetas and medicacion', 'SQL', 'V43__add_recetas_and_medicacion.sql', 0, 'manual', 1, 1);
