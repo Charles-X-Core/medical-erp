@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Optimal Health NOW - Contrato de Membresía</title>
+<style>
+  @page { size: letter; margin: 0.75in; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    line-height: 1.15;
+    color: #1a1a1a;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 0;
+    background: #fdfdfb;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 8pt;
+  }
+  .header h1 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 0 0 8pt;
+    letter-spacing: normal;
+  }
+  .header h2 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0 0 8pt;
+    font-style: normal;
+  }
+  .header h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0 0 8pt;
+    letter-spacing: normal;
+    padding: 0;
+  }
+  p { margin: 0 0 8pt; text-align: justify; }
+  .intro {
+    margin-bottom: 8pt;
+    text-align: justify;
+  }
+  .patient-name {
+    display: inline-block;
+    min-width: 240px;
+    max-width: 60%;
+    border-bottom: 1px solid #333;
+    padding: 2px 4px;
+    vertical-align: baseline;
+    font-weight: bold;
+  }
+  .fill-short {
+    display: inline-block;
+    width: 50px;
+    border-bottom: 1px solid #333;
+    padding: 2px 4px;
+  }
+  .fill-med {
+    display: inline-block;
+    width: 130px;
+    border-bottom: 1px solid #333;
+    padding: 2px 4px;
+  }
+  ol.articles {
+    padding-left: 22px;
+    margin: 0 0 8pt;
+  }
+  ol.articles > li {
+    margin-bottom: 8pt;
+    text-align: justify;
+  }
+  .rights-note {
+    text-align: justify;
+    margin: 0 0 8pt;
+  }
+  .rights-note strong { text-transform: uppercase; }
+  .services-columns {
+    display: flex;
+    gap: 40px;
+    margin: 8pt 0 8pt;
+  }
+  .services-col { flex: 1; }
+  .services-col h4 {
+    text-decoration: underline;
+    font-style: italic;
+    font-weight: normal;
+    margin: 0 0 6px;
+    font-size: 12pt;
+  }
+  .services-col ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+  .services-col li {
+    margin-bottom: 4px;
+    font-size: 11pt;
+  }
+  .mou-title {
+    text-align: center;
+    text-decoration: underline;
+    font-weight: bold;
+    margin: 8pt 0 8pt;
+    font-size: 12pt;
+  }
+  .fee-line {
+    margin: 8pt 0 8pt;
+  }
+  .signature-block {
+    margin-top: 30px;
+    page-break-inside: avoid;
+  }
+  .sig-row {
+    margin: 20px 0 2px;
+  }
+  .sig-value {
+    display: block;
+    width: 100%;
+    min-height: 28px;
+    border-bottom: 1px solid #333;
+    padding: 4px;
+    font-weight: bold;
+    font-size: 12pt;
+  }
+  .sig-caption {
+    font-size: 10pt;
+    font-style: italic;
+    margin-top: 2px;
+    margin-bottom: 16px;
+  }
+  .contact-section {
+    margin-top: 20px;
+  }
+  .contact-section h4 {
+    font-weight: bold;
+    margin: 0 0 8px;
+  }
+  .address-fields {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+  }
+  .address-field {
+    border: none;
+    border-bottom: 1px solid #333;
+    font-family: inherit;
+    font-size: 12pt;
+    padding: 4px;
+    text-decoration: underline;
+    background: transparent;
+    text-align: center;
+  }
+  .address-field.street { flex: 2.2; }
+  .address-field.city { flex: 1.4; }
+  .address-field.state { flex: 0.8; }
+  .address-field.zip { flex: 1; }
+  .address-caption {
+    display: flex;
+    gap: 12px;
+    font-size: 10pt;
+    font-style: italic;
+    margin: 2px 0 16px;
+  }
+  .address-caption span { text-align: center; }
+  .address-caption span:nth-child(1) { flex: 2.2; }
+  .address-caption span:nth-child(2) { flex: 1.4; }
+  .address-caption span:nth-child(3) { flex: 0.8; }
+  .address-caption span:nth-child(4) { flex: 1; }
+  .contact-fields {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .contact-field {
+    flex: 1;
+    border-bottom: 1px solid #333;
+    font-family: inherit;
+    font-size: 12pt;
+    padding: 4px;
+    background: transparent;
+  }
+  .contact-caption {
+    display: flex;
+    gap: 20px;
+    font-size: 10pt;
+    font-style: italic;
+    margin-top: -14px;
+    margin-bottom: 20px;
+  }
+  .contact-caption span { flex: 1; text-align: center; }
+
+  .approval-block {
+    margin-top: 40px;
+    border-top: 2px solid #333;
+    padding-top: 20px;
+  }
+  .approval-header {
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .approval-header .org-name { font-size: 12pt; font-weight: bold; }
+  .approval-header .org-sub { font-style: italic; font-size: 12pt; }
+  .approval-date-row {
+    text-align: center;
+    margin: 14px 0 22px;
+  }
+  .approve-sig-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 24px 0 4px;
+  }
+  .approve-sig-row .label { white-space: nowrap; }
+  .approve-fill {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid #333;
+    font-family: inherit;
+    font-size: 12pt;
+    padding: 4px;
+    background: transparent;
+  }
+  .approve-name {
+    text-align: right;
+    font-weight: bold;
+    font-size: 13pt;
+    margin: 2px 0 18px;
+  }
+
+  @media print {
+    body { padding: 0; background: #fff; }
+  }
+  @media screen {
+    body { padding: 40px 50px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Optimal Health NOW</h1>
+  <h2>Una Asociación Privada de Membresía</h2>
+  <h3>CONTRATO DE MEMBRESÍA</h3>
+</div>
+
+<div class="intro">
+  <span>Yo,</span>
+  <span class="patient-name">{{nombre_completo}}</span>
+  <span>habiendo pagado la cuota de membresía correspondiente, por medio del presente solicito mi membresía en Optimal Health NOW, una organización privada de membresía. Al firmar este acuerdo de membresía, acepto/aceptamos la oferta de convertirme/convertirnos en miembro de Optimal Health NOW y declaro haber leído y estar de acuerdo con la siguiente Declaración de Propósito del Artículo I de los Estatutos de Asociación de Optimal Health NOW.</span>
+</div>
+
+<ol class="articles">
+  <li>Esta Asociación de miembros declara por el presente que nuestro objetivo principal es mantener y mejorar los derechos civiles, las garantías constitucionales y la libertad política de cada miembro y ciudadano de los Estados Unidos de América. Creemos y afirmamos que la Constitución de los Estados Unidos es uno de los mejores documentos jamás concebidos por el hombre, y que los firmantes de la Declaración de Independencia lo hicieron por amor a su país.</li>
+
+  <li>Creemos que la Primera Enmienda de la Constitución de los Estados Unidos de América garantiza a nuestros miembros los derechos de libertad de expresión, petición, reunión, derecho a contratar y el derecho a congregarse con el propósito lícito de asesorarse y ayudarse mutuamente en la defensa de sus derechos bajo las constituciones y leyes federales y estatales. Nos esforzamos por mantener y mejorar los derechos civiles, las garantías constitucionales, la libertad de elección en el cuidado de la salud y la libertad política de cada miembro de esta Asociación.</li>
+</ol>
+
+<p class="rights-note">POR EL PRESENTE SE DECLARA que estamos ejerciendo nuestro derecho de "libertad de asociación" garantizado por las Enmiendas Primera y Decimocuarta de la Constitución de los Estados Unidos y las disposiciones equivalentes de las diversas constituciones estatales. Esto significa que las actividades de nuestra Asociación se restringen exclusivamente al ámbito privado.</p>
+
+<ol class="articles" start="3">
+  <li>Declaramos el derecho fundamental de todos nuestros miembros a elegir, de entre nuestro número, a portavoces de quienes se espera brinden el más sabio consejo y asesoría respecto a la necesidad de asistencia en el cuidado de la salud física y mental, y a elegir de entre nuestro número a aquellos miembros que posean las mayores habilidades para asistir y facilitar la prestación efectiva de dicha atención.</li>
+
+  <li>Proclamamos la libertad de elegir y llevar a cabo por nosotros mismos los tipos de terapias y modalidades que consideremos más adecuados para evaluar y prevenir enfermedades de la mente y el cuerpo, y para alcanzar y mantener un bienestar óptimo. Proclamamos y nos reservamos el derecho de incluir opciones de salud que incluyan, entre otras, modalidades y terapias de vanguardia practicadas o utilizadas por cualquier tipo de sanadores, terapeutas o profesionales de todo el mundo, ya sean tradicionales o no tradicionales, convencionales o no convencionales.</li>
+
+  <li>La misión de nuestra Asociación es brindar a los miembros el más alto nivel de atención de calidad y los métodos más efectivos disponibles. Ponemos énfasis en la condición de salud de nuestro miembro, y no únicamente en los síntomas experimentados. Nuestra Asociación comprende que el bienestar tiene múltiples dimensiones y se esfuerza cada día por mantenerse a la vanguardia de las nuevas tecnologías. La Asociación ofrece atención integral, convencional, complementaria y alternativa, así como tecnologías avanzadas para todos los aspectos de la salud de un miembro, brindando los medios de atención más efectivos a una tarifa accesible. Más específicamente, nuestra Asociación ofrece a los miembros lo siguiente: infiltración sanguínea con Células Madre Avanzadas regenerativas para todo el cuerpo, incluyendo ligamentos/rodillas, síndrome del túnel carpiano, tendón de Aquiles, regeneración y proliferación de cartílago ausente, incluyendo Tratamientos con Plasma Rico en Plaquetas (PRP), entre otros, Terapias Neurales Sanguíneas (para eliminar el dolor y la inflamación de forma inmediata); Autohemoterapia (terapia sanguínea para estimular el sistema inmunológico); Oxigenación Celular, Ampollas Activadoras Celulares, Ampollas de Factores de Transferencia, Suplementación Epigenética, Corticosteroides, Fórmulas Ancestrales, Terapias Intravenosas Complementarias y Alternativas; y Tratamientos para Enfermedades Autoinmunes. Otros servicios y productos de salud y estética ofrecidos en beneficio de los miembros son:</li>
+</ol>
+
+<div class="services-columns">
+  <div class="services-col">
+    <h4>Salud:</h4>
+    <ul>
+      <li>Resonancia Magnética Cuántica</li>
+      <li>Naturismo y Salud Humana</li>
+      <li>Medicina Complementaria y Alternativa</li>
+      <li>Terapias Antienvejecimiento</li>
+      <li>Tratamientos Naturales y Terapias Alternativas</li>
+      <li>Tratamientos Ortomoleculares mediante Alimentos Orgánicos y Suplementación Celular</li>
+      <li>Farmacotecnia mediante Homeopatía</li>
+      <li>Nutrición a nivel Celular e Inmunológico en conjunto con Suplementación y Vitaminización</li>
+      <li>Nutrición con Fitonutrientes y Antioxidantes Homeopáticos mediante Fórmulas Naturales</li>
+      <li>Orientación y Planificación Familiar mediante la Lactancia Materna</li>
+      <li>Terapia Física y Rehabilitación</li>
+      <li>Inserción de Pellets de Testosterona (Bioidénticos)</li>
+      <li>Auriculoterapia - Sistema Noack (Puntos y Áreas Especiales)</li>
+      <li>Terapias para la Pérdida de Peso y Trastornos Alimentarios</li>
+      <li>Programas Personalizados de Pérdida de Peso mediante Pruebas Genéticas según la Obesidad de cada miembro</li>
+      <li>Medicina Genética y Genómica: Complementaria/Natural/Alternativa/Homeopática</li>
+    </ul>
+  </div>
+  <div class="services-col">
+    <h4>Estética:</h4>
+    <ul>
+      <li>Terapia de Masajes y Cosmiatría mediante Rehabilitación Física</li>
+      <li>Tratamientos de Mesoterapia Facial y Corporal</li>
+      <li>Estética Integral Avanzada</li>
+      <li>Lifting Facial y Corporal</li>
+      <li>Tratamientos Faciales con BIOHILOS</li>
+      <li>Rejuvenecimiento Antienvejecimiento (PRP)</li>
+      <li>Tratamientos de Hidrolipocánula</li>
+      <li>Tratamientos de Escleroterapia</li>
+      <li>Tratamientos de Peeling Ultravioleta</li>
+    </ul>
+  </div>
+</div>
+
+<p>como alternativas y en beneficio de sus miembros.</p>
+
+<p>6. La Asociación reconocerá como miembro a toda persona (sin distinción de raza, color o religión) que esté de acuerdo con estos principios y políticas, y proporcionará un medio a través del cual sus miembros individuales puedan asociarse para llevar a cabo y hacer realidad los principios y propósitos aquí declarados.</p>
+
+<div class="mou-title">MEMORANDO DE ENTENDIMIENTO</div>
+
+<p>Entiendo que los demás miembros de la Asociación que prestan servicios y atención lo hacen en calidad de miembros y no en calidad de proveedores de salud con licencia. Asimismo, entiendo que dentro de la asociación no existe una relación médico-paciente, sino únicamente una relación contractual de Asociación entre miembros. Además, he elegido libremente cambiar mi condición legal de paciente o cliente público a la de miembro privado de la Asociación. Entiendo además que es enteramente mi responsabilidad considerar los consejos y recomendaciones que me ofrezcan mis compañeros miembros, así como informarme sobre la eficacia, los riesgos y la conveniencia de los mismos, y que la aceptación de la evaluación, diagnóstico, terapia, tratamiento y atención ofrecidos o recomendados es una decisión propia y cuidadosamente considerada por mí. Toda solicitud que yo haga a un compañero miembro para que me asista o me brinde la evaluación, diagnóstico, terapia, tratamiento y atención antes mencionados es una decisión libre mía, en ejercicio de mis derechos y realizada en mi propio beneficio, y acepto eximir de responsabilidad al (a los) Fiduciario(s), al personal y a los demás miembros trabajadores, así como a la Asociación, de cualquier responsabilidad no intencional por los resultados de dicha atención, salvo por daños que resulten de casos de peligro claro y presente de mal sustantivo, según lo determine la Asociación, tal como lo establece y define la Corte Suprema de los Estados Unidos.</p>
+
+<p>Los Fiduciarios y los miembros han elegido a Carlos Martos y Nora Carolina Martos como las personas mejor calificadas para prestar servicios a los miembros de la Asociación, y les confían la facultad de seleccionar a otros miembros que los asistan en el cumplimiento de dicho servicio.</p>
+
+<p>Asimismo, entiendo que, dado que la Asociación está protegida por las Enmiendas Primera y Decimocuarta de la Constitución de los Estados Unidos, se encuentra fuera de la jurisdicción y autoridad de las agencias y autoridades federales y estatales en lo referente a cualquier queja o reclamo en contra de la Asociación, de cualquier Fiduciario, miembro u otro miembro del personal. Todos los derechos de queja o reclamo serán resueltos por un Comité de la Asociación y serán renunciados por el miembro en beneficio de la Asociación y sus miembros. Debido a que la privacidad y seguridad de los registros de membresía que mantiene la Asociación han sido consideradas inviolables por la Corte Suprema de los Estados Unidos, el miembro que suscribe renuncia a los derechos de privacidad de la HIPAA y al proceso de queja correspondiente. Cualquier historia clínica o registro de salud que mantenga la asociación será protegido estrictamente y <strong>solo</strong> se entregará mediante solicitud por escrito del miembro. Acepto que la violación de cualquiera de las renuncias contenidas en este contrato de membresía dará lugar a un procedimiento legal sin oposición (no contest) en mi contra. Además, la Asociación no participa en ningún plan de seguro médico ni realiza cobros en nombre del miembro, pero proporcionará un comprobante adecuado para que el miembro gestione el reembolso ante su compañía de seguros, de ser aplicable.</p>
+
+<p>Acepto unirme a la Asociación, una asociación privada de membresía bajo el derecho consuetudinario (common law), cuyos miembros buscan ayudarse mutuamente a lograr una mejor salud y a vivir más tiempo con buena calidad de vida.</p>
+
+<p>Entiendo que los médicos, enfermeras y demás proveedores que son miembros de la Asociación me ofrecen consejos, servicios y beneficios que no necesariamente se ajustan a la atención médica convencional. No espero que estos beneficios incluyan cobertura de guardia, atención hospitalaria ni la atención habitual y acostumbrada que brindan la mayoría de los médicos. Recibiré dicha atención primaria y especializada en otro lugar. Comprendo plenamente que los beneficios que reciba de la Asociación podrían o no estar cubiertos por mi seguro de salud, y que en ningún caso estarán cubiertos por Medicare.</p>
+
+<p>Como miembro, acepto el objetivo de ayudar a que mi cuerpo funcione mejor y de elegir técnicas que sean tanto muy seguras como con una probabilidad razonable de éxito, entendiendo que ninguna técnica diagnóstica o tratamiento es infalible. Si opto por prescindir de medicamentos, cirugía o radiación que me hayan sido recomendados por terceros, acepto plenamente el riesgo de sufrir consecuencias graves derivadas de esa decisión. Otros aspectos del consentimiento informado se abordarán en mis conversaciones con los proveedores y mis compañeros miembros de la Asociación.</p>
+
+<p>Mis actividades dentro de la Asociación son un asunto privado que me niego a compartir con la Junta Estatal de Medicina, la FDA, la FTC, Medicare, Medicaid o mi propia compañía de seguros sin mi permiso expreso y específico. Todos los registros y documentos siguen siendo propiedad de la Asociación, aun cuando yo reciba una copia de los mismos. Acepto plenamente no interponer una demanda por negligencia médica contra un compañero miembro de la Asociación, a menos que dicho miembro me haya expuesto a un peligro claro y presente de mal sustantivo. Reconozco que los miembros de la Asociación no cuentan con seguro de responsabilidad profesional (malpractice).</p>
+
+<p>Suscribo este acuerdo por mi propia voluntad o en representación de mi dependiente, sin presión alguna ni promesa de cura. Afirmo que no represento a ninguna agencia estatal o federal cuyo propósito sea regular y aprobar productos. He leído y comprendido este documento, y mis preguntas han sido respondidas plenamente a mi satisfacción. Entiendo que puedo retirarme de este acuerdo y terminar mi membresía en esta asociación en cualquier momento. Estas páginas y el Artículo I de los Estatutos de Asociación constituyen el acuerdo íntegro de mi membresía en la Asociación y sustituyen cualquier acuerdo anterior.</p>
+
+<p>Entiendo que la cuota de membresía me da derecho a recibir aquellos beneficios que el (los) Fiduciario(s) declaren como "beneficios generales", sin costo adicional. Acepto pagar, según se me cobre, aquellos beneficios que reciba y que los Fiduciarios declaren como "cargos especiales", conforme al Cuadro de Tarifas.</p>
+
+<div class="intro fee-line">
+  <span>Adjunto la suma de $10.00 como contraprestación por mi contrato de membresía vitalicia de pago único, cuyo plazo se inicia en la fecha de la firma de este contrato, y por medio del presente certifico, declaro y garantizo que he leído cuidadosamente lo anterior, la Solicitud Contractual de Membresía de Optimal Health NOW, y que la comprendo y acepto plenamente.</span>
+</div>
+
+<div class="intro">
+  <span>EN FE DE LO CUAL, firmo el presente a los</span>
+  <span class="fill-short">{{fecha_dia}}</span>
+  <span>días del mes de</span>
+  <span class="fill-med">{{fecha_mes}}</span>
+  <span>, {{fecha_anio}}</span>
+</div>
+
+<div class="signature-block">
+  <div class="sig-row">
+    <div class="sig-value">{{nombre_completo}}</div>
+  </div>
+  <div class="sig-caption"><strong>Nombre del Miembro</strong> <em>(Nombre del tutor legal si el solicitante es menor de 18 años, de ser aplicable)</em></div>
+
+  <div class="sig-row">
+    <div class="sig-value" style="min-height: 40px; border-bottom: 2px dashed #999; text-align: center; color: #999; font-style: italic;">(Firmar en el kiosco)</div>
+  </div>
+  <div class="sig-caption"><strong>Firma del Miembro</strong> <em>(Firma del tutor legal si el solicitante es menor de 18 años, de ser aplicable)</em></div>
+
+  <div class="contact-section">
+    <h4>Información de Contacto del Miembro:</h4>
+    <div class="address-fields">
+      <div class="address-field street">{{direccion_calle}}</div>
+      <div class="address-field city">{{direccion_ciudad}}</div>
+      <div class="address-field state">{{direccion_estado}}</div>
+      <div class="address-field zip">{{direccion_codigo_postal}}</div>
+    </div>
+    <div class="address-caption">
+      <span>Calle</span><span>Ciudad</span><span>Estado/Provincia</span><span>Código Postal</span>
+    </div>
+
+    <div class="contact-fields">
+      <div class="contact-field">{{telefono}}</div>
+      <div class="contact-field">{{email}}</div>
+    </div>
+    <div class="contact-caption">
+      <span>teléfono(s) de casa/trabajo/celular</span>
+      <span>correo electrónico</span>
+    </div>
+  </div>
+</div>
+
+<div class="approval-block">
+  <div class="approval-header">
+    <div class="org-name">Optimal Health NOW</div>
+    <div class="org-sub">Una Asociación Privada de Membresía</div>
+  </div>
+
+  <div class="approval-date-row intro">
+    <span>Aprobado y aceptado a los</span>
+    <span class="fill-short">{{fecha_dia}}</span>
+    <span>días del mes de</span>
+    <span class="fill-med">{{fecha_mes}}</span>
+    <span>, {{fecha_anio}}</span>
+  </div>
+
+  <div class="approve-sig-row">
+    <span class="label">por:</span>
+    <div class="approve-fill" style="border-bottom: 1px solid #333; padding: 4px;">Dr. Carolina Martos</div>
+  </div>
+  <div class="approve-name">Dr. Carolina Martos</div>
+</div>
+
+</body>
+</html>

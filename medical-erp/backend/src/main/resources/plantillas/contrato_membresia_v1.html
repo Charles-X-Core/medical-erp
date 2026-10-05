@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Optimal Health NOW - Membership Contract</title>
+<style>
+  @page { size: letter; margin: 0.75in; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    line-height: 1.15;
+    color: #1a1a1a;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 0;
+    background: #fdfdfb;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 8pt;
+  }
+  .header h1 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 0 0 8pt;
+    letter-spacing: normal;
+  }
+  .header h2 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0 0 8pt;
+    font-style: normal;
+  }
+  .header h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0 0 8pt;
+    letter-spacing: normal;
+    padding: 0;
+  }
+  p { margin: 0 0 8pt; text-align: justify; }
+  .intro {
+    margin-bottom: 8pt;
+    text-align: justify;
+  }
+  .patient-name {
+    display: inline-block;
+    min-width: 240px;
+    max-width: 60%;
+    border-bottom: 1px solid #333;
+    padding: 2px 4px;
+    vertical-align: baseline;
+    font-weight: bold;
+  }
+  .fill-short {
+    display: inline-block;
+    width: 50px;
+    border-bottom: 1px solid #333;
+    padding: 2px 4px;
+  }
+  .fill-med {
+    display: inline-block;
+    width: 130px;
+    border-bottom: 1px solid #333;
+    padding: 2px 4px;
+  }
+  ol.articles {
+    padding-left: 22px;
+    margin: 0 0 8pt;
+  }
+  ol.articles > li {
+    margin-bottom: 8pt;
+    text-align: justify;
+  }
+  .rights-note {
+    text-align: justify;
+    margin: 0 0 8pt;
+  }
+  .rights-note strong { text-transform: uppercase; }
+  .services-columns {
+    display: flex;
+    gap: 40px;
+    margin: 8pt 0 8pt;
+  }
+  .services-col { flex: 1; }
+  .services-col h4 {
+    text-decoration: underline;
+    font-style: italic;
+    font-weight: normal;
+    margin: 0 0 6px;
+    font-size: 12pt;
+  }
+  .services-col ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+  .services-col li {
+    margin-bottom: 4px;
+    font-size: 11pt;
+  }
+  .mou-title {
+    text-align: center;
+    text-decoration: underline;
+    font-weight: bold;
+    margin: 8pt 0 8pt;
+    font-size: 12pt;
+  }
+  .fee-line {
+    margin: 8pt 0 8pt;
+  }
+  .signature-block {
+    margin-top: 30px;
+    page-break-inside: avoid;
+  }
+  .sig-row {
+    margin: 20px 0 2px;
+  }
+  .sig-value {
+    display: block;
+    width: 100%;
+    min-height: 28px;
+    border-bottom: 1px solid #333;
+    padding: 4px;
+    font-weight: bold;
+    font-size: 12pt;
+  }
+  .sig-caption {
+    font-size: 10pt;
+    font-style: italic;
+    margin-top: 2px;
+    margin-bottom: 16px;
+  }
+  .contact-section {
+    margin-top: 20px;
+  }
+  .contact-section h4 {
+    font-weight: bold;
+    margin: 0 0 8px;
+  }
+  .address-fields {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+  }
+  .address-field {
+    border: none;
+    border-bottom: 1px solid #333;
+    font-family: inherit;
+    font-size: 12pt;
+    padding: 4px;
+    text-decoration: underline;
+    background: transparent;
+    text-align: center;
+  }
+  .address-field.street { flex: 2.2; }
+  .address-field.city { flex: 1.4; }
+  .address-field.state { flex: 0.8; }
+  .address-field.zip { flex: 1; }
+  .address-caption {
+    display: flex;
+    gap: 12px;
+    font-size: 10pt;
+    font-style: italic;
+    margin: 2px 0 16px;
+  }
+  .address-caption span { text-align: center; }
+  .address-caption span:nth-child(1) { flex: 2.2; }
+  .address-caption span:nth-child(2) { flex: 1.4; }
+  .address-caption span:nth-child(3) { flex: 0.8; }
+  .address-caption span:nth-child(4) { flex: 1; }
+  .contact-fields {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .contact-field {
+    flex: 1;
+    border-bottom: 1px solid #333;
+    font-family: inherit;
+    font-size: 12pt;
+    padding: 4px;
+    background: transparent;
+  }
+  .contact-caption {
+    display: flex;
+    gap: 20px;
+    font-size: 10pt;
+    font-style: italic;
+    margin-top: -14px;
+    margin-bottom: 20px;
+  }
+  .contact-caption span { flex: 1; text-align: center; }
+
+  .approval-block {
+    margin-top: 40px;
+    border-top: 2px solid #333;
+    padding-top: 20px;
+  }
+  .approval-header {
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .approval-header .org-name { font-size: 12pt; font-weight: bold; }
+  .approval-header .org-sub { font-style: italic; font-size: 12pt; }
+  .approval-date-row {
+    text-align: center;
+    margin: 14px 0 22px;
+  }
+  .approve-sig-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 24px 0 4px;
+  }
+  .approve-sig-row .label { white-space: nowrap; }
+  .approve-fill {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid #333;
+    font-family: inherit;
+    font-size: 12pt;
+    padding: 4px;
+    background: transparent;
+  }
+  .approve-name {
+    text-align: right;
+    font-weight: bold;
+    font-size: 13pt;
+    margin: 2px 0 18px;
+  }
+
+  @media print {
+    body { padding: 0; background: #fff; }
+  }
+  @media screen {
+    body { padding: 40px 50px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Optimal Health NOW</h1>
+  <h2>A Private Membership Association</h2>
+  <h3>MEMBERSHIP CONTRACT</h3>
+</div>
+
+<div class="intro">
+  <span>I,</span>
+  <span class="patient-name">{{nombre_completo}}</span>
+  <span>for membership fee paid in hand, do hereby apply for membership in Optimal Health NOW, a private membership organization. With the signing of this membership agreement, I/we accept the offer made to become a member of Optimal Health NOW and have read and agree with the following Declaration of Purpose from Article I of Optimal Health NOW's Articles of Association.</span>
+</div>
+
+<ol class="articles">
+  <li>This Association of members hereby declares that our main objective is to maintain and improve the civil rights, constitutional guarantees, and political freedom of every member and citizen of the United States of America. We believe and affirm that the Constitution of the United States is one of the best documents ever devised by man, and the signers of the Declaration of Independence did so out of love for their country.</li>
+
+  <li>We believe that the First Amendment of the Constitution of the United States of America guarantees our members the rights of free speech, petition, assembly, right to contract, and the right to gather together for the lawful purpose of advising and helping one another in asserting our rights under the federal and state constitutions and statutes. We strive to maintain and improve the civil rights, constitutional guarantees, freedom of choice in health care and political freedom of every member of this Association.</li>
+</ol>
+
+<p class="rights-note">IT IS HEREBY Declared that we are exercising our right of "freedom of association" as guaranteed by the First and Fourteenth Amendments of the U.S. Constitution and equivalent provisions of the various state constitutions. This means that our Association activities are restricted to the private domain only.</p>
+
+<ol class="articles" start="3">
+  <li>We declare the basic right of all our members to select spokesmen from our number who could be expected to give wisest counsel and advice concerning the need for physical and mental health care assistance and to select from our number those members who are the most skilled to assist and facilitate the actual performance and delivery of care.</li>
+
+  <li>We proclaim the freedom to choose and perform for ourselves the types of therapies and modalities that we think best for assessing and preventing illness of our minds and bodies and for achieving and maintaining optimum wellness. We proclaim and reserve the right to include health options that include, but are not limited to, cutting edge modalities and therapies practiced or used by any types of healers or therapists or practitioners the world over, whether traditional or nontraditional, conventional or unconventional.</li>
+
+  <li>The mission of our Association is to provide members with the highest level of quality care and the most effective methods available. We emphasize our member's health condition, and not merely the symptoms experienced. Our Association understands that wellness has many dimensions and strives every day to stay on the leading edge of new technology. The Association provides comprehensive, conventional, complementary, alternative care and advanced technologies for all aspects of a member's health and provides the most effective means of care at an affordable fee. More specifically, our Association provides members with the following: Blood infiltration with regenerative Advanced Stem Cells for the entire body including ligaments / knees, carpal tunnel syndrome, achilles heel, regeneration and proliferation of absent cartilage including Platelet Rich Plasma Treatments (PRP), to include, but not limited to, Neural Blood Therapies (to remove pain &amp; inflammation immediately); Autohemotherapy (blood therapy to stimulate the immune system); Cellular Oxygenation, Cellular Activator Ampoules, Transfer Factor Ampoules, Epigenetics Supplementation, Corticosteroids, Ansestral Formulas, Complementary and Alternative IV Therapies; and Treatments for Autoimmune Diseases. Other health and aesthetic services and products offered for the benefit of members are:</li>
+</ol>
+
+<div class="services-columns">
+  <div class="services-col">
+    <h4>Health:</h4>
+    <ul>
+      <li>Quantum Magnetic Resonance</li>
+      <li>Naturism and Human Health</li>
+      <li>Complementary and Alternative Medicine</li>
+      <li>Anti-Aging Therapies</li>
+      <li>Natural Treatments &amp; Alternative Therapies</li>
+      <li>Ortho Molecular Treatments through Organic Foods and Cellular Food Supplementation</li>
+      <li>Farmacotecnia through Homeopathy</li>
+      <li>Nutrition at a Cellular &amp; Immune System level in conjunction with Supplementation and Vitaminization</li>
+      <li>Nutrition with Phytonutrients and Homeopathic Antioxidants through Natural Formulas</li>
+      <li>Family Guidance and Planning through Breast-Feeding</li>
+      <li>Physical Therapy and Rehabilitation</li>
+      <li>Insertion of Testosterone Pellets (Bio-Identical)</li>
+      <li>Auriculotherapy-Noack System (Special Points and Areas)</li>
+      <li>Therapies for Weight Loss and Eating Disorders</li>
+      <li>Personalized Weight loss Programs through Genetic Testing based on the Obesity of each member</li>
+      <li>Genetic and Genomic Medicine: Complementary/Natural/Alternative/Homeopathy</li>
+    </ul>
+  </div>
+  <div class="services-col">
+    <h4>Aesthetic:</h4>
+    <ul>
+      <li>Massage Therapy and Cosmeatria through Physical Rehabilitation</li>
+      <li>Meso Face and Body Treatments</li>
+      <li>Advanced Integral Aesthetics</li>
+      <li>Facial and Body Lifting</li>
+      <li>BIOTHREAD Facial Treatments</li>
+      <li>Anti Aging Rejuvenation (PRP)</li>
+      <li>Hidrolipocanula Treatments</li>
+      <li>Sclerotherapy Treatments</li>
+      <li>Ultraviolet Peeling Treatments</li>
+    </ul>
+  </div>
+</div>
+
+<p>as alternates and for the benefit of its members.</p>
+
+<p>6. The Association will recognize any person (irrespective of race, color, or religion) who is in agreement with these principles and policies as a member and will provide a medium through which its individual members may associate for actuating and bringing to fruition the principles and purposes heretofore declared.</p>
+
+<div class="mou-title">MEMORANDUM OF UNDERSTANDING</div>
+
+<p>I understand that the fellow members of the Association that provide services and care, do so in the capacity of a fellow member and not in the capacity as a licensed health care provider. I further understand that within the association no doctor-patient relationship exists but only a contract member-member Association relationship. In addition, I have freely chosen to change my legal status as a public patient or client to a private member of the Association. I further understand that it is entirely my own responsibility to consider the advice and recommendations offered to me by my fellow members and to educate myself as to the efficacy, risks, and desirability of same and the acceptance of the offered or recommended assessment, diagnosis, therapy, treatment and care is my own carefully considered decision. Any request by me to a fellow member to assist me or provide me with the aforementioned assessment, diagnosis, therapy, treatment and care is my own free decision in an exercise of my rights and made by me for my benefit, and I agree to hold the Trustee(s), staff and other worker members and the Association harmless from any unintentional liability for the results of such care, except for harm that results from instances of a clear and present danger of substantive evil as determined by the Association, as stated and defined by the United States Supreme Court.</p>
+
+<p>The Trustees and members have chosen Carlos Martos and Nora Carolina Martos as the persons best qualified to perform services to members of the Association and entrust them to select other members to assist them in carrying out that service.</p>
+
+<p>In addition, I understand that since the Association is protected by the First and Fourteenth Amendments to the U.S. Constitution, it is outside the jurisdiction and authority of Federal and State Agencies and Authorities concerning any and all complaints or grievances against the Association, any Trustee(s), members or other staff persons. All rights of complaints or grievances will be settled by an Association Committee and will be waived by the member for the benefit of the Association and its members. Because the privacy and security of membership records maintained within the Association which have been held to be inviolate by the U.S. Supreme Court, the undersigned member waives HIPAA privacy rights and complaint process. Any medical or healthcare records kept by the association will be strictly protected and <strong>only</strong> released upon written request of the member. I agree that violation of any waivers in this membership contract will result in a no contest legal proceeding against me. In addition, the Association does not participate in any medical insurance plans or collections on behalf of the member but will provide a suitable invoice for the member to pursue reimbursement by his/her insurance company, if applicable.</p>
+
+<p>I agree to join the Association, a private membership association under common law, whose members seek to help each other achieve better health and live longer with good quality of life.</p>
+
+<p>I understand that the doctors, nurses, and other providers who are fellow members of the Association are offering me advice, services, and benefits that do not necessarily conform to conventional medical care. I do not expect these benefits to include on-call coverage, hospital care, or the usual and customary care provided by most physicians. I will receive such primary and specialist care elsewhere. I fully understand that the benefits I receive from the Association might or might not be covered by my health insurance and not at all by Medicare.</p>
+
+<p>As a member, I accept the goals of helping my body function better and choosing techniques that are both very safe and have a reasonably good chance to succeed, realizing that no diagnostic technique or treatment is foolproof. If I choose to forgo drugs, surgery, or radiation that has been recommended to me by others, I fully accept the risk that I might suffer serious consequences from that choice. Other aspects of informed consent will take place in my discussions with the providers and my fellow members of the Association.</p>
+
+<p>My activities within the Association are a private matter that I refuse to share with the State Medical Board, the FDA, FTC, Medicare, Medicaid or my own insurance company without my expressed specific permission. All records and documents remain as property of the Association, even if I receive a copy of them. I fully agree not to file a malpractice lawsuit against a fellow member of the Association unless that member has exposed me to a clear and present danger of substantive evil. I acknowledge that the members of the Association do not carry malpractice insurance.</p>
+
+<p>I enter into this agreement of my own free will or on behalf of my dependent without any pressure or promise of cure. I affirm that I do not represent any State or Federal agency whose purpose is to regulate and approve products. I have read and understood this document, and my questions have been answered fully to my satisfaction. I understand that I can withdraw from this agreement and terminate my membership in this association at any time. These pages and Article I of the Articles of Association of the Association consist of the entire agreement for my membership in the Association and they supersede any previous agreement.</p>
+
+<p>I understand that the membership fee entitles me to receive those benefits declared by the Trustee(s) to be "general benefits" free of further charge. I agree to pay as levied those benefits that I receive that are declared by the Trustees to be "special assessments", per Fee Schedule.</p>
+
+<div class="intro fee-line">
+  <span>I enclose the sum of $10.00 as consideration for my one-time lifetime membership contract, said term beginning with the date of the signing of this contract, and by these presents do hereby certify, attest and warrant that I have carefully read the above and foregoing Optimal Health NOW's Contractual Application for Membership and I fully understand and agree with same.</span>
+</div>
+
+<div class="intro">
+  <span>IN WITNESS WHEREOF I set my hand this</span>
+  <span class="fill-short">{{fecha_dia}}</span>
+  <span>day of</span>
+  <span class="fill-med">{{fecha_mes}}</span>
+  <span>, {{fecha_anio}}</span>
+</div>
+
+<div class="signature-block">
+  <div class="sig-row">
+    <div class="sig-value">{{nombre_completo}}</div>
+  </div>
+  <div class="sig-caption"><strong>Member's Name</strong> <em>(Name of legal guardian if Applicant under 18 years, if applicable)</em></div>
+
+  <div class="sig-row">
+    <div class="sig-value" style="min-height: 40px; border-bottom: 2px dashed #999; text-align: center; color: #999; font-style: italic;">(Firmar en el kiosco)</div>
+  </div>
+  <div class="sig-caption"><strong>Member's Signature</strong> <em>(Signature of legal guardian if Applicant under 18 years, if applicable)</em></div>
+
+  <div class="contact-section">
+    <h4>Member's Contact Information:</h4>
+    <div class="address-fields">
+      <div class="address-field street">{{direccion_calle}}</div>
+      <div class="address-field city">{{direccion_ciudad}}</div>
+      <div class="address-field state">{{direccion_estado}}</div>
+      <div class="address-field zip">{{direccion_codigo_postal}}</div>
+    </div>
+    <div class="address-caption">
+      <span>Street</span><span>City</span><span>State</span><span>Zip Code</span>
+    </div>
+
+    <div class="contact-fields">
+      <div class="contact-field">{{telefono}}</div>
+      <div class="contact-field">{{email}}</div>
+    </div>
+    <div class="contact-caption">
+      <span>home/work/cell numbers</span>
+      <span>email address</span>
+    </div>
+  </div>
+</div>
+
+<div class="approval-block">
+  <div class="approval-header">
+    <div class="org-name">Optimal Health NOW</div>
+    <div class="org-sub">A Private Membership Association</div>
+  </div>
+
+  <div class="approval-date-row intro">
+    <span>Approved and accepted this</span>
+    <span class="fill-short">{{fecha_dia}}</span>
+    <span>day of</span>
+    <span class="fill-med">{{fecha_mes}}</span>
+    <span>, {{fecha_anio}}</span>
+  </div>
+
+  <div class="approve-sig-row">
+    <span class="label">by:</span>
+    <div class="approve-fill" style="border-bottom: 1px solid #333; padding: 4px;">Dr. Carolina Martos</div>
+  </div>
+  <div class="approve-name">Dr. Carolina Martos</div>
+</div>
+
+</body>
+</html>
