@@ -1,0 +1,47 @@
+@use '../variables' as *;
+@use '../themes/light' as *;
+
+.aviso-zona {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  margin: 0 0 $space-4;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: $radius-lg;
+
+  &__badge {
+    flex-shrink: 0;
+    margin-top: 1px;
+    padding: 2px 7px;
+    border-radius: $radius-md;
+    background: #F59E0B;
+    color: #fff;
+    font-size: 11px;
+    font-weight: $fw-bold;
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+  }
+
+  &__body {
+    min-width: 0;
+  }
+
+  &__titulo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: #92400e;
+    margin: 0 0 2px;
+  }
+
+  &__texto {
+    margin: 0;
+    font-size: $fs-xs;
+    line-height: 1.45;
+    color: $light-text-secondary;
+  }
+}
