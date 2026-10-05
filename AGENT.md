@@ -120,6 +120,11 @@ Standard flow:
 `docs/` NEVER explains how to code.
 `.agent/` NEVER defines what to build.
 
+> **Excepcion operativa:** `.agent/vps-access.md` si contiene datos del entorno
+> (host, hostkey, rutas del servidor) que no son secrets y hacen falta para
+> cualquier tarea que toque el VPS. Es el unico documento de `.agent/` con
+> contenido de infraestructura; el resto es methodology.
+
 ### 3.4 Security First
 
 Patient data is sensitive. Security is not optional. Every decision must consider security implications.
@@ -479,6 +484,7 @@ The agent does NOT execute git commits unless explicitly requested. The agent pr
 | DEV-001 | Coding Standards | docs/06-development/ |
 | DEV-002 | Branch Strategy | docs/06-development/ |
 | DEV-003 | Testing | docs/06-development/ |
+| DEV-004 | New Machine Setup | / |
 | OPS-001 | Docker | docs/07-deployment/ |
 | OPS-002 | Production | docs/07-deployment/ |
 | OPS-003 | Monitoring | docs/07-deployment/ |
@@ -494,6 +500,7 @@ The agent does NOT execute git commits unless explicitly requested. The agent pr
 | AGT-FE | Frontend | .agent/ |
 | AGT-SEC | Security | .agent/ |
 | AGT-OPS | DevOps | .agent/ |
+| AGT-VPS | VPS Access (SSH via PuTTY) | .agent/ |
 | AGT-CON | Conventions | .agent/ |
 | AGT-PRM | Prompts | .agent/ |
 | AGT-CR | Code Review | .agent/ |

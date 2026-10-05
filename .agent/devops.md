@@ -85,58 +85,100 @@ Reference: OPS-002 (docs/07-deployment/production.md)
 
 ### Deployment Steps
 
-1. **Backup Current State**
-   ```bash
-   # Backup application
-   tar -czf backup-app-$(date +%Y%m%d-%H%M%S).tar.gz /opt/medical-erp/
-   
-   # Backup database
-   mysqldump -u root -p medical_erp > backup-db-$(date +%Y%m%d-%H%M%S).sql
+> **Antes de ejecutar cualquiera de estos pasos, leer `.agent/vps-access.md`.**
+> Ahi esta el metodo real de conexion (PuTTY + hostkey), los dos comandos base,
+> y la trampa de quoting de PowerShell que rompe casi todo comando remoto mal
+> formado. Esta seccion es el *que*; el *como* esta alla.
+
+El despliegue es **manual y secuencial**. No hay pipeline ni integracion
+continua: el build es local y el artefacto se sube a mano.
+
+**Preflight**
+
+- [ ] `git status` limpio y todo pusheado
+- [ ] El build local compila antes de subir nada
+- [ ] `$env:VPS_PASSWORD` y `$env:MYSQL_PASSWORD` definidas en la sesion
+
+1. **Compilar en local** (el servicio se queda caido mientras tanto, por eso se
+   compila primero y se sube despues)
+   ```powershell
+   cd medical-erp\backend
+   mvn package -Dmaven.test.skip=true
+   cd ..\frontend
+   npm install; npm run build
    ```
 
-2. **Stop Application**
-   ```bash
-   sudo systemctl stop medical-erp
+2. **Subir el JAR como `.new`**, nunca encima del `app.jar` activo
+   ```powershell
+   & $PSCP -batch -hostkey $HOSTKEY -pw $env:VPS_PASSWORD `
+     backend\target\medical-erp-1.0.0.jar "$TARGET`:/tmp/app.jar.new"
    ```
 
-3. **Deploy New Version**
+3. **Swap con backup y restart**, siempre via script en archivo (el `$(date)`
+   se lo come PowerShell si va inline)
    ```bash
-   # Copy new JAR
-   scp target/medical-erp-1.0.0.jar user@vps:/opt/medical-erp/app.jar
-   
-   # Apply database migrations
-   flyway migrate
+   # /tmp/deploy-jar.sh, subido con pscp y con sed -i 's/\r$//' aplicado
+   cp /opt/medical-erp/app.jar /opt/medical-erp/app.jar.bak.$(date +%Y%m%d-%H%M%S)
+   cp /tmp/app.jar.new /opt/medical-erp/app.jar
+   rm /tmp/app.jar.new
+   systemctl restart medical-erp
    ```
 
-4. **Start Application**
+4. **Frontend**: `dist/` se copia a `/opt/medical-erp/frontend/`. Si se empaqueta
+   en zip desde Windows, `unzip` devuelve codigo 1 aunque extraiga bien (separadores
+   `\`); hay que tolerarlo con `|| true`.
+
+5. **Esperar ~40 s y verificar**
    ```bash
-   sudo systemctl start medical-erp
+   systemctl is-active medical-erp
+   journalctl -u medical-erp --since '2 min ago' --no-pager | grep -E 'Started MedicalErp|ERROR'
+   ```
+  tiene que aparecer `Started MedicalErpApplication in ... seconds` y quedar
+   `active`. Comprobar tambien que el sitio sirve el bundle nuevo:
+   ```bash
+   curl -s https://erp.myoptimalhealthnow.com/ | grep -o 'index-[A-Za-z0-9_]*\.\(js\|css\)'
    ```
 
-5. **Verify Deployment**
-   ```bash
-   # Check service status
-   sudo systemctl status medical-erp
-   
-   # Check health endpoint
-   curl https://medical-erp.com/actuator/health
-   
-   # Check logs
-   sudo journalctl -u medical-erp -f
-   ```
+6. **Migraciones**: no se aplican a mano. Spring Boot corre Flyway al arrancar
+   (`spring.flyway.enabled=true`). Si una migracion falla, el servicio no levanta
+   y hay que mirar `flyway_schema_history`. **Nunca** ejecutar a mano
+   `medical-erp/backend/reset_virgen.sql`: hace `TRUNCATE`.
 
-6. **Monitor**
-   - Watch logs for errors
-   - Check monitoring dashboard
-   - Verify key functionality
+7. **Si algo falla**: restaurar el backup del paso 3 y reiniciar. El backup se
+   llama `app.jar.bak.<timestamp>`.
+
+> Las migraciones y el codigo van siempre juntos. Un `.sql` suelto en
+> `medical-erp/backend/` esta en `.gitignore` a proposito.
 
 ### Rollback Procedure
 
-1. Stop application
-2. Restore backup
-3. Start application
-4. Verify rollback successful
-5. Document incident
+Si el servicio no levanta o el frontend no carga tras un deploy:
+
+1. Ver que el fallo es real y no de entorno:
+   ```bash
+   systemctl is-active medical-erp
+   journalctl -u medical-erp -n 60 --no-pager
+   ```
+   Un `NoClassDefFoundError: ch/qos/logback/...` durante el reinicio viene del
+   proceso anterior apagandose y **no cuenta como fallo**.
+
+2. **Restaurar el JAR**
+   ```bash
+   ls -1t /opt/medical-erp/app.jar.bak.* | head -1   # el mas reciente
+   cp /opt/medical-erp/app.jar /opt/medical-erp/app.jar.rollback
+   cp <el backup elegido> /opt/medical-erp/app.jar
+   systemctl restart medical-erp
+   ```
+
+3. **Frontend**: restaurar `/opt/medical-erp/frontend.bak.<timestamp>` y volver a
+   copiar.
+
+4. **Migraciones**: una migracion aplicada **no** se deshace sola. Si el problema
+   es una migracion, hay que escribir una nueva que la corrija (Flyway esta
+   configurado con `out-of-order`). No borrar filas de
+   `flyway_schema_history` a mano.
+
+5. Verificar, y documentar la causa. Si el fallo se repite, escribir un ADR.
 
 ## Common Tasks
 
@@ -212,6 +254,13 @@ Before any DevOps task, follow `.agent/workflow.md`:
 7. **Commit** — Clean commit with proper message
 
 ## References
+
+- `.agent/vps-access.md` — **conexion real al VPS** (PuTTY, hostkey, quoting de
+  PowerShell, tareas comunes, errores conocidos). Leer antes de cualquier
+  comando remoto.
+- `SETUP-NUEVA-PC.md` — que instalar y como montar el proyecto en otra maquina
+- `medical-erp/deploy/DEPLOY-GUIDE.md` — guia de despliegue a nivel de comando
+- `medical-erp/deploy/.env.example` — variables de entorno de los scripts
 
 - `docs/07-deployment/docker.md` — Docker config (deprecated, no Docker)
 - `docs/07-deployment/production.md` — Production setup

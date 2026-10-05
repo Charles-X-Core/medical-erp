@@ -93,6 +93,7 @@ Depends On: [CONSTITUTION]
 | DEV-001 | Coding Standards | docs/06-development/coding-standards.md | 1.0.0 |
 | DEV-002 | Branch Strategy | docs/06-development/branch-strategy.md | 1.0.0 |
 | DEV-003 | Testing | docs/06-development/testing.md | 1.0.0 |
+| DEV-004 | New Machine Setup | SETUP-NUEVA-PC.md | 1.0.0 |
 
 ## 10. Deployment Documentation
 
@@ -123,6 +124,7 @@ Depends On: [CONSTITUTION]
 | AGT-FE | Frontend | .agent/frontend.md |
 | AGT-SEC | Security | .agent/security.md |
 | AGT-OPS | DevOps | .agent/devops.md |
+| AGT-VPS | VPS Access (SSH via PuTTY) | .agent/vps-access.md |
 | AGT-CON | Conventions | .agent/conventions.md |
 | AGT-PRM | Prompts | .agent/prompts.md |
 | AGT-CR | Code Review | .agent/code-review.md |
