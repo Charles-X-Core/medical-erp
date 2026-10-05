@@ -1,4 +1,7 @@
 {
+  "zona_titulo": "Zona horaria de visualización",
+  "zona_ca": "Ver horas en California (CA)",
+  "zona_pe": "Ver horas en Perú (PE)",
   "nav_section": "NAVEGACIÓN",
   "care_center": "Centro de Atención",
   "clients": "Clientes",

@@ -1,6 +1,10 @@
 {
+  "tz_aviso_titulo": "Estás editando en hora de California",
+  "tz_aviso_texto": "Aunque estás en modo Perú, este horario se escribe y se guarda en la hora de California (la zona del sistema). Tómate tu tiempo y revísalo con calma antes de modificar o guardar.",
   "app_name": "ERP Médico",
   "brand_subtitle": "ERP Médico",
+  "quitar": "Quitar",
+  "si_confirmar": "Sí, activar",
   "loading": "Cargando...",
   "loading_data": "Cargando datos...",
   "retry": "Reintentar",
@@ -101,5 +105,6 @@
   "editar": "Editar",
   "eliminar": "Eliminar",
   "desactivar": "Desactivar",
-  "activar": "Activar"
+  "activar": "Activar",
+  "details": "Detalles"
 }

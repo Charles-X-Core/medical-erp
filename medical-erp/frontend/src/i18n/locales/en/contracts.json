@@ -46,5 +46,18 @@
   "copiar": "Copy",
   "enviando": "Sending...",
   "confirmarFirmaBtn": "Confirm Signature",
-  "errorFirmaEnvio": "Error sending signature"
+  "errorFirmaEnvio": "Error sending signature",
+  "install_android": "Tap the 3 dots and select \"Install app\"",
+  "install_ios": "Tap the share button and select \"Add to Home Screen\"",
+  "install_desktop": "Click the install icon in the address bar",
+  "iniciar_kiosco": "Start Kiosk",
+  "esperando_contrato": "Waiting for contract...",
+  "contrato_aparecera": "The contract will appear automatically when generated",
+  "enlace_invalido": "Invalid link",
+  "documento_instruccion": "Please sign in the box below to confirm your registration.",
+  "firme_aqui": "Sign here",
+  "firma_exito_text": "Your signature has been recorded successfully. The document has been generated and stored securely.",
+  "password": "Password",
+  "ohNowTitle": "Optimal Health NOW",
+  "goToErp": "Sign In to ERP"
 }

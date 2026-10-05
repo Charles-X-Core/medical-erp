@@ -1,6 +1,10 @@
 {
+  "tz_aviso_titulo": "You are editing in California time",
+  "tz_aviso_texto": "Even though you are in Peru mode, this schedule is written and saved in California time (the system zone). Take your time and double-check it before changing or saving.",
   "app_name": "Medical ERP",
   "brand_subtitle": "Medical ERP",
+  "quitar": "Remove",
+  "si_confirmar": "Yes, activate",
   "loading": "Loading...",
   "loading_data": "Loading data...",
   "retry": "Retry",
@@ -101,5 +105,6 @@
   "editar": "Edit",
   "eliminar": "Delete",
   "desactivar": "Deactivate",
-  "activar": "Activate"
+  "activar": "Activate",
+  "details": "Details"
 }

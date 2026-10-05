@@ -57,5 +57,7 @@
   "documento_instruccion": "Por favor firme en el recuadro a continuación para confirmar su registro.",
   "firme_aqui": "Firme aquí",
   "firma_exito_text": "Su firma ha sido registrada exitosamente. El documento ha sido generado y almacenado de forma segura.",
-  "password": "Contraseña"
+  "password": "Contraseña",
+  "ohNowTitle": "Optimal Health NOW",
+  "goToErp": "Iniciar sesión en ERP"
 }

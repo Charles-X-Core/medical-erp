@@ -1,4 +1,7 @@
 {
+  "zona_titulo": "Display timezone",
+  "zona_ca": "Show times in California (CA)",
+  "zona_pe": "Show times in Peru (PE)",
   "nav_section": "NAVIGATION",
   "care_center": "Care Center",
   "clients": "Clients",

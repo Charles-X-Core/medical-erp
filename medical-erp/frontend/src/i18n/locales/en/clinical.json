@@ -69,7 +69,9 @@
   "pulso_lpm": "Pulse (bpm)",
   "temperatura_c": "Temperature (°C)",
   "peso_kg": "Weight (kg)",
+  "peso_lbs": "Weight (lbs)",
   "estatura_cm": "Height (cm)",
+  "estatura_in": "Height (in)",
   "saturacion_o2": "Oxygen Saturation (%)",
   "frecuencia_resp": "Resp. Rate",
   "peso": "Weight",
@@ -150,8 +152,15 @@
   "agendar_nueva_cita": "Schedule New Appointment",
   "registro_fotografico": "Photo Record",
   "foto_evolucion": "Evolution Photo",
+  "descripcion_foto_placeholder": "Photo description (optional)",
   "costo_por_sesion": "Cost per Session",
   "costo_esta_sesion": "Session Cost",
   "describa_evolucion_placeholder": "Describe evolution...",
-  "observaciones_sesion_placeholder": "Session observations..."
+  "observaciones_sesion_placeholder": "Session observations...",
+  "sesion_guardada_agendada": "Session saved and appointment scheduled",
+  "foto_antes_tratamiento": "Photo Before Treatment",
+  "foto_antes": "Photo Before",
+  "pregunta_extender_o_finalizar": "Do you want to add a little more time to this session or finalize it?",
+  "extender_5_min": "Add 5 min",
+  "finalizar_sesion": "Finalize Session"
 }
