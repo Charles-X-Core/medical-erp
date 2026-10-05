@@ -7,7 +7,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f0f0;
+  background:
+    radial-gradient(ellipse at 70% 30%, rgba(37, 211, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(12, 70, 119, 0.4) 0%, transparent 50%),
+    linear-gradient(135deg, #060d19 0%, #0a1628 50%, #0d1f3c 100%);
   font-family: $font-family;
   padding: $space-4;
 
@@ -15,18 +18,38 @@
   &__login {
     max-width: 420px;
     width: 100%;
-    background: $light-card;
-    border: 1px solid $light-border;
+    background: rgba(15, 30, 55, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: $radius-xl;
-    box-shadow: $light-shadow-lg;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     padding: $space-8;
+    backdrop-filter: blur(20px);
   }
 
   &__login-header {
     text-align: center;
     margin-bottom: $space-6;
-    h1 { color: $light-text-primary; margin: $space-2 0 0; font-size: $fs-2xl; }
-    p { color: $light-text-secondary; margin: $space-1 0 0; font-size: $fs-sm; }
+    h1 { color: #fff; margin: $space-3 0 0; font-size: $fs-2xl; font-weight: $fw-bold; }
+    p { color: rgba(255, 255, 255, 0.5); margin: $space-1 0 0; font-size: $fs-sm; text-transform: uppercase; letter-spacing: 0.1em; }
+  }
+
+  &__logo-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(37, 211, 255, 0.2), rgba(12, 70, 119, 0.3));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(37, 211, 255, 0.3);
+    box-shadow: 0 0 30px rgba(37, 211, 255, 0.15);
+  }
+
+  &__logo {
+    width: 44px;
+    height: 44px;
+    border-radius: $radius-md;
+    object-fit: contain;
   }
 
   &__login-form {
@@ -35,20 +58,42 @@
     gap: $space-4;
   }
 
+  &__login-footer {
+    text-align: center;
+    padding-top: $space-4;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: $space-4;
+  }
+
+  &__erp-link {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    transition: color 150ms ease;
+
+    &:hover {
+      color: $light-accent;
+    }
+  }
+
   &__field {
     display: flex;
     flex-direction: column;
     gap: $space-1;
-    label { font-size: $fs-sm; font-weight: $fw-medium; color: $light-text-secondary; }
+    label { font-size: $fs-sm; font-weight: $fw-medium; color: rgba(255, 255, 255, 0.6); }
     input {
       padding: 14px $space-3;
-      border: 1px solid $light-border;
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: $radius-md;
       font-size: 16px;
-      background: $light-bg;
-      color: $light-text-primary;
+      background: rgba(255, 255, 255, 0.07);
+      color: #fff;
       transition: border-color 0.2s;
-      &:focus { outline: none; border-color: $light-accent; }
+      &:focus { outline: none; border-color: $light-accent; box-shadow: 0 0 0 3px rgba(37, 211, 255, 0.15); }
+      &::placeholder { color: rgba(255, 255, 255, 0.3); }
     }
   }
 
@@ -146,15 +191,17 @@
     justify-content: center;
     gap: $space-2;
     padding: 14px;
-    background: $light-accent;
+    background: linear-gradient(135deg, #0C4677, #25D3FF);
     color: white;
     border: none;
     border-radius: $radius-md;
     font-size: $fs-base;
     font-weight: $fw-semibold;
     cursor: pointer;
-    transition: background 0.2s;
-    &:hover { background: $light-accent-hover; }
+    transition: all 200ms ease;
+    box-shadow: 0 4px 15px rgba(37, 211, 255, 0.3);
+    &:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37, 211, 255, 0.4); }
+    &:active { transform: translateY(0); }
   }
 
   &__btn-clear {
@@ -368,7 +415,7 @@
 
     &--reading {
       padding: 0;
-      background: #f0f0f0;
+      background: #e8e8e8;
     }
 
     &__btn-primary,

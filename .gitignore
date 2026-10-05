@@ -58,3 +58,18 @@ medical-erp/backend/*.log
 medical-erp/frontend/node_modules/
 medical-erp/frontend/dist/
 medical-erp/frontend/.vite/
+
+# Landing page: repo git independiente, NO debe entrar al repo padre.
+# Sin esto, un "git add -A" lo agrega como submódulo roto.
+optimal-health-now/
+
+# Restos de debugging en la raiz
+ssh_err.txt
+ssh_out.txt
+plink_sess.bat
+*.hprof
+
+# Scripts SQL sueltos de una sola vez en backend/.
+# NO versionar: reset_virgen.sql hace TRUNCATE y podria vaciar la base de datos.
+medical-erp/backend/*.sql
+medical-erp/backend/test_login*.json

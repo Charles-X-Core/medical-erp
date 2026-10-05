@@ -59,3 +59,54 @@ ul, ol {
   background: rgba(37, 211, 255, 0.3);
   color: $text-primary;
 }
+
+// 404 page
+.not-found-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: $bg-primary;
+
+  &__card {
+    text-align: center;
+    max-width: 400px;
+    padding: 48px 32px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  &__icon {
+    margin-bottom: 20px;
+  }
+
+  &__code {
+    font-size: 64px;
+    font-weight: 800;
+    color: $accent-primary;
+    line-height: 1;
+    opacity: 0.15;
+  }
+
+  &__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 8px;
+  }
+
+  &__desc {
+    font-size: 0.875rem;
+    color: $text-secondary;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+}

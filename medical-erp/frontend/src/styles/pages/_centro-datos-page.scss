@@ -274,8 +274,15 @@ $cd-shadow-lg: $light-shadow-lg;
     gap: 0;
     margin-bottom: $space-6;
     overflow-x: auto;
+    overflow-y: hidden;
     padding-bottom: $space-2;
     position: relative;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
 
     &::after {
       content: '';
@@ -442,6 +449,143 @@ $cd-shadow-lg: $light-shadow-lg;
     }
   }
 
+  // ---- Sections (Step 1) ----
+  &__sections {
+    display: flex;
+    flex-direction: column;
+    gap: $space-5;
+  }
+
+  &__section {
+    background: $cd-card;
+    border: 1px solid $cd-border;
+    border-radius: $radius-md;
+    padding: $space-4;
+  }
+
+  &__section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-3;
+  }
+
+  &__section-title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $cd-text-primary;
+    margin: 0 0 $space-3;
+
+    svg { color: $cd-accent; }
+  }
+
+  .manual-form__section-header &__section-title {
+    margin-bottom: 0;
+  }
+
+  // ---- Consultation Cards (Step 2) ----
+  &__consultas {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+  }
+
+  &__consulta-card {
+    background: $cd-card;
+    border: 1px solid $cd-border;
+    border-radius: $radius-md;
+    padding: $space-4;
+  }
+
+  &__consulta-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-3;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid $cd-border;
+  }
+
+  &__consulta-title {
+    font-size: $fs-base;
+    font-weight: $fw-semibold;
+    color: $cd-accent;
+    margin: 0;
+  }
+
+  &__consulta-divider {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin: $space-4 0 $space-3;
+    padding-top: $space-3;
+    border-top: 1px solid $cd-border;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $cd-text-secondary;
+    svg { color: $cd-accent; }
+  }
+
+  &__consulta-photo-label {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $cd-accent;
+    margin: $space-3 0 $space-2;
+  }
+
+  &__add-consulta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-3;
+    border: 2px dashed $cd-border;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $cd-accent;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: $cd-accent;
+      background: rgba($cd-accent, 0.04);
+    }
+  }
+
+  &__btn-icon {
+    @include flex-center;
+    width: 28px;
+    height: 28px;
+    border-radius: $radius-sm;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: $cd-text-muted;
+
+    &:hover { background: $cd-card-hover; }
+    &--danger:hover { background: rgba(#dc3545, 0.1); color: #dc3545; }
+  }
+
+  &__summary-consulta {
+    padding: $space-3 0;
+    border-bottom: 1px solid $cd-border;
+
+    &:last-child { border-bottom: none; }
+  }
+
+  &__summary-consulta-title {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $cd-accent;
+    margin: 0 0 $space-2;
+  }
+
   // ---- Consent info ----
   &__consentimiento-info {
     padding: $space-4;
@@ -587,6 +731,588 @@ $cd-shadow-lg: $light-shadow-lg;
   &__success-actions {
     display: flex;
     gap: $space-3;
+    justify-content: center;
+  }
+
+  &__success-detail {
+    font-size: $fs-sm;
+    color: $cd-text-secondary;
+    margin: 0 0 $space-4;
+
+    strong {
+      color: $cd-accent;
+    }
+  }
+
+  // ---- Section labels ----
+  &__section-label {
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $cd-accent;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: $space-1;
+    border-bottom: 1px solid $cd-border;
+    margin-top: $space-2;
+  }
+
+  // ---- Input with prefix (currency) ----
+  &__input-with-prefix {
+    display: flex;
+    align-items: center;
+    border: 1px solid $cd-border;
+    border-radius: $radius-md;
+    background: $cd-card;
+    overflow: hidden;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: $cd-border-strong;
+    }
+
+    &:focus-within {
+      border-color: $cd-accent;
+      box-shadow: 0 0 0 3px rgba($cd-accent, 0.1);
+    }
+  }
+
+  &__input-prefix {
+    padding: $space-2 $space-2 $space-2 $space-3;
+    color: $cd-text-muted;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    background: $cd-card-hover;
+    border-right: 1px solid $cd-border;
+    user-select: none;
+  }
+
+  &__input-with-prefix input {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent;
+  }
+
+  // ---- Treatment preview ----
+  &__treatment-preview {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    background: $cd-accent-light;
+    border: 1px solid $cd-accent-border;
+    border-radius: $radius-md;
+    flex-wrap: wrap;
+  }
+
+  &__treatment-preview-label {
+    font-size: $fs-xs;
+    color: $cd-text-muted;
+  }
+
+  &__treatment-preview-value {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $cd-accent;
+  }
+
+  &__treatment-preview-cost {
+    font-size: $fs-xs;
+    color: $cd-text-secondary;
+    margin-left: auto;
+  }
+
+  // ---- Photos step ----
+  &__photos {
+    padding: $space-2 0;
+  }
+
+  &__photos-header {
+    margin-bottom: $space-4;
+  }
+
+  &__photos-hint {
+    font-size: $fs-sm;
+    color: $cd-text-secondary;
+    line-height: 1.5;
+  }
+
+  &__photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: $space-4;
+  }
+
+  &__photo-card {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__photo-preview {
+    position: relative;
+    aspect-ratio: 4/3;
+    border-radius: $radius-md;
+    overflow: hidden;
+    border: 1px solid $cd-border;
+    background: $cd-card-hover;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__photo-remove {
+    position: absolute;
+    top: $space-2;
+    right: $space-2;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba($cd-error, 0.9);
+    color: white;
+    border: none;
+    cursor: pointer;
+    @include flex-center;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: $cd-error;
+      transform: scale(1.1);
+    }
+  }
+
+  &__photo-caption {
+    padding: $space-2 !important;
+    font-size: $fs-xs !important;
+    text-align: center;
+  }
+
+  &__photo-add {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-2;
+    aspect-ratio: 4/3;
+    border: 2px dashed $cd-border;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $cd-text-muted;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: $fs-sm;
+
+    &:hover {
+      border-color: $cd-accent;
+      color: $cd-accent;
+      background: $cd-accent-light;
+    }
+
+    span {
+      font-size: $fs-xs;
+    }
+  }
+
+  // ---- Summary step ----
+  &__summary {
+    padding: $space-2 0;
+  }
+
+  &__summary-section {
+    margin-bottom: $space-5;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $cd-border;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__summary-title {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $cd-accent;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin: 0 0 $space-3;
+  }
+
+  &__summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-3;
+
+    @media (max-width: $bp-mobile) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    &--full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__summary-label {
+    font-size: $fs-xs;
+    color: $cd-text-muted;
+  }
+
+  &__summary-value {
+    font-size: $fs-sm;
+    color: $cd-text-primary;
+    font-weight: $fw-medium;
+  }
+
+  &__summary-text {
+    font-size: $fs-sm;
+    color: $cd-text-primary;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  &__summary-vitals {
+    display: flex;
+    gap: $space-4;
+    margin-top: $space-2;
+    flex-wrap: wrap;
+
+    span {
+      font-size: $fs-xs;
+      color: $cd-text-secondary;
+      background: $cd-card-hover;
+      padding: 2px $space-2;
+      border-radius: $radius-sm;
+    }
+  }
+
+  &__summary-photos {
+    display: flex;
+    gap: $space-3;
+    flex-wrap: wrap;
+  }
+
+  &__summary-photo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-1;
+
+    img {
+      width: 80px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: $radius-sm;
+      border: 1px solid $cd-border;
+    }
+  }
+
+  &__summary-photo-caption {
+    font-size: $fs-xs;
+    color: $cd-text-muted;
+    max-width: 80px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // ---- Field hint ----
+  &__field-hint {
+    font-size: $fs-xs;
+    color: $cd-text-muted;
+    margin-top: 2px;
+  }
+
+  // ---- Readonly (age) ----
+  &__readonly {
+    padding: $space-2 $space-3;
+    border: 1px dashed $cd-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    color: $cd-text-secondary;
+    background: $cd-card-hover;
+  }
+
+  // ---- Status / state ----
+  &__status {
+    display: flex;
+  }
+
+  &__status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    border-radius: $radius-sm;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+
+    &--pending {
+      background: $cd-card-hover;
+      color: $cd-text-secondary;
+    }
+
+    &--active {
+      background: $cd-accent-light;
+      color: $cd-accent;
+      border: 1px solid $cd-accent-border;
+    }
+
+    &--done {
+      background: $cd-success-light;
+      color: $cd-success;
+    }
+  }
+
+  &__status-toggle {
+    display: flex;
+    gap: $space-2;
+    margin-top: $space-2;
+  }
+
+  &__pill {
+    padding: $space-1 $space-3;
+    border-radius: 999px;
+    border: 1px solid $cd-border;
+    background: $cd-surface;
+    color: $cd-text-secondary;
+    font-size: $fs-xs;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: $cd-accent;
+      color: $cd-accent;
+    }
+
+    &--active {
+      background: $cd-accent;
+      color: $cd-text-inverse;
+      border-color: $cd-accent;
+    }
+  }
+
+  // ---- Sessions list ----
+  &__sessions {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__session-row {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-2 $space-3;
+    border: 1px solid $cd-border;
+    border-radius: $radius-md;
+    background: $cd-surface;
+  }
+
+  &__session-num {
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $cd-accent;
+    min-width: 80px;
+  }
+
+  &__session-input {
+    flex: 1;
+    border: 1px solid $cd-border;
+    border-radius: $radius-md;
+    padding: $space-1 $space-2;
+    font-size: $fs-sm;
+    color: $cd-text-primary;
+    background: $cd-card;
+  }
+
+  &__session-cost {
+    width: 150px;
+  }
+
+  &__inline-warning {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin-top: $space-2;
+    font-size: $fs-xs;
+    color: $cd-error;
+  }
+
+  &__cost-split {
+    display: flex;
+    gap: $space-4;
+    margin-top: $space-3;
+    flex-wrap: wrap;
+
+    span {
+      font-size: $fs-sm;
+      color: $cd-text-secondary;
+      background: $cd-card-hover;
+      padding: $space-1 $space-3;
+      border-radius: $radius-sm;
+    }
+  }
+
+  // ---- Photos spans (inicio / fin) ----
+  &__photos-span {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-4;
+    margin-bottom: $space-5;
+
+    @media (max-width: $bp-mobile) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__photo-slot {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__photo-slot-label {
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $cd-accent;
+  }
+
+  &__photo-add--smaller {
+    aspect-ratio: auto;
+    min-height: 90px;
+    padding: $space-2;
+  }
+
+  &__photos-sessions {
+    margin-top: $space-4;
+    padding-top: $space-4;
+    border-top: 1px solid $cd-border;
+
+    h5 {
+      margin: 0 0 $space-2;
+      font-size: $fs-sm;
+      font-weight: $fw-semibold;
+      color: $cd-text-secondary;
+    }
+  }
+
+  &__photo-session-group {
+    margin-bottom: $space-4;
+  }
+
+  // ---- Summary extras ----
+  &__summary-muted {
+    font-size: $fs-xs;
+    color: $cd-text-muted;
+    margin: $space-1 0 0;
+  }
+
+  &__summary-sessions {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    margin-top: $space-3;
+  }
+
+  &__summary-session {
+    display: flex;
+    justify-content: space-between;
+    font-size: $fs-xs;
+    color: $cd-text-secondary;
+    padding: $space-1 $space-3;
+    background: $cd-card-hover;
+    border-radius: $radius-sm;
+    gap: $space-3;
+  }
+
+  // ---- Warning banner ----
+  &__warning {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    background: rgba($cd-error, 0.08);
+    color: $cd-error;
+    border: 1px solid rgba($cd-error, 0.25);
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    margin-bottom: $space-4;
+  }
+
+  // ---- Modal ----
+  &__modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    @include flex-center;
+    z-index: 1000;
+    padding: $space-4;
+  }
+
+  &__modal {
+    background: $cd-card;
+    border-radius: $radius-lg;
+    padding: $space-6;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  &__modal-icon {
+    @include flex-center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: $cd-accent-light;
+    color: $cd-accent;
+    margin: 0 auto $space-3;
+  }
+
+  &__modal h3 {
+    font-size: $fs-lg;
+    font-weight: $fw-semibold;
+    color: $cd-text-primary;
+    margin: 0 0 $space-2;
+  }
+
+  &__modal p {
+    font-size: $fs-sm;
+    color: $cd-text-secondary;
+    line-height: 1.6;
+    margin: 0 0 $space-5;
+  }
+
+  &__modal-actions {
+    display: flex;
+    gap: $space-3;
+    justify-content: center;
+  }
+
+  // ---- Progress bar ----
+  &__progress {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-3 $space-4;
+    background: $cd-accent-light;
+    border: 1px solid $cd-accent-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    color: $cd-accent;
+    margin-top: $space-4;
+  }
+
+  // ---- Save button ----
+  &__btn--save {
+    min-width: 140px;
     justify-content: center;
   }
 }

@@ -11,7 +11,11 @@
     padding: $space-10;
     display: flex;
     flex-direction: column;
-    gap: $space-8;
+    gap: $space-6;
+    border-radius: $radius-xl;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    background: rgba(15, 30, 55, 0.85);
 
     @include respond-to(mobile) {
       padding: $space-6;
@@ -26,10 +30,22 @@
     gap: $space-3;
   }
 
+  &__logo-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(37, 211, 255, 0.2), rgba(12, 70, 119, 0.3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(37, 211, 255, 0.3);
+    box-shadow: 0 0 30px rgba(37, 211, 255, 0.15);
+  }
+
   &__logo {
-    width: 64px;
-    height: 64px;
-    border-radius: $radius-lg;
+    width: 44px;
+    height: 44px;
+    border-radius: $radius-md;
     object-fit: contain;
   }
 
@@ -40,23 +56,31 @@
   &__title {
     font-size: $fs-2xl;
     font-weight: $fw-bold;
-    color: $text-primary;
+    color: #fff;
     letter-spacing: -0.02em;
+    margin: 0;
   }
 
   &__subtitle {
     font-size: $fs-sm;
-    color: $text-muted;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
   &__error {
     padding: $space-3 $space-4;
-    background: rgba(243, 106, 126, 0.1);
+    background: rgba(243, 106, 126, 0.15);
     border: 1px solid rgba(243, 106, 126, 0.3);
     border-radius: $radius-md;
-    color: $error;
+    color: #f36a7e;
     font-size: $fs-sm;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
   }
 
   &__field {
@@ -68,7 +92,7 @@
   &__label {
     font-size: $fs-sm;
     font-weight: $fw-medium;
-    color: $text-secondary;
+    color: rgba(255, 255, 255, 0.6);
   }
 
   &__input-wrapper {
@@ -80,13 +104,28 @@
   &__input-icon {
     position: absolute;
     left: $space-4;
-    color: $text-muted;
+    color: rgba(255, 255, 255, 0.35);
     pointer-events: none;
   }
 
   &__input {
     @include input-base;
     padding-left: $space-10;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-radius: $radius-md;
+    font-size: $fs-base;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    &:focus {
+      border-color: $accent-primary;
+      box-shadow: 0 0 0 3px rgba(37, 211, 255, 0.15);
+      background: rgba(255, 255, 255, 0.1);
+    }
   }
 
   &__submit {
@@ -95,6 +134,45 @@
     padding: $space-4;
     font-size: $fs-base;
     font-weight: $fw-semibold;
+    border-radius: $radius-md;
+    background: linear-gradient(135deg, #0C4677, #25D3FF);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    transition: all 200ms ease;
+    box-shadow: 0 4px 15px rgba(37, 211, 255, 0.3);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37, 211, 255, 0.4);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+  }
+
+  &__footer {
+    text-align: center;
+    padding-top: $space-2;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  &__contract-link {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    transition: color 150ms ease;
+
+    &:hover {
+      color: $accent-primary;
+    }
   }
 
   &__otp {
@@ -109,15 +187,15 @@
     text-align: center;
     font-size: $fs-xl;
     font-weight: $fw-bold;
-    color: $text-primary;
-    background: rgba(12, 70, 119, 0.5);
-    border: 1px solid $border-color;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: $radius-md;
     transition: all 150ms ease;
 
     &:focus {
       border-color: $accent-primary;
-      box-shadow: 0 0 0 3px rgba(37, 211, 255, 0.15), $shadow-glow;
+      box-shadow: 0 0 0 3px rgba(37, 211, 255, 0.15);
     }
 
     @include respond-to(mobile) {
@@ -139,7 +217,7 @@
     align-items: center;
     gap: $space-2;
     font-size: $fs-sm;
-    color: $text-muted;
+    color: rgba(255, 255, 255, 0.5);
     background: none;
     border: none;
     cursor: pointer;
@@ -169,6 +247,12 @@
   &--sm {
     width: 18px;
     height: 18px;
+    border-width: 2px;
+  }
+
+  &--xs {
+    width: 14px;
+    height: 14px;
     border-width: 2px;
   }
 }

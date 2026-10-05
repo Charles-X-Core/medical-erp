@@ -985,11 +985,13 @@
     display: flex;
     gap: $space-2;
     margin-bottom: $space-4;
-    border-bottom: 1px solid $light-border;
-    padding-bottom: $space-2;
+    @include glass-card;
+    padding: $space-2;
   }
 
   &__tab {
+    @include flex-center;
+    gap: $space-2;
     padding: $space-2 $space-4;
     border: none;
     background: transparent;
@@ -999,9 +1001,10 @@
     font-weight: $fw-medium;
     border-radius: $radius-md;
     transition: all 0.2s;
+    flex: 1;
 
     &:hover { background: rgba(59, 130, 246, 0.06); color: $light-text-primary; }
-    &--active { background: rgba(59, 130, 246, 0.1); color: #3B82F6; font-weight: $fw-semibold; }
+    &--active { background: $light-accent; color: white; font-weight: $fw-semibold; }
   }
 
   &__section {
@@ -1014,7 +1017,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: $space-3;
+    margin-bottom: $space-4;
     h3 { margin: 0; }
   }
 
@@ -1023,72 +1026,194 @@
     border-radius: $radius-md;
     margin-bottom: $space-3;
     font-size: $fs-sm;
-    &--success { background: rgba(34,197,94,0.1); color: #22C55E; }
-    &--error { background: rgba(239,68,68,0.1); color: #EF4444; }
+    animation: fadeIn 0.3s ease;
+    &--success { background: rgba(34,197,94,0.1); color: #22C55E; border: 1px solid rgba(34,197,94,0.15); }
+    &--error { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.15); }
   }
 
-  &__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: $space-3;
+  // ── Disponibilidad: Vertical List ──
+  &__day-list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
   }
 
-  &__day {
+  &__day-row {
+    display: flex;
+    align-items: stretch;
     @include glass-card;
-    padding: $space-3;
+    overflow: hidden;
+    transition: all 150ms ease;
+
+    &--today {
+      border-color: rgba(59, 130, 246, 0.3);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.08);
+    }
   }
 
-  &__day-header {
-    font-weight: $fw-semibold;
+  &__day-label {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    min-width: 150px;
+    padding: $space-3 $space-4;
+    background: rgba(59, 130, 246, 0.04);
+    border-right: 1px solid rgba(226, 232, 240, 0.5);
+
+    @include respond-to(mobile) {
+      min-width: 100px;
+      padding: $space-2 $space-3;
+    }
+  }
+
+  &__day-name {
     font-size: $fs-sm;
+    font-weight: $fw-semibold;
     color: $light-text-primary;
-    margin-bottom: $space-2;
     text-transform: capitalize;
   }
 
-  &__day-slots { display: flex; flex-direction: column; gap: $space-2; }
+  &__today-badge {
+    font-size: 10px;
+    font-weight: $fw-bold;
+    color: white;
+    background: $light-accent;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 
-  &__day-empty { font-size: $fs-xs; color: $light-text-muted; }
-
-  &__slot-row {
+  &__day-content {
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: $space-1;
-    font-size: $fs-xs;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    flex-wrap: wrap;
+
+    @include respond-to(mobile) {
+      flex-direction: column;
+      align-items: stretch;
+    }
   }
 
-  &__time-input {
-    padding: $space-1 $space-2;
-    border: 1px solid $light-border;
-    border-radius: $radius-sm;
+  &__day-empty {
     font-size: $fs-xs;
-    background: $light-bg;
-    color: $light-text-primary;
-    width: 100px;
-  }
-
-  &__slot-remove {
-    background: none;
-    border: none;
     color: $light-text-muted;
-    cursor: pointer;
-    padding: $space-1;
-    border-radius: $radius-sm;
-    &:hover { color: #EF4444; background: rgba(239,68,68,0.08); }
+    font-style: italic;
   }
 
-  &__add-btn {
+  &__pills {
+    display: flex;
+    gap: $space-2;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  &__time-pill {
     display: inline-flex;
     align-items: center;
     gap: $space-1;
-    background: none;
-    border: 1px dashed $light-border;
-    color: $light-text-secondary;
-    padding: $space-1 $space-2;
-    border-radius: $radius-sm;
-    cursor: pointer;
+    padding: 4px 8px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    border-radius: 999px;
+    color: $light-accent;
+    transition: all 150ms ease;
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.25);
+    }
+  }
+
+  &__pill-input {
+    border: none;
+    background: transparent;
+    color: $light-text-primary;
     font-size: $fs-xs;
-    &:hover { border-color: #3B82F6; color: #3B82F6; }
+    font-weight: $fw-medium;
+    padding: 0;
+    width: 60px;
+    text-align: center;
+    cursor: pointer;
+
+    &:focus { outline: none; }
+  }
+
+  &__pill-sep {
+    color: $light-text-muted;
+    font-size: $fs-xs;
+  }
+
+  &__pill-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 150ms ease;
+    flex-shrink: 0;
+
+    &:hover { color: #EF4444; background: rgba(239, 68, 68, 0.1); }
+  }
+
+  &__add-pill {
+    @include flex-center;
+    gap: $space-1;
+    padding: 4px 12px;
+    border: 1px dashed rgba(59, 130, 246, 0.25);
+    border-radius: 999px;
+    background: transparent;
+    color: $light-accent;
+    font-size: $fs-xs;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 150ms ease;
+    flex-shrink: 0;
+
+    &:hover { background: rgba(59, 130, 246, 0.06); border-color: rgba(59, 130, 246, 0.4); }
+  }
+
+  // ── Tipos de Cita: Form ──
+  &__tipo-form {
+    @include glass-card;
+    padding: $space-4;
+    margin-bottom: $space-4;
+    border: 1px solid rgba(59, 130, 246, 0.1);
+  }
+
+  &__tipo-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: $space-3;
+    margin-bottom: $space-3;
+
+    @include respond-to(tablet) { grid-template-columns: 1fr 1fr; }
+    @include respond-to(mobile) { grid-template-columns: 1fr; }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    label { font-size: $fs-xs; color: $light-text-secondary; font-weight: $fw-medium; text-transform: uppercase; letter-spacing: 0.3px; }
+  }
+
+  &__input {
+    padding: $space-2 $space-3;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    background: $light-bg;
+    color: $light-text-primary;
+    &:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
   }
 
   &__save-btn {
@@ -1103,73 +1228,98 @@
     cursor: pointer;
     font-size: $fs-sm;
     font-weight: $fw-medium;
+    transition: all 150ms ease;
     &:hover { background: #2563EB; }
     &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 
-  &__bloqueo-form {
+  // ── Tipos de Cita: Cards Grid ──
+  &__tipo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-3;
+
+    @include respond-to(tablet) { grid-template-columns: 1fr; }
+  }
+
+  &__tipo-card {
     @include glass-card;
     padding: $space-4;
-    margin-bottom: $space-3;
+    border-left: 4px solid $light-accent;
+    transition: all 150ms ease;
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      transform: translateY(-1px);
+    }
   }
 
-  &__bloqueo-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: $space-3;
-    margin-bottom: $space-3;
-    @media (max-width: 768px) { grid-template-columns: 1fr 1fr; }
-  }
-
-  &__field {
+  &__tipo-header {
     display: flex;
-    flex-direction: column;
-    gap: $space-1;
-    label { font-size: $fs-xs; color: $light-text-secondary; font-weight: $fw-medium; }
-  }
-
-  &__input {
-    padding: $space-2 $space-3;
-    border: 1px solid $light-border;
-    border-radius: $radius-md;
-    font-size: $fs-sm;
-    background: $light-bg;
-    color: $light-text-primary;
-    &:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-  }
-
-  &__bloqueos-list { display: flex; flex-direction: column; gap: $space-2; }
-
-  &__bloqueo-card {
-    @include glass-card;
-    padding: $space-3;
-  }
-
-  &__bloqueo-header {
-    display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
+    margin-bottom: $space-2;
+  }
+
+  &__tipo-name {
     font-size: $fs-sm;
+    font-weight: $fw-bold;
     color: $light-text-primary;
   }
 
-  &__bloqueo-actions {
+  &__tipo-delete {
+    @include flex-center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 150ms ease;
+    flex-shrink: 0;
+
+    &:hover { color: #EF4444; background: rgba(239, 68, 68, 0.1); }
+  }
+
+  &__tipo-badges {
     display: flex;
-    align-items: center;
-    gap: $space-2;
+    flex-wrap: wrap;
+    gap: $space-1;
+    margin-bottom: $space-2;
   }
 
-  &__bloqueo-motivo {
-    font-size: $fs-xs;
+  &__tipo-badge {
+    @include flex-center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: $fw-semibold;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(100, 116, 139, 0.08);
     color: $light-text-secondary;
+
+    &--duration { background: rgba(59, 130, 246, 0.08); color: #3B82F6; }
+    &--buffer { background: rgba(100, 116, 139, 0.08); color: $light-text-muted; }
   }
 
-  &__empty-text {
-    font-size: $fs-sm;
+  &__tipo-desc {
+    margin: 0;
+    font-size: $fs-xs;
+    color: $light-text-muted;
+    line-height: 1.4;
+  }
+
+  // ── Empty State ──
+  &__empty-state {
+    @include flex-center;
+    flex-direction: column;
+    gap: $space-3;
+    padding: $space-8;
     color: $light-text-muted;
     text-align: center;
-    padding: $space-4;
+
+    p { margin: 0; font-size: $fs-sm; }
   }
 }
 
@@ -2250,6 +2400,226 @@
 // ============================================
 // REAJUSTE MODAL
 // ============================================
+
+.ajuste-hora-modal {
+  max-width: 440px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-4 $space-5;
+    border-bottom: 1px solid $light-border;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      margin: 0;
+      font-size: $fs-lg;
+      font-weight: $fw-semibold;
+      color: $light-text-primary;
+    }
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border: none;
+    border-radius: $radius-md;
+    background: transparent;
+    color: $light-text-muted;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover { background: $light-surface; color: $light-text-primary; }
+  }
+
+  &__body {
+    padding: $space-5;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    margin-bottom: $space-4;
+  }
+
+  &__paciente {
+    font-size: $fs-lg;
+    font-weight: $fw-semibold;
+    color: $light-text-primary;
+  }
+
+  &__fecha {
+    font-size: $fs-sm;
+    color: $light-text-muted;
+  }
+
+  &__hora-base {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    background: $light-accent-light;
+    border: 1px solid $light-accent-border;
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-accent;
+    margin-bottom: $space-4;
+  }
+
+  &__label {
+    display: block;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    color: $light-text-secondary;
+    margin-bottom: $space-2;
+  }
+
+  &__minutos {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: $space-2;
+  }
+
+  &__minuto {
+    padding: $space-2 0;
+    border: 1px solid $light-border;
+    border-radius: $radius-md;
+    background: $light-surface;
+    color: $light-text-secondary;
+    font-size: $fs-sm;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover { border-color: $light-accent; color: $light-accent; }
+
+    &--active {
+      background: $light-accent;
+      color: $light-text-inverse;
+      border-color: $light-accent;
+    }
+
+    &--conflicto {
+      background: rgba($light-error, 0.08);
+      color: $light-error;
+      border-color: rgba($light-error, 0.4);
+      text-decoration: line-through;
+    }
+
+    &--active-conflicto {
+      background: $light-error;
+      color: #fff;
+      border-color: $light-error;
+      text-decoration: line-through;
+    }
+  }
+
+  &__preview {
+    display: flex;
+    justify-content: center;
+    margin-top: $space-4;
+
+    span {
+      font-size: $fs-sm;
+      font-weight: $fw-semibold;
+      color: $light-text-primary;
+      background: $light-accent-light;
+      border: 1px solid $light-accent-border;
+      padding: $space-2 $space-4;
+      border-radius: $radius-md;
+    }
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin-top: $space-4;
+    padding: $space-3 $space-4;
+    background: rgba($light-error, 0.08);
+    color: $light-error;
+    border: 1px solid rgba($light-error, 0.25);
+    border-radius: $radius-md;
+    font-size: $fs-sm;
+  }
+
+  &__conflictos {
+    margin-top: $space-4;
+    padding: $space-3 $space-4;
+    background: rgba($light-error, 0.05);
+    border: 1px solid rgba($light-error, 0.3);
+    border-radius: $radius-md;
+  }
+
+  &__conflictos-title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+    color: $light-error;
+    margin-bottom: $space-2;
+  }
+
+  &__conflicto {
+    display: flex;
+    justify-content: space-between;
+    gap: $space-3;
+    font-size: $fs-xs;
+    color: $light-text-secondary;
+    padding: $space-1 $space-3;
+    background: $light-surface;
+    border-radius: $radius-sm;
+    margin-bottom: $space-1;
+  }
+
+  &__libres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin-top: $space-2;
+  }
+
+  &__libre {
+    padding: $space-1 $space-3;
+    border: 1px solid $light-border;
+    border-radius: 999px;
+    background: $light-surface;
+    color: $light-text-secondary;
+    font-size: $fs-xs;
+    font-weight: $fw-medium;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover { border-color: $light-accent; color: $light-accent; }
+
+    &--active {
+      background: $light-accent;
+      color: $light-text-inverse;
+      border-color: $light-accent;
+    }
+  }
+
+  &__sin-libres {
+    font-size: $fs-xs;
+    color: $light-text-muted;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: $space-3;
+    padding: $space-4 $space-5;
+    border-top: 1px solid $light-border;
+  }
+}
 
 .reajuste-modal {
   max-width: 480px;

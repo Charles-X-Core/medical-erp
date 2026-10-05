@@ -767,86 +767,7 @@ $p360-glass-border: rgba(42, 122, 191, 0.25);
   animation: p360-fadeIn 0.2s ease-out;
 }
 
-.image-viewer {
-  position: relative;
-  width: 90vw;
-  max-width: 1000px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
 
-  &__toolbar {
-    @include flex-between;
-    padding: $space-3 $space-4;
-    color: $text-primary;
-  }
-
-  &__counter {
-    font-size: $fs-sm;
-    color: $text-muted;
-    font-weight: $fw-medium;
-  }
-
-  &__close {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    border-radius: $radius-sm;
-    color: $text-primary;
-    padding: $space-2;
-    cursor: pointer;
-    transition: background 150ms ease;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-  }
-
-  &__canvas {
-    @include flex-center;
-    flex: 1;
-    padding: $space-4;
-
-    img {
-      max-width: 100%;
-      max-height: 70vh;
-      object-fit: contain;
-      border-radius: $radius-md;
-    }
-  }
-
-  &__nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 50%;
-    color: $text-primary;
-    width: 44px;
-    height: 44px;
-    @include flex-center;
-    cursor: pointer;
-    transition: all 150ms ease;
-
-    &:hover:not(:disabled) {
-      background: rgba($accent-primary, 0.2);
-      border-color: $accent-primary;
-    }
-
-    &:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-
-    &--prev {
-      left: $space-4;
-    }
-
-    &--next {
-      right: $space-4;
-    }
-  }
-}
 
 // ============================================
 // 10. TAB: RECIENTE (Atenciones)
@@ -2689,6 +2610,17 @@ $p360-glass-border: rgba(42, 122, 191, 0.25);
     font-weight: $fw-regular;
     color: #94A3B8;
   }
+
+  // Encabezado con el toggle Metric/US a la derecha.
+  &--medidas h4 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &--medidas .wizard-unit-toggle-spacer {
+    flex: 1;
+  }
 }
 
 .wizard-form-grid {
@@ -2714,10 +2646,26 @@ $p360-glass-border: rgba(42, 122, 191, 0.25);
     grid-column: 1 / -1;
   }
 
+  &--readonly {
+    padding: 10px 14px;
+    background: #F1F5F9;
+    border: 1px dashed #D1D5DB;
+    border-radius: 10px;
+    color: #1E293B;
+    font-family: $font-family;
+    font-size: $fs-sm;
+    font-weight: $fw-semibold;
+  }
+
   label {
     font-size: $fs-sm;
     font-weight: $fw-medium;
     color: #64748B;
+
+    svg {
+      vertical-align: -2px;
+      margin-right: 3px;
+    }
   }
 
   input,
@@ -3299,3 +3247,123 @@ $p360-glass-border: rgba(42, 122, 191, 0.25);
     p { color: $light-text-secondary; font-size: $fs-sm; }
   }
 }
+
+// ===== TabTratamientos: sesiones + modal detalle =====
+.tab-tratamientos__loading-sesiones {
+  display: flex; align-items: center; gap: $space-2; padding: $space-4; justify-content: center; font-size: $fs-sm; color: $light-text-muted;
+}
+.tratamiento-detail-text--costo { font-weight: $fw-bold; color: $light-accent; font-size: $fs-base; }
+.sesiones-list {
+  display: flex; flex-direction: column; gap: $space-2;
+}
+.sesiones-list__row {
+  display: flex; align-items: center; gap: $space-3; padding: $space-2 $space-3;
+  background: $light-surface; border: 1px solid $light-border; border-radius: $radius-md; cursor: pointer;
+  transition: all 0.15s ease;
+  &:hover { border-color: $light-accent; background: $light-accent-light; }
+}
+.sesiones-list__num {
+  display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 50%; background: $light-accent-light; color: $light-accent; font-weight: $fw-bold; font-size: $fs-sm;
+}
+.sesiones-list__info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.sesiones-list__titulo { font-size: $fs-sm; font-weight: $fw-medium; color: $light-text-primary; }
+.sesiones-list__fotos { display: inline-flex; align-items: center; gap: 4px; font-size: $fs-xs; color: $light-text-muted; }
+.sesiones-list__derecha { display: flex; align-items: center; gap: $space-2; color: $light-text-muted; }
+.sesiones-list__costo { font-size: $fs-sm; font-weight: $fw-semibold; color: $light-text-primary; }
+.tratamiento-historico { margin-top: $space-4; opacity: 0.85; }
+.progreso-fotos { display: flex; flex-direction: column; gap: $space-3; }
+.progreso-fotos__comparativa {
+  display: flex; align-items: center; justify-content: center; gap: $space-4;
+  img { width: 120px; height: 90px; object-fit: cover; border-radius: $radius-lg; border: 2px solid $light-border; }
+  svg { color: $light-accent; flex-shrink: 0; }
+}
+.progreso-fotos__carousel { display: flex; gap: $space-2; overflow-x: auto; padding-bottom: $space-2;
+  img { width: 90px; height: 68px; object-fit: cover; border-radius: $radius-md; border: 1px solid $light-border; cursor: pointer; flex-shrink: 0; &:hover { border-color: $light-accent; } } }
+.sesion-detalle-modal { max-width: 720px; max-height: 92vh; display: flex; flex-direction: column;
+  &__header { display: flex; align-items: center; gap: $space-3; padding: $space-4 $space-5; border-bottom: 1px solid $light-border;
+    h3 { display: flex; align-items: center; gap: $space-2; margin: 0; font-size: $fs-lg; font-weight: $fw-semibold; color: $light-text-primary; flex: 1; } }
+  &__nav { display: flex; align-items: center; gap: $space-2; }
+  &__navbtn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid $light-border; border-radius: $radius-md; background: $light-surface; color: $light-text-secondary; cursor: pointer; &:hover { border-color: $light-accent; color: $light-accent; } &:disabled { opacity: 0.4; cursor: not-allowed; } }
+  &__counter { font-size: $fs-sm; font-weight: $fw-semibold; color: $light-text-secondary; }
+  &__close { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: $radius-md; background: transparent; color: $light-text-muted; cursor: pointer; &:hover { background: $light-surface; color: $light-text-primary; } }
+  &__body { padding: $space-5; overflow-y: auto; }
+  &__meta { display: flex; flex-wrap: wrap; gap: $space-2; margin-bottom: $space-4; }
+  &__meta-item { display: inline-flex; align-items: center; gap: 6px; padding: $space-1 $space-3; background: $light-surface; border: 1px solid $light-border; border-radius: 999px; font-size: $fs-xs; color: $light-text-secondary; }
+  &__galeria { margin-bottom: $space-4; }
+  &__carousel { display: flex; gap: $space-3; overflow-x: auto; padding-bottom: $space-2; }
+  &__foto-card { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; align-items: center;
+    img { width: 200px; height: 150px; object-fit: cover; border-radius: $radius-lg; border: 2px solid $light-border; cursor: zoom-in; transition: all 0.15s ease; &:hover { border-color: $light-accent; } } }
+  &__foto-desc { font-size: $fs-xs; color: $light-text-muted; max-width: 200px; text-align: center; }
+  &__empty { padding: $space-6; text-align: center; color: $light-text-muted; font-size: $fs-sm; background: $light-surface; border-radius: $radius-md; margin-bottom: $space-4; }
+  &__campos { display: flex; flex-direction: column; gap: $space-3; }
+  &__campo { display: flex; flex-direction: column; gap: 4px; }
+  &__label { font-size: $fs-xs; font-weight: $fw-semibold; color: $light-accent; text-transform: uppercase; letter-spacing: 0.3px; }
+  &__texto { margin: 0; font-size: $fs-sm; color: $light-text-primary; line-height: 1.6; }
+}
+
+// ===== Consulta de origen + progreso + ImageViewer =====
+.consulta-origen-card {
+  display: flex; flex-direction: column; gap: $space-2; padding: $space-3 $space-4;
+  background: $light-accent-light; border: 1px solid $light-accent-border; border-radius: $radius-md;
+}
+.consulta-origen-card__fila {
+  display: flex; align-items: flex-start; gap: $space-2; font-size: $fs-sm; color: $light-text-primary;
+  svg { color: $light-accent; flex-shrink: 0; margin-top: 2px; }
+}
+.consulta-origen-card__notas { color: $light-text-secondary; font-size: $fs-sm; }
+.progreso-fotos__pair { display: flex; flex-direction: column; align-items: center; gap: 4px;
+  img { width: 130px; height: 96px; object-fit: cover; border-radius: $radius-lg; border: 2px solid $light-border; cursor: zoom-in; } }
+.progreso-fotos__tag { font-size: $fs-xs; font-weight: $fw-bold; color: $light-accent; }
+.progreso-fotos__item { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0;
+  img { width: 90px; height: 68px; object-fit: cover; border-radius: $radius-md; border: 1px solid $light-border; cursor: zoom-in; &:hover { border-color: $light-accent; } } }
+.progreso-fotos__item-tag { font-size: 10px; font-weight: $fw-bold; color: $light-accent; }
+.progreso-fotos__item-desc { font-size: 10px; color: $light-text-muted; max-width: 90px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sesiones-list__fotos { display: inline-flex; align-items: center; gap: 6px; font-size: $fs-xs; color: $light-text-muted; }
+
+// ===== ImageViewer (lightbox) =====
+.image-viewer {
+  position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.92);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.image-viewer__toolbar {
+  display: flex; align-items: center; gap: $space-3; padding: $space-3 $space-4;
+  background: rgba(0,0,0,0.6); color: #fff; z-index: 2;
+}
+.image-viewer__counter { font-size: $fs-sm; font-weight: $fw-bold; }
+.image-viewer__desc { font-size: $fs-sm; color: rgba(255,255,255,0.8); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.image-viewer__actions { display: flex; align-items: center; gap: $space-2;
+  button { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: none; border-radius: $radius-md; background: rgba(255,255,255,0.15); color: #fff; cursor: pointer; &:hover { background: rgba(255,255,255,0.3); } } }
+.image-viewer__reset { font-size: 11px; font-weight: $fw-bold; }
+.image-viewer__stage { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: grab;
+  img { max-width: 92vw; max-height: 82vh; object-fit: contain; transition: transform 0.1s ease; user-select: none; } }
+.image-viewer__nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;
+  border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: #fff; cursor: pointer; z-index: 2;
+  &:hover { background: rgba(255,255,255,0.4); } &:disabled { opacity: 0.3; cursor: not-allowed; }
+  &--left { left: 20px; } &--right { right: 20px; }
+}
+
+// ===== Modal de detalle de tratamiento (consulta -> tratamiento -> sesiones) =====
+.detalle-modal {
+  max-width: 760px; max-height: 92vh; display: flex; flex-direction: column;
+  &__header { display: flex; align-items: center; justify-content: space-between; padding: $space-4 $space-5; border-bottom: 1px solid $light-border;
+    h3 { display: flex; align-items: center; gap: $space-2; margin: 0; font-size: $fs-lg; font-weight: $fw-semibold; color: $light-text-primary; } }
+  &__close { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: $radius-md; background: transparent; color: $light-text-muted; cursor: pointer; &:hover { background: $light-surface; color: $light-text-primary; } }
+  &__body { padding: $space-5; overflow-y: auto; }
+  &__resumen { display: flex; flex-wrap: wrap; align-items: center; gap: $space-2; padding: $space-3 $space-4; background: $light-surface; border: 1px solid $light-border; border-radius: $radius-md; margin-bottom: $space-4; }
+  &__estado { display: inline-flex; align-items: center; gap: 6px; padding: $space-1 $space-3; border-radius: 999px; font-size: $fs-xs; font-weight: $fw-semibold; }
+  &__meta { display: inline-flex; align-items: center; gap: 6px; font-size: $fs-xs; color: $light-text-secondary; }
+  &__progress { display: flex; align-items: center; gap: $space-2; flex: 1; min-width: 160px; .tratamiento-progress-bar { flex: 1; } span { font-size: $fs-xs; font-weight: $fw-bold; color: $light-accent; } }
+  &__seccion { margin-bottom: $space-5; }
+  &__titulo { display: flex; align-items: center; gap: $space-2; font-size: $fs-sm; font-weight: $fw-semibold; color: $light-accent; text-transform: uppercase; letter-spacing: 0.3px; margin: 0 0 $space-3; }
+  &__grid { display: grid; grid-template-columns: 1fr 1fr; gap: $space-3; }
+  &__campo { display: flex; flex-direction: column; gap: 3px; background: $light-surface; border: 1px solid $light-border; border-radius: $radius-sm; padding: $space-2 $space-3; }
+  &__label { font-size: $fs-xs; font-weight: $fw-semibold; color: $light-text-muted; }
+  &__valor { font-size: $fs-sm; color: $light-text-primary; line-height: 1.5; }
+  &__vacio { font-size: $fs-sm; color: $light-text-muted; }
+}
+.seguimiento-gallery { display: flex; flex-wrap: wrap; gap: $space-3; }
+.seguimiento-gallery__item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer;
+  img { width: 110px; height: 82px; object-fit: cover; border-radius: $radius-md; border: 1px solid $light-border; transition: all 0.15s ease; &:hover { border-color: $light-accent; } } }

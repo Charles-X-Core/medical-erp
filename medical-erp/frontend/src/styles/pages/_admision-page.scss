@@ -194,7 +194,7 @@
 
   // Column widths
   &__table thead th:nth-child(1) { width: 60px; }   // #
-  &__table thead th:nth-child(2) { width: 20%; }     // Nombre
+  &__table thead th:nth-child(2) { width: 14%; min-width: 120px; }     // Nombre
   &__table thead th:nth-child(3) { width: 130px; }   // ID Cliente
   &__table thead th:nth-child(4) { width: 110px; }   // Telefono
   &__table thead th:nth-child(5) { width: 180px; }   // Email
@@ -1556,7 +1556,7 @@
   &__slots {
     display: flex;
     flex-direction: column;
-    gap: $space-1;
+    gap: $space-3;
     max-height: 260px;
     overflow-y: auto;
     border: 1px solid $light-border;
@@ -1564,11 +1564,33 @@
     padding: $space-2;
   }
 
+  &__hora-grupo {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-2;
+  }
+
+  &__hora-titulo {
+    flex: 0 0 42px;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    padding-top: $space-1;
+    text-align: right;
+  }
+
+  &__hora-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+  }
+
   &__slot {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: $space-2 $space-3;
+    justify-content: center;
+    min-width: 48px;
+    padding: $space-1 $space-2;
     border: 1px solid transparent;
     border-radius: $radius-sm;
     background: transparent;
@@ -1633,8 +1655,7 @@
   }
 
   &__slot-estado {
-    font-size: $fs-xs;
-    color: $light-text-muted;
+    display: none;
   }
 
   &__error {
@@ -2032,6 +2053,7 @@
     display: flex;
     flex-direction: column;
     gap: $space-2;
+    position: relative;
   }
 
   &__cal-nav {
@@ -2080,6 +2102,28 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 2px;
+  }
+
+  &__cal-body {
+    position: relative;
+  }
+
+  &__cal-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: $radius-md;
+    z-index: 2;
+
+    span {
+      font-size: $fs-xs;
+      color: $light-text-muted;
+    }
   }
 
   &__cal-dia {
@@ -2230,7 +2274,7 @@
   &__slots {
     display: flex;
     flex-direction: column;
-    gap: $space-1;
+    gap: $space-3;
     max-height: 260px;
     overflow-y: auto;
     border: 1px solid $light-border;
@@ -2238,11 +2282,33 @@
     padding: $space-2;
   }
 
+  &__hora-grupo {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-2;
+  }
+
+  &__hora-titulo {
+    flex: 0 0 42px;
+    font-size: $fs-xs;
+    font-weight: $fw-semibold;
+    color: $light-text-muted;
+    padding-top: $space-1;
+    text-align: right;
+  }
+
+  &__hora-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+  }
+
   &__slot {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: $space-2 $space-3;
+    justify-content: center;
+    min-width: 48px;
+    padding: $space-1 $space-2;
     border: 1px solid transparent;
     border-radius: $radius-sm;
     background: transparent;
@@ -2283,8 +2349,7 @@
   }
 
   &__slot-estado {
-    font-size: $fs-xs;
-    color: $light-text-muted;
+    display: none;
   }
 
   &__error {
@@ -2340,4 +2405,50 @@
     padding: $space-4 $space-5;
     border-top: 1px solid $light-border;
   }
+}
+
+// ===== Cita Scheduler: tratamientos sin cita =====
+.cita-scheduler__tratamientos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  background: $light-accent-light;
+  border: 1px solid $light-accent-border;
+  border-radius: $radius-md;
+}
+.cita-scheduler__tratamientos-label {
+  font-size: $fs-xs;
+  font-weight: $fw-semibold;
+  color: $light-accent;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.cita-scheduler__tratamientos-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cita-scheduler__tratamiento-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border: 1px solid $light-border;
+  border-radius: 999px;
+  background: $light-surface;
+  color: $light-text-secondary;
+  font-size: $fs-xs;
+  font-weight: $fw-medium;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.cita-scheduler__tratamiento-opt:hover {
+  border-color: $light-accent;
+  color: $light-accent;
+}
+.cita-scheduler__tratamiento-opt--active {
+  background: $light-accent;
+  color: $light-text-inverse;
+  border-color: $light-accent;
 }

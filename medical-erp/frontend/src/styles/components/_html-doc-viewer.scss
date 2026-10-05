@@ -303,6 +303,43 @@
     .contact-caption { display: flex; gap: 20px; font-size: 10pt; font-style: italic; margin-top: -14px; margin-bottom: 20px; }
     .contact-caption span { flex: 1; text-align: center; }
 
+    .address-fields {
+      display: table;
+      table-layout: fixed;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .address-field {
+      display: table-cell;
+      border-bottom: 1px solid #333;
+      font-family: inherit;
+      font-size: 12pt;
+      padding: 4px;
+      background: transparent;
+      text-align: center;
+      vertical-align: bottom;
+    }
+    .address-field.street { width: 35%; }
+    .address-field.city { width: 25%; }
+    .address-field.state { width: 18%; }
+    .address-field.zip { width: 22%; }
+    .address-caption {
+      display: table;
+      table-layout: fixed;
+      width: 100%;
+      font-size: 10pt;
+      font-style: italic;
+      margin: 2px 0 16px;
+    }
+    .address-caption span {
+      display: table-cell;
+      text-align: center;
+    }
+    .address-caption span:nth-child(1) { width: 35%; }
+    .address-caption span:nth-child(2) { width: 25%; }
+    .address-caption span:nth-child(3) { width: 18%; }
+    .address-caption span:nth-child(4) { width: 22%; }
+
     .approval-block { margin-top: 40px; border-top: 2px solid #333; padding-top: 20px; }
     .approval-header { text-align: center; margin-bottom: 6px; }
     .approval-header .org-name { font-size: 16pt; font-weight: bold; }
@@ -322,10 +359,10 @@
     padding: 8px 4px !important;
   }
 
-  .sig-canvas {
-    width: 100%;
-    height: 140px;
-    cursor: crosshair;
+.sig-canvas {
+  width: 100%;
+  height: 200px;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cline x1='2' y1='18' x2='10' y2='2' stroke='%231A2332' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") 2 18, crosshair;
     display: block;
     touch-action: none;
     border: 1px dashed #ccc;
@@ -403,7 +440,7 @@
     .contact-fields { flex-direction: column; gap: 12px; }
     .contact-caption { flex-direction: column; gap: 4px; }
     .address-caption { flex-direction: column; gap: 4px; padding: 0; }
-    .sig-canvas { height: 120px; }
+    .sig-canvas { height: 160px; }
   }
 
   .html-doc-viewer__btn-icon {
